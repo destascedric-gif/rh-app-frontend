@@ -11,6 +11,7 @@ import MyLeaves from './pages/MyLeaves'
 import AdminSchedule from './pages/AdminSchedule'
 import MySchedule from './pages/MySchedule'
 import AdminPayroll from './pages/AdminPayroll'
+import InviteEmployee from './pages/InviteEmployee'
 
 const PrivateRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth()
@@ -32,6 +33,7 @@ function App() {
           <Route path="/dashboard" element={<PrivateRoute adminOnly><EmployeeList /></PrivateRoute>} />
           <Route path="/employees" element={<PrivateRoute adminOnly><EmployeeList /></PrivateRoute>} />
           <Route path="/employees/:id" element={<PrivateRoute adminOnly><EmployeeDetail /></PrivateRoute>} />
+          <Route path="/invite" element={<PrivateRoute adminOnly><InviteEmployee /></PrivateRoute>} />
           <Route path="/admin/leaves" element={<PrivateRoute adminOnly><AdminLeaves /></PrivateRoute>} />
           <Route path="/admin/schedule" element={<PrivateRoute adminOnly><AdminSchedule /></PrivateRoute>} />
           <Route path="/admin/payroll" element={<PrivateRoute adminOnly><AdminPayroll /></PrivateRoute>} />
