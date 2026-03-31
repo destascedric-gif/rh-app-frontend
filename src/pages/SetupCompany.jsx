@@ -22,7 +22,7 @@ export default function SetupCompany() {
     try {
       await apiSetupCompany(form, token);
       // Après setup entreprise, l'admin ajoute ses employés
-      navigate('/setup/employees');
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {
