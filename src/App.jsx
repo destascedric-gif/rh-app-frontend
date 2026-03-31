@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import Layout from './Layout'
 import Login from './pages/Login'
 import SetupAdmin from './pages/SetupAdmin'
 import SetupCompany from './pages/SetupCompany'
@@ -18,7 +19,7 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
   if (loading) return <div>Chargement…</div>
   if (!user) return <Navigate to="/login" />
   if (adminOnly && user.role !== 'admin') return <Navigate to="/mon-espace" />
-  return children
+  return <Layout>{children}</Layout>
 }
 
 function App() {
