@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { inviteEmployee } from '../api/auth';
 
 export default function InviteEmployee() {
   const { token } = useAuth();
+  const navigate  = useNavigate();
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', jobTitle: '' });
   const [msg, setMsg]   = useState('');
   const [error, setError] = useState('');
@@ -12,6 +14,7 @@ export default function InviteEmployee() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
       await inviteEmployee(form, token);
       setMsg(`Invitation envoyée à ${form.email} !`);
@@ -37,9 +40,14 @@ export default function InviteEmployee() {
           <input value={form.jobTitle} onChange={e => setForm({...form, jobTitle: e.target.value})} /></div>
         {msg && <p style={{color:'green'}}>{msg}</p>}
         {error && <p className="error-msg">{error}</p>}
-        <button type="submit" className="btn-primary" disabled={loading}>
-          {loading ? 'Envoi…' : 'Envoyer l\'invitation'}
-        </button>
+        <div style={{display:'flex', gap:'12px', marginTop:'1rem'}}>
+          <button type="button" className="btn-ghost" onClick={() => navigate('/dashboard')}>
+            Passer cette étape
+          </button>
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? 'Envoi…' : "Envoyer l'invitation"}
+          </button>
+        </div>
       </form>
     </div>
   );
