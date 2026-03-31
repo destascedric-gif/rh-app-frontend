@@ -8,6 +8,7 @@ import AcceptInvite from './pages/AcceptInvite'
 import Dashboard from './pages/Dashboard'
 import EmployeeList from './pages/EmployeeList'
 import EmployeeDetail from './pages/EmployeeDetail'
+import EmployeeForm from './pages/EmployeeForm'
 import AdminLeaves from './pages/AdminLeaves'
 import MyLeaves from './pages/MyLeaves'
 import AdminSchedule from './pages/AdminSchedule'
@@ -35,6 +36,7 @@ function App() {
           <Route path="/dashboard" element={<PrivateRoute adminOnly><Dashboard /></PrivateRoute>} />
           <Route path="/employees" element={<PrivateRoute adminOnly><EmployeeList /></PrivateRoute>} />
           <Route path="/employees/:id" element={<PrivateRoute adminOnly><EmployeeDetail /></PrivateRoute>} />
+          <Route path="/employees/:id/edit" element={<PrivateRoute adminOnly><EmployeeForm /></PrivateRoute>} />
           <Route path="/invite" element={<PrivateRoute adminOnly><InviteEmployee /></PrivateRoute>} />
           <Route path="/admin/leaves" element={<PrivateRoute adminOnly><AdminLeaves /></PrivateRoute>} />
           <Route path="/admin/schedule" element={<PrivateRoute adminOnly><AdminSchedule /></PrivateRoute>} />
