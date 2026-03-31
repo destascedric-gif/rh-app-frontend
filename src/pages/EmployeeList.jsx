@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getEmployees } from '../api/employees';
 
-// Initiales colorées si pas de photo
 const Avatar = ({ firstName, lastName, photoUrl }) => {
   if (photoUrl) {
     return <img src={photoUrl} alt="photo" className="avatar-img" />;
@@ -56,18 +55,16 @@ export default function EmployeeList() {
 
   return (
     <div className="page">
-      {/* En-tête */}
       <div className="page-header">
         <div>
           <h1>Employés</h1>
           <p className="page-subtitle">{employees.length} membre{employees.length > 1 ? 's' : ''}</p>
         </div>
-        <button className="btn-primary" onClick={() => navigate('/employees/new')}>
+        <button className="btn-primary" onClick={() => navigate('/invite')}>
           + Ajouter un employé
         </button>
       </div>
 
-      {/* Recherche */}
       <input
         className="search-input"
         placeholder="Rechercher par nom, poste, email…"
@@ -75,7 +72,6 @@ export default function EmployeeList() {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {/* Tableau */}
       {filtered.length === 0 ? (
         <p className="empty-state">Aucun employé trouvé.</p>
       ) : (
