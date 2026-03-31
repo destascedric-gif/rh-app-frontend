@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import SetupAdmin from './pages/SetupAdmin'
 import SetupCompany from './pages/SetupCompany'
 import AcceptInvite from './pages/AcceptInvite'
+import Dashboard from './pages/Dashboard'
 import EmployeeList from './pages/EmployeeList'
 import EmployeeDetail from './pages/EmployeeDetail'
 import AdminLeaves from './pages/AdminLeaves'
@@ -31,7 +32,7 @@ function App() {
           <Route path="/setup/admin" element={<SetupAdmin />} />
           <Route path="/setup/company" element={<SetupCompany />} />
           <Route path="/accept-invite" element={<AcceptInvite />} />
-          <Route path="/dashboard" element={<PrivateRoute adminOnly><EmployeeList /></PrivateRoute>} />
+          <Route path="/dashboard" element={<PrivateRoute adminOnly><Dashboard /></PrivateRoute>} />
           <Route path="/employees" element={<PrivateRoute adminOnly><EmployeeList /></PrivateRoute>} />
           <Route path="/employees/:id" element={<PrivateRoute adminOnly><EmployeeDetail /></PrivateRoute>} />
           <Route path="/invite" element={<PrivateRoute adminOnly><InviteEmployee /></PrivateRoute>} />
