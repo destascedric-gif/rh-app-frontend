@@ -19,7 +19,7 @@ export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact =
       >
         <span className="badge-start">{start}</span>
         {breakLabel && <span className="badge-break">{breakLabel}</span>}
-        <span className="badge-end">→ {end}</span>
+        <span className="badge-end">{end}</span>
         {isAdmin && (
           <button
             className="shift-delete-btn-inline"
