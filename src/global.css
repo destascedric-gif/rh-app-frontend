@@ -827,6 +827,12 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   justify-content: center;
 }
 
+.week-emp-header {
+  min-width: 160px;
+  width: 160px;
+  border-right: 1px solid var(--border);
+}
+
 .week-cell {
   padding: 6px;
   border-right: 1px solid var(--border);

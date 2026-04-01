@@ -18,7 +18,9 @@ export const toISO = (date) => {
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
 const formatDayHeader = (date) => {
-  const day     = DAY_LABELS[date.getDay() === 0 ? 6 : date.getDay() - 1];
+  const dow     = date.getDay(); // 0=dim, 1=lun, ..., 6=sam
+  const idx     = dow === 0 ? 6 : dow - 1; // 0=lun, ..., 6=dim
+  const day     = DAY_LABELS[idx];
   const num     = date.getDate();
   const isToday = toISO(date) === toISO(new Date());
   return { day, num, isToday };
@@ -35,7 +37,6 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
   if (employees) {
     return (
       <div className="week-grid">
-        {/* En-tête : colonne nom + 7 jours — même grid que les rows */}
         <div className="week-header admin-header">
           <div className="week-emp-col week-emp-header" />
           {days.map((d, i) => {
@@ -49,7 +50,6 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
           })}
         </div>
 
-        {/* Lignes employés */}
         {employees.map((emp) => (
           <div key={emp.id} className="week-row">
             <div className="week-emp-col">
