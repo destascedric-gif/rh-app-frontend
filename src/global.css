@@ -776,7 +776,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   box-shadow: var(--shadow);
 }
 
-/* ── Grille semaine ────────────────────────── */
+/* ── Grille semaine ───────────────────────────── */
 .week-grid {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -785,16 +785,27 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   box-shadow: var(--shadow);
 }
 
-.week-header.admin-header {
-  display: grid;
-  grid-template-columns: 160px repeat(7, 1fr);
+/* Header admin : spacer 160px + 7 colonnes */
+.week-header-wrap {
+  display: flex;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 
-.week-header.employee-header {
+.week-emp-spacer {
+  width: 160px;
+  min-width: 160px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+}
+
+.week-days-header {
+  flex: 1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+}
+
+.week-days-header.employee-header {
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
@@ -810,16 +821,23 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 .week-day-num  { font-size: 16px; font-weight: 600; color: var(--text); }
 .week-day-header.today .week-day-num { color: var(--primary); }
 
+/* Lignes employés */
 .week-row {
-  display: grid;
-  grid-template-columns: 160px repeat(7, 1fr);
+  display: flex;
   border-bottom: 1px solid var(--border);
   min-height: 52px;
 }
 .week-row:last-child { border-bottom: none; }
-.week-row.employee-row { grid-template-columns: repeat(7, 1fr); }
+
+.week-row.employee-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
 
 .week-emp-col {
+  width: 160px;
+  min-width: 160px;
+  flex-shrink: 0;
   padding: 10px 12px;
   border-right: 1px solid var(--border);
   display: flex;
@@ -827,10 +845,10 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   justify-content: center;
 }
 
-.week-emp-header {
-  min-width: 160px;
-  width: 160px;
-  border-right: 1px solid var(--border);
+.week-cells-row {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
 }
 
 .week-cell {

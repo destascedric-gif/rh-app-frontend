@@ -18,8 +18,8 @@ export const toISO = (date) => {
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
 const formatDayHeader = (date) => {
-  const dow     = date.getDay(); // 0=dim, 1=lun, ..., 6=sam
-  const idx     = dow === 0 ? 6 : dow - 1; // 0=lun, ..., 6=dim
+  const dow     = date.getDay();
+  const idx     = dow === 0 ? 6 : dow - 1;
   const day     = DAY_LABELS[idx];
   const num     = date.getDate();
   const isToday = toISO(date) === toISO(new Date());
@@ -33,63 +33,76 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
   const getShiftForDay = (dateStr) =>
     shifts.find(s => s.date?.slice(0, 10) === dateStr);
 
-  // ── Vue admin : grille employés × jours ──
+  // ── Vue admin ──
   if (employees) {
     return (
       <div className="week-grid">
-        <div className="week-header admin-header">
-          <div className="week-emp-col week-emp-header" />
-          {days.map((d, i) => {
-            const { day, num, isToday } = formatDayHeader(d);
-            return (
-              <div key={i} className={`week-day-header${isToday ? ' today' : ''}`}>
-                <span className="week-day-name">{day}</span>
-                <span className="week-day-num">{num}</span>
-              </div>
-            );
-          })}
-        </div>
 
-        {employees.map((emp) => (
-          <div key={emp.id} className="week-row">
-            <div className="week-emp-col">
-              <div className="emp-name">{emp.first_name} {emp.last_name}</div>
-              <div className="emp-email">{emp.job_title}</div>
-            </div>
+        {/* En-tête */}
+        <div className="week-header-wrap">
+          <div className="week-emp-spacer" />
+          <div className="week-days-header">
             {days.map((d, i) => {
-              const dateStr = toISO(d);
-              const shift   = getShiftForUserAndDay(emp.id, dateStr);
-              const isPast  = d < new Date(new Date().setHours(0, 0, 0, 0));
+              const { day, num, isToday } = formatDayHeader(d);
               return (
-                <div
-                  key={i}
-                  className={`week-cell${shift ? ' has-shift' : ''}${isPast ? ' past' : ''}`}
-                  onClick={() => !shift && isAdmin && onCellClick?.({ userId: emp.id, date: dateStr })}
-                >
-                  {shift ? (
-                    <ShiftCard
-                      shift={shift}
-                      isAdmin={isAdmin}
-                      compact={true}
-                      onClick={() => isAdmin && onShiftClick?.(shift)}
-                      onDelete={onShiftDelete}
-                    />
-                  ) : (
-                    isAdmin && !isPast && <div className="cell-add-hint">+ Ajouter</div>
-                  )}
+                <div key={i} className={`week-day-header${isToday ? ' today' : ''}`}>
+                  <span className="week-day-name">{day}</span>
+                  <span className="week-day-num">{num}</span>
                 </div>
               );
             })}
           </div>
+        </div>
+
+        {/* Lignes employés */}
+        {employees.map((emp) => (
+          <div key={emp.id} className="week-row">
+
+            {/* Colonne nom */}
+            <div className="week-emp-col">
+              <div className="emp-name">{emp.first_name} {emp.last_name}</div>
+              <div className="emp-email">{emp.job_title}</div>
+            </div>
+
+            {/* 7 cellules jours */}
+            <div className="week-cells-row">
+              {days.map((d, i) => {
+                const dateStr = toISO(d);
+                const shift   = getShiftForUserAndDay(emp.id, dateStr);
+                const isPast  = d < new Date(new Date().setHours(0, 0, 0, 0));
+                return (
+                  <div
+                    key={i}
+                    className={`week-cell${shift ? ' has-shift' : ''}${isPast ? ' past' : ''}`}
+                    onClick={() => !shift && isAdmin && onCellClick?.({ userId: emp.id, date: dateStr })}
+                  >
+                    {shift ? (
+                      <ShiftCard
+                        shift={shift}
+                        isAdmin={isAdmin}
+                        compact={true}
+                        onClick={() => isAdmin && onShiftClick?.(shift)}
+                        onDelete={onShiftDelete}
+                      />
+                    ) : (
+                      isAdmin && !isPast && <div className="cell-add-hint">+ Ajouter</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+          </div>
         ))}
+
       </div>
     );
   }
 
-  // ── Vue employé : une seule ligne ──
+  // ── Vue employé ──
   return (
     <div className="week-grid">
-      <div className="week-header employee-header">
+      <div className="week-days-header employee-header">
         {days.map((d, i) => {
           const { day, num, isToday } = formatDayHeader(d);
           return (
