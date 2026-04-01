@@ -904,14 +904,16 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   box-shadow: var(--shadow);
 }
 
-.month-header {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
+.month-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
-.month-day-label {
+.month-th {
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   padding: 8px;
   text-align: center;
   font-size: 11px;
@@ -919,26 +921,26 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   text-transform: uppercase;
   color: var(--text-muted);
   letter-spacing: 0.05em;
-  border-right: 1px solid var(--border);
 }
-.month-day-label:last-child { border-right: none; }
+.month-th:last-child { border-right: none; }
 
-.month-cells {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-}
-
-.month-cell {
-  min-height: 70px;
-  padding: 6px;
+.month-td {
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
+  padding: 6px;
+  vertical-align: top;
+  min-width: 0;
+  height: 90px;
+  cursor: pointer;
   transition: background 0.1s;
 }
-.month-cell:hover { background: var(--bg); cursor: pointer; }
-.month-cell.other-month { background: var(--bg); opacity: 0.5; }
-.month-cell.today { background: var(--primary-light); }
-.month-cell.past  { opacity: 0.6; }
+.month-td:last-child { border-right: none; }
+.month-td:hover { background: var(--bg); }
+.month-td.other-month { background: var(--bg); opacity: 0.5; }
+.month-td.today { background: var(--primary-light); }
+.month-td.past { opacity: 0.6; }
+
+.month-table tbody tr:last-child td { border-bottom: none; }
 
 .month-cell-num {
   font-size: 12px;
@@ -946,8 +948,10 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   color: var(--text-muted);
   margin-bottom: 4px;
 }
-.month-cell.today .month-cell-num { color: var(--primary); }
+.month-td.today .month-cell-num { color: var(--primary); }
+
 .month-overflow { font-size: 10.5px; color: var(--text-light); }
+
 .month-shift-badge {
   display: flex;
   align-items: center;
@@ -963,10 +967,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   overflow: hidden;
   white-space: nowrap;
 }
-
-.month-shift-badge:hover {
-  background: #DBEAFE;
-}
+.month-shift-badge:hover { background: #DBEAFE; }
 
 .badge-name {
   font-weight: 600;
@@ -979,6 +980,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .shift-delete-btn-inline {
   background: none;
   border: none;

@@ -25,8 +25,18 @@ const getMonthCells = (year, month) => {
   return cells;
 };
 
+// Découpe les 42 cellules en 6 semaines de 7
+const chunkWeeks = (cells) => {
+  const weeks = [];
+  for (let i = 0; i < cells.length; i += 7) {
+    weeks.push(cells.slice(i, i + 7));
+  }
+  return weeks;
+};
+
 export default function MonthView({ year, month, shifts, isAdmin, selectedUserId, onCellClick, onShiftClick, onShiftDelete }) {
   const cells  = getMonthCells(year, month);
+  const weeks  = chunkWeeks(cells);
   const today  = toISO(new Date());
 
   const filteredShifts = selectedUserId
@@ -38,72 +48,83 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
 
   return (
     <div className="month-grid">
-      {/* En-tête jours */}
-      <div className="month-header">
-        {DAY_LABELS.map(d => (
-          <div key={d} className="month-day-label">{d}</div>
-        ))}
-      </div>
+      <table className="month-table">
+        <colgroup>
+          {DAY_LABELS.map((_, i) => <col key={i} />)}
+        </colgroup>
 
-      {/* Grille de cellules */}
-      <div className="month-cells">
-        {cells.map((cell, i) => {
-          const dateStr   = toISO(cell.date);
-          const dayShifts = getShiftsForDay(dateStr);
-          const isToday   = dateStr === today;
-          const isPast    = cell.date < new Date(new Date().setHours(0, 0, 0, 0));
+        {/* En-tête jours */}
+        <thead>
+          <tr>
+            {DAY_LABELS.map(d => (
+              <th key={d} className="month-th">{d}</th>
+            ))}
+          </tr>
+        </thead>
 
-          return (
-            <div
-              key={i}
-              className={[
-                'month-cell',
-                !cell.currentMonth ? 'other-month' : '',
-                isToday ? 'today' : '',
-                isPast  ? 'past'  : '',
-              ].filter(Boolean).join(' ')}
-              onClick={() => isAdmin && dayShifts.length === 0 && onCellClick?.({ date: dateStr })}
-            >
-              <div className="month-cell-num">{cell.date.getDate()}</div>
-
-              {/* Badges avec nom + heures */}
-              {dayShifts.slice(0, 3).map((shift, j) => {
-                const name  = shift.last_name
-                  ? `${shift.first_name?.[0]}. ${shift.last_name}`
-                  : null;
-                const hours = `${shift.start_time?.slice(0, 5)} → ${shift.end_time?.slice(0, 5)}`;
+        {/* Semaines */}
+        <tbody>
+          {weeks.map((week, wi) => (
+            <tr key={wi}>
+              {week.map((cell, di) => {
+                const dateStr   = toISO(cell.date);
+                const dayShifts = getShiftsForDay(dateStr);
+                const isToday   = dateStr === today;
+                const isPast    = cell.date < new Date(new Date().setHours(0, 0, 0, 0));
 
                 return (
-                  <div
-                    key={j}
-                    className="month-shift-badge"
-                    onClick={(e) => { e.stopPropagation(); isAdmin && onShiftClick?.(shift); }}
-                    title={name ? `${name} · ${hours}` : hours}
+                  <td
+                    key={di}
+                    className={[
+                      'month-td',
+                      !cell.currentMonth ? 'other-month' : '',
+                      isToday ? 'today' : '',
+                      isPast  ? 'past'  : '',
+                    ].filter(Boolean).join(' ')}
+                    onClick={() => isAdmin && dayShifts.length === 0 && onCellClick?.({ date: dateStr })}
                   >
-                    {name && <span className="badge-name">{name}</span>}
-                    <span className="badge-hours">{hours}</span>
-                    {isAdmin && (
-                      <button
-                        className="shift-delete-btn-inline"
-                        onClick={(e) => { e.stopPropagation(); onShiftDelete?.(shift); }}
-                        title="Supprimer"
-                      >×</button>
+                    <div className="month-cell-num">{cell.date.getDate()}</div>
+
+                    {dayShifts.slice(0, 3).map((shift, j) => {
+                      const name  = shift.last_name
+                        ? `${shift.first_name?.[0]}. ${shift.last_name}`
+                        : null;
+                      const hours = `${shift.start_time?.slice(0, 5)} → ${shift.end_time?.slice(0, 5)}`;
+
+                      return (
+                        <div
+                          key={j}
+                          className="month-shift-badge"
+                          onClick={(e) => { e.stopPropagation(); isAdmin && onShiftClick?.(shift); }}
+                          title={name ? `${name} · ${hours}` : hours}
+                        >
+                          {name && <span className="badge-name">{name}</span>}
+                          <span className="badge-hours">{hours}</span>
+                          {isAdmin && (
+                            <button
+                              className="shift-delete-btn-inline"
+                              onClick={(e) => { e.stopPropagation(); onShiftDelete?.(shift); }}
+                              title="Supprimer"
+                            >×</button>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {dayShifts.length > 3 && (
+                      <div className="month-overflow">+{dayShifts.length - 3} autres</div>
                     )}
-                  </div>
+
+                    {isAdmin && dayShifts.length === 0 && cell.currentMonth && !isPast && (
+                      <div className="cell-add-hint">+ Ajouter</div>
+                    )}
+                  </td>
                 );
               })}
-
-              {dayShifts.length > 3 && (
-                <div className="month-overflow">+{dayShifts.length - 3} autres</div>
-              )}
-
-              {isAdmin && dayShifts.length === 0 && cell.currentMonth && !isPast && (
-                <div className="cell-add-hint">+ Ajouter</div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
