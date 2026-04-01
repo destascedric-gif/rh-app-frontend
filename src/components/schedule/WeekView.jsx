@@ -37,64 +37,60 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
   if (employees) {
     return (
       <div className="week-grid">
-
-        {/* En-tête */}
-        <div className="week-header-wrap">
-          <div className="week-emp-spacer" />
-          <div className="week-days-header">
-            {days.map((d, i) => {
-              const { day, num, isToday } = formatDayHeader(d);
-              return (
-                <div key={i} className={`week-day-header${isToday ? ' today' : ''}`}>
-                  <span className="week-day-name">{day}</span>
-                  <span className="week-day-num">{num}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Lignes employés */}
-        {employees.map((emp) => (
-          <div key={emp.id} className="week-row">
-
-            {/* Colonne nom */}
-            <div className="week-emp-col">
-              <div className="emp-name">{emp.first_name} {emp.last_name}</div>
-              <div className="emp-email">{emp.job_title}</div>
-            </div>
-
-            {/* 7 cellules jours */}
-            <div className="week-cells-row">
+        <table className="week-table">
+          <colgroup>
+            <col className="col-emp" />
+            {days.map((_, i) => <col key={i} className="col-day" />)}
+          </colgroup>
+          <thead>
+            <tr>
+              <th className="week-th-emp" />
               {days.map((d, i) => {
-                const dateStr = toISO(d);
-                const shift   = getShiftForUserAndDay(emp.id, dateStr);
-                const isPast  = d < new Date(new Date().setHours(0, 0, 0, 0));
+                const { day, num, isToday } = formatDayHeader(d);
                 return (
-                  <div
-                    key={i}
-                    className={`week-cell${shift ? ' has-shift' : ''}${isPast ? ' past' : ''}`}
-                    onClick={() => !shift && isAdmin && onCellClick?.({ userId: emp.id, date: dateStr })}
-                  >
-                    {shift ? (
-                      <ShiftCard
-                        shift={shift}
-                        isAdmin={isAdmin}
-                        compact={true}
-                        onClick={() => isAdmin && onShiftClick?.(shift)}
-                        onDelete={onShiftDelete}
-                      />
-                    ) : (
-                      isAdmin && !isPast && <div className="cell-add-hint">+ Ajouter</div>
-                    )}
-                  </div>
+                  <th key={i} className={`week-th-day${isToday ? ' today' : ''}`}>
+                    <span className="week-day-name">{day}</span>
+                    <span className="week-day-num">{num}</span>
+                  </th>
                 );
               })}
-            </div>
-
-          </div>
-        ))}
-
+            </tr>
+          </thead>
+          <tbody>
+            {employees.map((emp) => (
+              <tr key={emp.id}>
+                <td className="week-td-emp">
+                  <div className="emp-name">{emp.first_name} {emp.last_name}</div>
+                  <div className="emp-email">{emp.job_title}</div>
+                </td>
+                {days.map((d, i) => {
+                  const dateStr = toISO(d);
+                  const shift   = getShiftForUserAndDay(emp.id, dateStr);
+                  const isPast  = d < new Date(new Date().setHours(0, 0, 0, 0));
+                  return (
+                    <td
+                      key={i}
+                      className={`week-td-cell${shift ? ' has-shift' : ''}${isPast ? ' past' : ''}`}
+                      onClick={() => !shift && isAdmin && onCellClick?.({ userId: emp.id, date: dateStr })}
+                    >
+                      {shift ? (
+                        <ShiftCard
+                          shift={shift}
+                          isAdmin={isAdmin}
+                          compact={true}
+                          onClick={() => isAdmin && onShiftClick?.(shift)}
+                          onDelete={onShiftDelete}
+                        />
+                      ) : (
+                        isAdmin && !isPast && <div className="cell-add-hint">+ Ajouter</div>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
   }
@@ -102,31 +98,40 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
   // ── Vue employé ──
   return (
     <div className="week-grid">
-      <div className="week-days-header employee-header">
-        {days.map((d, i) => {
-          const { day, num, isToday } = formatDayHeader(d);
-          return (
-            <div key={i} className={`week-day-header${isToday ? ' today' : ''}`}>
-              <span className="week-day-name">{day}</span>
-              <span className="week-day-num">{num}</span>
-            </div>
-          );
-        })}
-      </div>
-      <div className="week-row employee-row">
-        {days.map((d, i) => {
-          const dateStr = toISO(d);
-          const shift   = getShiftForDay(dateStr);
-          return (
-            <div key={i} className={`week-cell${shift ? ' has-shift' : ''}`}>
-              {shift
-                ? <ShiftCard shift={shift} isAdmin={false} compact={true} />
-                : <div className="cell-empty">—</div>
-              }
-            </div>
-          );
-        })}
-      </div>
+      <table className="week-table">
+        <colgroup>
+          {days.map((_, i) => <col key={i} className="col-day" />)}
+        </colgroup>
+        <thead>
+          <tr>
+            {days.map((d, i) => {
+              const { day, num, isToday } = formatDayHeader(d);
+              return (
+                <th key={i} className={`week-th-day${isToday ? ' today' : ''}`}>
+                  <span className="week-day-name">{day}</span>
+                  <span className="week-day-num">{num}</span>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            {days.map((d, i) => {
+              const dateStr = toISO(d);
+              const shift   = getShiftForDay(dateStr);
+              return (
+                <td key={i} className={`week-td-cell${shift ? ' has-shift' : ''}`}>
+                  {shift
+                    ? <ShiftCard shift={shift} isAdmin={false} compact={true} />
+                    : <div className="cell-empty">—</div>
+                  }
+                </td>
+              );
+            })}
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -785,84 +785,69 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   box-shadow: var(--shadow);
 }
 
-/* Header admin : spacer 160px + 7 colonnes */
-.week-header-wrap {
-  display: flex;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
+.week-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
-.week-emp-spacer {
+.col-emp { width: 160px; }
+.col-day { width: auto; }
+
+.week-th-emp {
   width: 160px;
-  min-width: 160px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--border);
-}
-
-.week-days-header {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-}
-
-.week-days-header.employee-header {
   background: var(--bg);
+  border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
 
-.week-day-header {
+.week-th-day {
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   padding: 10px 8px;
   text-align: center;
-  border-right: 1px solid var(--border);
 }
-.week-day-header:last-child { border-right: none; }
-.week-day-header.today { background: var(--primary-light); }
-.week-day-name { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; }
-.week-day-num  { font-size: 16px; font-weight: 600; color: var(--text); }
-.week-day-header.today .week-day-num { color: var(--primary); }
+.week-th-day:last-child { border-right: none; }
+.week-th-day.today { background: var(--primary-light); }
 
-/* Lignes employés */
-.week-row {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-  min-height: 52px;
+.week-day-name {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: block;
 }
-.week-row:last-child { border-bottom: none; }
-
-.week-row.employee-row {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+.week-day-num {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  display: block;
 }
+.week-th-day.today .week-day-num { color: var(--primary); }
 
-.week-emp-col {
+.week-td-emp {
   width: 160px;
-  min-width: 160px;
-  flex-shrink: 0;
   padding: 10px 12px;
   border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
 }
 
-.week-cells-row {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-}
-
-.week-cell {
+.week-td-cell {
   padding: 6px;
   border-right: 1px solid var(--border);
-  position: relative;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  min-height: 52px;
+  cursor: pointer;
   transition: background 0.1s;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
-.week-cell:last-child { border-right: none; }
-.week-cell:hover { background: var(--bg); cursor: pointer; }
-.week-cell.past { opacity: 0.5; }
+.week-td-cell:last-child { border-right: none; }
+.week-td-cell:hover { background: var(--bg); }
+.week-td-cell.past { opacity: 0.5; }
+
+.week-table tbody tr:last-child td { border-bottom: none; }
 
 .cell-add-hint {
   font-size: 11px;
@@ -870,7 +855,12 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   text-align: center;
   padding: 8px 0;
 }
-.cell-empty { font-size: 12px; color: var(--text-light); text-align: center; padding: 8px 0; }
+.cell-empty {
+  font-size: 12px;
+  color: var(--text-light);
+  text-align: center;
+  padding: 8px 0;
+}
 
 /* ── Carte créneau ─────────────────────────────── */
 .shift-card {
