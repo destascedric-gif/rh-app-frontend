@@ -1,17 +1,18 @@
 const formatTime = (t) => t?.slice(0, 5) ?? '';
 
 export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact = false }) {
-  const hours = `${formatTime(shift.start_time)} → ${formatTime(shift.end_time)}`;
+  const start = formatTime(shift.start_time);
+  const end   = formatTime(shift.end_time);
 
-  // Mode compact : badge 1 ligne sans nom (vue semaine)
   if (compact) {
     return (
       <div
-        className="month-shift-badge"
+        className="week-shift-badge"
         onClick={onClick}
-        title={hours}
+        title={`${start} → ${end}`}
       >
-        <span className="badge-hours">{hours}</span>
+        <span className="badge-start">{start}</span>
+        <span className="badge-end">→ {end}</span>
         {isAdmin && (
           <button
             className="shift-delete-btn-inline"
@@ -23,10 +24,9 @@ export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact =
     );
   }
 
-  // Mode détaillé : carte complète
   return (
     <div className="shift-card" onClick={onClick}>
-      <div className="shift-times">{hours}</div>
+      <div className="shift-times">{start} → {end}</div>
       {shift.breaks?.length > 0 && (
         <div className="shift-breaks">
           {shift.breaks.map((b, i) => (
