@@ -1,20 +1,16 @@
 const formatTime = (t) => t?.slice(0, 5) ?? '';
 
 export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact = false }) {
-  const name = shift.last_name
-    ? `${shift.first_name?.[0]}. ${shift.last_name}`
-    : null;
   const hours = `${formatTime(shift.start_time)} → ${formatTime(shift.end_time)}`;
 
-  // Mode compact : badge 1 ligne (vue mois et vue semaine)
+  // Mode compact : badge 1 ligne sans nom (vue semaine)
   if (compact) {
     return (
       <div
         className="month-shift-badge"
         onClick={onClick}
-        title={name ? `${name} · ${hours}` : hours}
+        title={hours}
       >
-        {name && <span className="badge-name">{name}</span>}
         <span className="badge-hours">{hours}</span>
         {isAdmin && (
           <button
@@ -27,7 +23,7 @@ export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact =
     );
   }
 
-  // Mode détaillé : carte complète (non utilisé pour l'instant, conservé pour évolution)
+  // Mode détaillé : carte complète
   return (
     <div className="shift-card" onClick={onClick}>
       <div className="shift-times">{hours}</div>

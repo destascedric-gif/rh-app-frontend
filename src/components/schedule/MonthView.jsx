@@ -25,7 +25,7 @@ const getMonthCells = (year, month) => {
   return cells;
 };
 
-export default function MonthView({ year, month, shifts, employees, isAdmin, selectedUserId, onCellClick, onShiftClick, onShiftDelete }) {
+export default function MonthView({ year, month, shifts, isAdmin, selectedUserId, onCellClick, onShiftClick, onShiftDelete }) {
   const cells  = getMonthCells(year, month);
   const today  = toISO(new Date());
 
@@ -66,7 +66,7 @@ export default function MonthView({ year, month, shifts, employees, isAdmin, sel
             >
               <div className="month-cell-num">{cell.date.getDate()}</div>
 
-              {/* Badges compacts — 1 ligne par employé */}
+              {/* Badges avec nom + heures */}
               {dayShifts.slice(0, 3).map((shift, j) => {
                 const name  = shift.last_name
                   ? `${shift.first_name?.[0]}. ${shift.last_name}`
@@ -82,6 +82,13 @@ export default function MonthView({ year, month, shifts, employees, isAdmin, sel
                   >
                     {name && <span className="badge-name">{name}</span>}
                     <span className="badge-hours">{hours}</span>
+                    {isAdmin && (
+                      <button
+                        className="shift-delete-btn-inline"
+                        onClick={(e) => { e.stopPropagation(); onShiftDelete?.(shift); }}
+                        title="Supprimer"
+                      >×</button>
+                    )}
                   </div>
                 );
               })}
