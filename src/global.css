@@ -785,15 +785,18 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   box-shadow: var(--shadow);
 }
 
-.week-header {
+.week-header.admin-header {
   display: grid;
   grid-template-columns: 160px repeat(7, 1fr);
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 
-.week-header.employee-row {
+.week-header.employee-header {
+  display: grid;
   grid-template-columns: repeat(7, 1fr);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
 }
 
 .week-day-header {

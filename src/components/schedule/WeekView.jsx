@@ -8,7 +8,6 @@ export const getWeekDays = (monday) => {
   });
 };
 
-// ✅ Correction fuseau horaire : utilise les heures locales, pas UTC
 export const toISO = (date) => {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -35,13 +34,14 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
   // ── Vue admin : grille employés × jours ──
   if (employees) {
     return (
-      <div className="week-grid admin">
-        <div className="week-header">
-          <div className="week-emp-col" />
+      <div className="week-grid">
+        {/* En-tête : colonne nom + 7 jours — même grid que les rows */}
+        <div className="week-header admin-header">
+          <div className="week-emp-col week-emp-header" />
           {days.map((d, i) => {
             const { day, num, isToday } = formatDayHeader(d);
             return (
-              <div key={i} className={`week-day-header ${isToday ? 'today' : ''}`}>
+              <div key={i} className={`week-day-header${isToday ? ' today' : ''}`}>
                 <span className="week-day-name">{day}</span>
                 <span className="week-day-num">{num}</span>
               </div>
@@ -49,6 +49,7 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
           })}
         </div>
 
+        {/* Lignes employés */}
         {employees.map((emp) => (
           <div key={emp.id} className="week-row">
             <div className="week-emp-col">
@@ -62,7 +63,7 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
               return (
                 <div
                   key={i}
-                  className={`week-cell ${shift ? 'has-shift' : ''} ${isPast ? 'past' : ''}`}
+                  className={`week-cell${shift ? ' has-shift' : ''}${isPast ? ' past' : ''}`}
                   onClick={() => !shift && isAdmin && onCellClick?.({ userId: emp.id, date: dateStr })}
                 >
                   {shift ? (
@@ -87,12 +88,12 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
 
   // ── Vue employé : une seule ligne ──
   return (
-    <div className="week-grid employee">
-      <div className="week-header">
+    <div className="week-grid">
+      <div className="week-header employee-header">
         {days.map((d, i) => {
           const { day, num, isToday } = formatDayHeader(d);
           return (
-            <div key={i} className={`week-day-header ${isToday ? 'today' : ''}`}>
+            <div key={i} className={`week-day-header${isToday ? ' today' : ''}`}>
               <span className="week-day-name">{day}</span>
               <span className="week-day-num">{num}</span>
             </div>
@@ -104,7 +105,7 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
           const dateStr = toISO(d);
           const shift   = getShiftForDay(dateStr);
           return (
-            <div key={i} className={`week-cell ${shift ? 'has-shift' : ''}`}>
+            <div key={i} className={`week-cell${shift ? ' has-shift' : ''}`}>
               {shift
                 ? <ShiftCard shift={shift} isAdmin={false} compact={true} />
                 : <div className="cell-empty">—</div>
