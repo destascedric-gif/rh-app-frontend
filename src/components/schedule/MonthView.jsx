@@ -1,36 +1,27 @@
-import ShiftCard from './ShiftCard';
 import { toISO } from './WeekView';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
-// Génère toutes les cellules du calendrier mensuel (lundi au dimanche)
 const getMonthCells = (year, month) => {
-  const firstDay  = new Date(year, month, 1);
-  const lastDay   = new Date(year, month + 1, 0);
-  const startDow  = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // 0=lundi
+  const firstDay = new Date(year, month, 1);
+  const lastDay  = new Date(year, month + 1, 0);
+  const startDow = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+  const cells    = [];
 
-  const cells = [];
-
-  // Jours du mois précédent (padding)
   for (let i = startDow - 1; i >= 0; i--) {
     const d = new Date(firstDay);
     d.setDate(d.getDate() - (i + 1));
     cells.push({ date: d, currentMonth: false });
   }
-
-  // Jours du mois
   for (let d = 1; d <= lastDay.getDate(); d++) {
     cells.push({ date: new Date(year, month, d), currentMonth: true });
   }
-
-  // Compléter jusqu'à 42 cellules (6 semaines)
   while (cells.length < 42) {
     const last = cells[cells.length - 1].date;
     const next = new Date(last);
     next.setDate(next.getDate() + 1);
     cells.push({ date: next, currentMonth: false });
   }
-
   return cells;
 };
 
@@ -38,7 +29,6 @@ export default function MonthView({ year, month, shifts, employees, isAdmin, sel
   const cells  = getMonthCells(year, month);
   const today  = toISO(new Date());
 
-  // Filtre les shifts selon l'employé sélectionné (vue admin avec filtre)
   const filteredShifts = selectedUserId
     ? shifts.filter(s => s.user_id === selectedUserId)
     : shifts;
@@ -61,7 +51,7 @@ export default function MonthView({ year, month, shifts, employees, isAdmin, sel
           const dateStr   = toISO(cell.date);
           const dayShifts = getShiftsForDay(dateStr);
           const isToday   = dateStr === today;
-          const isPast    = cell.date < new Date(new Date().setHours(0,0,0,0));
+          const isPast    = cell.date < new Date(new Date().setHours(0, 0, 0, 0));
 
           return (
             <div
@@ -72,22 +62,32 @@ export default function MonthView({ year, month, shifts, employees, isAdmin, sel
                 isToday ? 'today' : '',
                 isPast  ? 'past'  : '',
               ].filter(Boolean).join(' ')}
-              onClick={() => isAdmin && !dayShifts.length && onCellClick?.({ date: dateStr })}
+              onClick={() => isAdmin && dayShifts.length === 0 && onCellClick?.({ date: dateStr })}
             >
               <div className="month-cell-num">{cell.date.getDate()}</div>
 
-              {dayShifts.slice(0, 2).map((shift, j) => (
-                <ShiftCard
-                  key={j}
-                  shift={shift}
-                  isAdmin={isAdmin}
-                  onClick={() => isAdmin && onShiftClick?.(shift)}
-                  onDelete={onShiftDelete}
-                />
-              ))}
+              {/* Badges compacts — 1 ligne par employé */}
+              {dayShifts.slice(0, 3).map((shift, j) => {
+                const name  = shift.last_name
+                  ? `${shift.first_name?.[0]}. ${shift.last_name}`
+                  : null;
+                const hours = `${shift.start_time?.slice(0, 5)} → ${shift.end_time?.slice(0, 5)}`;
 
-              {dayShifts.length > 2 && (
-                <div className="month-overflow">+{dayShifts.length - 2} autres</div>
+                return (
+                  <div
+                    key={j}
+                    className="month-shift-badge"
+                    onClick={(e) => { e.stopPropagation(); isAdmin && onShiftClick?.(shift); }}
+                    title={name ? `${name} · ${hours}` : hours}
+                  >
+                    {name && <span className="badge-name">{name}</span>}
+                    <span className="badge-hours">{hours}</span>
+                  </div>
+                );
+              })}
+
+              {dayShifts.length > 3 && (
+                <div className="month-overflow">+{dayShifts.length - 3} autres</div>
               )}
 
               {isAdmin && dayShifts.length === 0 && cell.currentMonth && !isPast && (

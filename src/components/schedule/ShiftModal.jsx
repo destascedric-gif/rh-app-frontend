@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { createShift, updateShift } from '../../api/schedule';
 
-// Pause par défaut (déjeuner 1h)
 const DEFAULT_BREAK = { start_time: '12:00', end_time: '13:00', label: 'Pause déjeuner' };
 
 export default function ShiftModal({ shift, date, userId, employees, onClose, onSaved }) {
@@ -25,13 +24,27 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
 
-  // Calcul aperçu durée nette
+  // Calcul aperçu durée nette (défensif)
+  const toMin = (t) => {
+    if (!t) return 0;
+    const clean = t.slice(0, 5);
+    const [h, m] = clean.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return 0;
+    return h * 60 + m;
+  };
+
   const netMinutes = (() => {
-    const toMin = (t) => { const [h,m] = t.split(':').map(Number); return h*60+m; };
-    const total  = toMin(form.endTime) - toMin(form.startTime);
-    const breaks = form.breaks.reduce((s, b) => s + (toMin(b.end_time) - toMin(b.start_time)), 0);
-    return Math.max(0, total - breaks);
+    const total = toMin(form.endTime) - toMin(form.startTime);
+    const pauseTotal = form.breaks.reduce((s, b) => {
+      const dur = toMin(b.end_time) - toMin(b.start_time);
+      return s + (dur > 0 ? dur : 0);
+    }, 0);
+    return Math.max(0, total - pauseTotal);
   })();
+
+  const h = Math.floor(netMinutes / 60);
+  const m = netMinutes % 60;
+  const durationLabel = `${h} h${m > 0 ? ` ${m} min` : ''}`;
 
   const addBreak = () =>
     setForm(f => ({ ...f, breaks: [...f.breaks, { start_time: '', end_time: '', label: 'Pause' }] }));
@@ -82,7 +95,7 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
         <h3>{isEdit ? 'Modifier le créneau' : 'Nouveau créneau'}</h3>
 
         <form onSubmit={handleSubmit}>
-          {/* Employé (si non présélectionné) */}
+          {/* Employé */}
           {!userId && employees && (
             <div className="field">
               <label>Employé *</label>
@@ -136,7 +149,7 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
 
           {/* Aperçu durée nette */}
           <div className="leave-preview">
-            Durée nette : <strong>{Math.floor(netMinutes/60)}h{netMinutes%60 > 0 ? `${netMinutes%60}min` : ''}</strong>
+            Durée nette : <strong>{durationLabel}</strong>
             <span className="text-muted"> (pauses déduites)</span>
           </div>
 

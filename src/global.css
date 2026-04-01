@@ -928,6 +928,37 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 }
 .month-cell.today .month-cell-num { color: var(--primary); }
 .month-overflow { font-size: 10.5px; color: var(--text-light); }
+.month-shift-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  margin-top: 2px;
+  border-radius: 4px;
+  background: var(--primary-light);
+  border-left: 3px solid var(--primary);
+  font-size: 11px;
+  line-height: 1.4;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.month-shift-badge:hover {
+  background: #DBEAFE;
+}
+
+.badge-name {
+  font-weight: 600;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.badge-hours {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* ── Paie ──────────────────────────────────── */
 .leave-preview {
