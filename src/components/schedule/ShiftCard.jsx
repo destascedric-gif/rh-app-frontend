@@ -7,7 +7,7 @@ export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact =
   // Première pause uniquement (la plus courante)
   const firstBreak = shift.breaks?.[0];
   const breakLabel = firstBreak
-    ? `${formatTime(firstBreak.start_time)}/${formatTime(firstBreak.end_time)}`
+    ? `${formatTime(firstBreak.start_time)}-${formatTime(firstBreak.end_time)}`
     : null;
 
   if (compact) {
