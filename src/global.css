@@ -787,7 +787,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 
 .week-header {
   display: grid;
-  grid-template-columns: 140px repeat(7, 1fr);
+  grid-template-columns: 160px repeat(7, 1fr);
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
@@ -809,9 +809,9 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 
 .week-row {
   display: grid;
-  grid-template-columns: 140px repeat(7, 1fr);
+  grid-template-columns: 160px repeat(7, 1fr);
   border-bottom: 1px solid var(--border);
-  min-height: 70px;
+  min-height: 52px;
 }
 .week-row:last-child { border-bottom: none; }
 .week-row.employee-row { grid-template-columns: repeat(7, 1fr); }
@@ -829,6 +829,9 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   border-right: 1px solid var(--border);
   position: relative;
   transition: background 0.1s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .week-cell:last-child { border-right: none; }
 .week-cell:hover { background: var(--bg); cursor: pointer; }
@@ -842,7 +845,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 }
 .cell-empty { font-size: 12px; color: var(--text-light); text-align: center; padding: 8px 0; }
 
-/* ── Carte créneau ─────────────────────────── */
+/* ── Carte créneau ─────────────────────────────── */
 .shift-card {
   background: var(--primary-light);
   border: 1px solid #BFDBFE;
