@@ -959,6 +959,50 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.shift-delete-btn-inline {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--danger);
+  cursor: pointer;
+  opacity: 0;
+  padding: 0 2px;
+  margin-left: auto;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+.month-shift-badge:hover .shift-delete-btn-inline { opacity: 1; }
+
+/* ── Select employés toolbar ── */
+.schedule-toolbar select,
+.schedule-toolbar .employee-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 7px 32px 7px 12px;
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center;
+  color: var(--text);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  min-width: 180px;
+}
+
+.schedule-toolbar select:focus,
+.schedule-toolbar .employee-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(28, 78, 216, 0.08);
+}
+
+.schedule-toolbar select:hover,
+.schedule-toolbar .employee-select:hover {
+  border-color: var(--border-dark);
+  background-color: var(--bg-hover);
+}
 
 /* ── Paie ──────────────────────────────────── */
 .leave-preview {
