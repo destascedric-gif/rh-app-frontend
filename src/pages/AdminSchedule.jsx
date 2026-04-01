@@ -6,7 +6,6 @@ import WeekView, { getWeekDays, toISO } from '../components/schedule/WeekView';
 import MonthView from '../components/schedule/MonthView';
 import ShiftModal from '../components/schedule/ShiftModal';
 
-// Lundi de la semaine courante
 const getMondayOfWeek = (date = new Date()) => {
   const d   = new Date(date);
   const dow = d.getDay() === 0 ? 6 : d.getDay() - 1;
@@ -20,36 +19,32 @@ const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet',
 export default function AdminSchedule() {
   const { token } = useAuth();
 
-  const [view,       setView]       = useState('week');   // 'week' | 'month'
-  const [monday,     setMonday]     = useState(getMondayOfWeek());
-  const [monthDate,  setMonthDate]  = useState(new Date());
-  const [employees,  setEmployees]  = useState([]);
-  const [shifts,     setShifts]     = useState([]);
-  const [filteredEmp, setFilteredEmp] = useState('');     // filtre par employé
-  const [loading,    setLoading]    = useState(true);
-  const [modal,      setModal]      = useState(null);     // { shift?, date?, userId? }
+  const [view,        setView]        = useState('week');
+  const [monday,      setMonday]      = useState(getMondayOfWeek());
+  const [monthDate,   setMonthDate]   = useState(new Date());
+  const [employees,   setEmployees]   = useState([]);
+  const [shifts,      setShifts]      = useState([]);
+  const [filteredEmp, setFilteredEmp] = useState('');
+  const [loading,     setLoading]     = useState(true);
+  const [modal,       setModal]       = useState(null);
 
-  // Chargement initial des employés
   useEffect(() => {
     getEmployees(token).then(setEmployees).catch(console.error);
   }, [token]);
 
-  // Calcule la plage de dates selon la vue
   const getDateRange = useCallback(() => {
     if (view === 'week') {
-      const days  = getWeekDays(monday);
+      const days = getWeekDays(monday);
       return { start: toISO(days[0]), end: toISO(days[6]) };
-    } else {
-      const y = monthDate.getFullYear();
-      const m = monthDate.getMonth();
-      return {
-        start: toISO(new Date(y, m, 1)),
-        end:   toISO(new Date(y, m + 1, 0)),
-      };
     }
+    const y = monthDate.getFullYear();
+    const m = monthDate.getMonth();
+    return {
+      start: toISO(new Date(y, m, 1)),
+      end:   toISO(new Date(y, m + 1, 0)),
+    };
   }, [view, monday, monthDate]);
 
-  // Chargement des créneaux
   const loadShifts = useCallback(async () => {
     setLoading(true);
     try {
@@ -65,9 +60,8 @@ export default function AdminSchedule() {
 
   useEffect(() => { loadShifts(); }, [loadShifts]);
 
-  // Navigation semaine
-  const prevWeek = () => setMonday(d => { const n = new Date(d); n.setDate(n.getDate()-7); return n; });
-  const nextWeek = () => setMonday(d => { const n = new Date(d); n.setDate(n.getDate()+7); return n; });
+  const prevWeek  = () => setMonday(d => { const n = new Date(d); n.setDate(n.getDate()-7); return n; });
+  const nextWeek  = () => setMonday(d => { const n = new Date(d); n.setDate(n.getDate()+7); return n; });
   const prevMonth = () => setMonthDate(d => new Date(d.getFullYear(), d.getMonth()-1, 1));
   const nextMonth = () => setMonthDate(d => new Date(d.getFullYear(), d.getMonth()+1, 1));
 
@@ -92,7 +86,6 @@ export default function AdminSchedule() {
 
   const weekDays = getWeekDays(monday);
 
-  // Employés affichés (filtrés ou tous)
   const displayedEmployees = filteredEmp
     ? employees.filter(e => e.id === filteredEmp)
     : employees;
@@ -109,13 +102,11 @@ export default function AdminSchedule() {
         </button>
       </div>
 
-      {/* Barre de contrôles */}
       <div className="schedule-toolbar">
-        {/* Filtre employé */}
+        {/* Select employé stylisé */}
         <select
           value={filteredEmp}
           onChange={e => setFilteredEmp(e.target.value)}
-          style={{ minWidth: 180 }}
         >
           <option value="">Tous les employés</option>
           {employees.map(e => (
@@ -123,7 +114,6 @@ export default function AdminSchedule() {
           ))}
         </select>
 
-        {/* Navigation */}
         <div className="schedule-nav">
           <button className="btn-ghost" onClick={view === 'week' ? prevWeek : prevMonth}>←</button>
           <span className="schedule-period">
@@ -138,7 +128,6 @@ export default function AdminSchedule() {
           </button>
         </div>
 
-        {/* Bascule semaine / mois */}
         <div className="role-toggle">
           <button className={`role-btn ${view==='week'?'active':''}`} onClick={() => setView('week')}>Semaine</button>
           <button className={`role-btn ${view==='month'?'active':''}`} onClick={() => setView('month')}>Mois</button>

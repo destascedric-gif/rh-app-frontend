@@ -8,7 +8,13 @@ export const getWeekDays = (monday) => {
   });
 };
 
-export const toISO = (date) => date.toISOString().slice(0, 10);
+// ✅ Correction fuseau horaire : utilise les heures locales, pas UTC
+export const toISO = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
@@ -30,7 +36,6 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
   if (employees) {
     return (
       <div className="week-grid admin">
-        {/* En-tête jours */}
         <div className="week-header">
           <div className="week-emp-col" />
           {days.map((d, i) => {
@@ -44,7 +49,6 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
           })}
         </div>
 
-        {/* Lignes employés */}
         {employees.map((emp) => (
           <div key={emp.id} className="week-row">
             <div className="week-emp-col">
