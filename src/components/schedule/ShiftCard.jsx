@@ -4,14 +4,21 @@ export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact =
   const start = formatTime(shift.start_time);
   const end   = formatTime(shift.end_time);
 
+  // Première pause uniquement (la plus courante)
+  const firstBreak = shift.breaks?.[0];
+  const breakLabel = firstBreak
+    ? `${formatTime(firstBreak.start_time)}/${formatTime(firstBreak.end_time)}`
+    : null;
+
   if (compact) {
     return (
       <div
         className="week-shift-badge"
         onClick={onClick}
-        title={`${start} → ${end}`}
+        title={`${start} → ${end}${breakLabel ? ` · pause ${breakLabel}` : ''}`}
       >
         <span className="badge-start">{start}</span>
+        {breakLabel && <span className="badge-break">{breakLabel}</span>}
         <span className="badge-end">→ {end}</span>
         {isAdmin && (
           <button
