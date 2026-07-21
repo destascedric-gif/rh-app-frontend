@@ -15,6 +15,8 @@ import AdminSchedule from './pages/AdminSchedule'
 import MySchedule from './pages/MySchedule'
 import AdminPayroll from './pages/AdminPayroll'
 import InviteEmployee from './pages/InviteEmployee'
+import MyTimesheet from './pages/MyTimesheet'
+import Settings from './pages/Settings'
 
 const PrivateRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth()
@@ -41,8 +43,10 @@ function App() {
           <Route path="/admin/leaves" element={<PrivateRoute adminOnly><AdminLeaves /></PrivateRoute>} />
           <Route path="/admin/schedule" element={<PrivateRoute adminOnly><AdminSchedule /></PrivateRoute>} />
           <Route path="/admin/payroll" element={<PrivateRoute adminOnly><AdminPayroll /></PrivateRoute>} />
+          <Route path="/parametres" element={<PrivateRoute adminOnly><Settings /></PrivateRoute>} />
           <Route path="/mon-espace" element={<PrivateRoute><MyLeaves /></PrivateRoute>} />
           <Route path="/mon-planning" element={<PrivateRoute><MySchedule /></PrivateRoute>} />
+          <Route path="/mon-pointage" element={<PrivateRoute><MyTimesheet /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </BrowserRouter>

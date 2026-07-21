@@ -142,7 +142,6 @@ export default function AdminSchedule() {
           shifts={shifts}
           employees={displayedEmployees}
           isAdmin={true}
-          onCellClick={(cell) => setModal(cell)}
           onShiftClick={(shift) => setModal({ shift })}
           onShiftDelete={handleDelete}
         />
@@ -151,10 +150,8 @@ export default function AdminSchedule() {
           year={monthDate.getFullYear()}
           month={monthDate.getMonth()}
           shifts={shifts}
-          employees={displayedEmployees}
           isAdmin={true}
           selectedUserId={filteredEmp}
-          onCellClick={(cell) => setModal(cell)}
           onShiftClick={(shift) => setModal({ shift })}
           onShiftDelete={handleDelete}
         />

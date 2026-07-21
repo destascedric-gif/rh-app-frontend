@@ -15,10 +15,10 @@ const InfoRow = ({ label, value }) => (
 
 export default function ResumeTab({ employee, formatDate }) {
   return (
-    <div className="resume-tab">
-      {/* Informations personnelles */}
+    <div className="resume-tab resume-grid">
+      {/* Identité & contact */}
       <section className="info-section">
-        <h2>Informations personnelles</h2>
+        <h2>Identité & contact</h2>
         <div className="info-grid">
           <InfoRow label="Prénom"              value={employee.first_name} />
           <InfoRow label="Nom"                 value={employee.last_name} />
@@ -29,15 +29,18 @@ export default function ResumeTab({ employee, formatDate }) {
         </div>
       </section>
 
-      {/* Informations professionnelles */}
+      {/* Contrat & rémunération */}
       <section className="info-section">
-        <h2>Informations professionnelles</h2>
+        <h2>Contrat & rémunération</h2>
         <div className="info-grid">
-          <InfoRow label="Poste"           value={employee.job_title} />
-          <InfoRow label="Département"     value={employee.department} />
-          <InfoRow label="Type de contrat" value={employee.contract_type} />
-          <InfoRow label="Temps de travail" value={employee.work_time} />
-          <InfoRow label="Date d'embauche" value={formatDate(employee.hire_date)} />
+          <InfoRow label="Poste"            value={employee.job_title} />
+          <InfoRow label="Département"      value={employee.department} />
+          <InfoRow label="Type de contrat"  value={employee.contract_type} />
+          <InfoRow
+            label="Temps de travail"
+            value={employee.work_time ? `${employee.work_time} (${employee.weekly_hours ?? '—'} h/semaine)` : null}
+          />
+          <InfoRow label="Date d'embauche"  value={formatDate(employee.hire_date)} />
           <InfoRow
             label="Salaire brut"
             value={
@@ -49,8 +52,8 @@ export default function ResumeTab({ employee, formatDate }) {
         </div>
       </section>
 
-      {/* Pied de fiche */}
-      <section className="info-section">
+      {/* Système */}
+      <section className="info-section resume-system">
         <h2>Informations système</h2>
         <div className="info-grid">
           <InfoRow label="Compte créé le"  value={formatDate(employee.created_at)} />

@@ -26,10 +26,27 @@ const get = async (url, token = null) => {
   return data;
 };
 
+const put = async (url, body, token = null) => {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API}${url}`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Erreur serveur');
+  return data;
+};
+
 // ── Auth API ──────────────────────────────────────────
 export const checkSetupStatus = ()               => get('/auth/setup-status');
 export const setupAdmin       = (data)           => post('/auth/setup/admin', data);
 export const setupCompany     = (data, token)    => post('/auth/setup/company', data, token);
 export const login            = (data)           => post('/auth/login', data);
 export const inviteEmployee   = (data, token)    => post('/auth/invite', data, token);
+export const resendInvite     = (id, token)      => post(`/auth/invite/${id}/resend`, {}, token);
+export const changePassword   = (data, token)    => put('/auth/change-password', data, token);
 export const acceptInvite     = (data)           => post('/auth/accept-invite', data);

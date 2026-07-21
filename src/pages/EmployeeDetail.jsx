@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getEmployee } from '../api/employees';
+import { getEmployee, deactivateEmployee, reactivateEmployee } from '../api/employees';
+import { resendInvite } from '../api/auth';
 import ResumeTab    from '../components/tabs/ResumeTab';
 import PayslipsTab  from '../components/tabs/PayslipsTab';
 import DocumentsTab from '../components/tabs/DocumentsTab';
 import TimesheetTab from '../components/tabs/TimesheetTab';
+import MonthlySummaryTab from '../components/tabs/MonthlySummaryTab';
 
 const TABS = [
   { key: 'resume',    label: 'Résumé général' },
+  { key: 'summary',   label: 'Récap mensuel' },
   { key: 'payslips',  label: 'Bulletins de paie' },
   { key: 'documents', label: 'Documents' },
   { key: 'timesheet', label: 'Pointage' },
@@ -32,20 +35,51 @@ export default function EmployeeDetail() {
   const [activeTab, setActiveTab] = useState('resume');
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState('');
+  const [confirmAction, setConfirmAction] = useState(null); // 'deactivate' | 'reactivate'
+  const [busy, setBusy] = useState(false);
+  const [actionMsg, setActionMsg] = useState('');
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await getEmployee(id, token);
-        setEmployee(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [id, token]);
+  const load = async () => {
+    try {
+      const data = await getEmployee(id, token);
+      setEmployee(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, [id, token]);
+
+  const handleResend = async () => {
+    setBusy(true);
+    setActionMsg('');
+    try {
+      const result = await resendInvite(id, token);
+      setActionMsg(result.emailSent === false
+        ? "L'email n'a pas pu être envoyé."
+        : 'Invitation renvoyée.');
+    } catch (err) {
+      setActionMsg(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleConfirmAction = async () => {
+    setBusy(true);
+    try {
+      if (confirmAction === 'deactivate') await deactivateEmployee(id, token);
+      else await reactivateEmployee(id, token);
+      setConfirmAction(null);
+      await load();
+    } catch (err) {
+      setActionMsg(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   if (loading) return <div className="page-loading">Chargement…</div>;
   if (error)   return <div className="page-error">{error}</div>;
@@ -87,13 +121,30 @@ export default function EmployeeDetail() {
             </span>
           </div>
         </div>
-        <button
-          className="btn-secondary"
-          onClick={() => navigate(`/employees/${id}/edit`)}
-        >
-          Modifier la fiche
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+          <button className="btn-secondary" onClick={() => navigate(`/employees/${id}/edit`)}>
+            Modifier la fiche
+          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {!employee.invite_accepted && employee.is_active && (
+              <button className="btn-ghost" disabled={busy} onClick={handleResend}>
+                Renvoyer l'invitation
+              </button>
+            )}
+            {employee.is_active ? (
+              <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={() => setConfirmAction('deactivate')}>
+                Désactiver
+              </button>
+            ) : (
+              <button className="btn-ghost" onClick={() => setConfirmAction('reactivate')}>
+                Réactiver
+              </button>
+            )}
+          </div>
+        </div>
       </div>
+
+      {actionMsg && <p className="notif-bar">{actionMsg}</p>}
 
       {/* Onglets */}
       <div className="tabs">
@@ -111,10 +162,33 @@ export default function EmployeeDetail() {
       {/* Contenu de l'onglet actif */}
       <div className="tab-content">
         {activeTab === 'resume'    && <ResumeTab    employee={employee} formatDate={formatDate} />}
+        {activeTab === 'summary'   && <MonthlySummaryTab employeeId={id} />}
         {activeTab === 'payslips'  && <PayslipsTab  employeeId={id} />}
         {activeTab === 'documents' && <DocumentsTab employeeId={id} />}
         {activeTab === 'timesheet' && <TimesheetTab employeeId={id} />}
       </div>
+
+      {confirmAction && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>{confirmAction === 'deactivate' ? 'Désactiver cet employé ?' : 'Réactiver cet employé ?'}</h3>
+            <p>
+              <strong>{fullName}</strong>
+              {confirmAction === 'deactivate'
+                ? ' ne pourra plus se connecter à l\'application. Ses données sont conservées et il pourra être réactivé à tout moment.'
+                : ' pourra de nouveau se connecter à l\'application.'}
+            </p>
+            <div className="form-actions">
+              <button className="btn-ghost" onClick={() => setConfirmAction(null)} disabled={busy}>
+                Annuler
+              </button>
+              <button className="btn-primary" onClick={handleConfirmAction} disabled={busy}>
+                {busy ? 'Enregistrement…' : 'Confirmer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

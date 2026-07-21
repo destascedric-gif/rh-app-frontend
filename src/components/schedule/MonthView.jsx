@@ -1,6 +1,8 @@
 import { toISO } from './WeekView';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence' };
+const typeClass = (type) => type && type !== 'travail' ? ` shift-type--${type}` : '';
 
 const getMonthCells = (year, month) => {
   const firstDay = new Date(year, month, 1);
@@ -34,7 +36,7 @@ const chunkWeeks = (cells) => {
   return weeks;
 };
 
-export default function MonthView({ year, month, shifts, isAdmin, selectedUserId, onCellClick, onShiftClick, onShiftDelete }) {
+export default function MonthView({ year, month, shifts, isAdmin, selectedUserId, onShiftClick, onShiftDelete }) {
   const cells  = getMonthCells(year, month);
   const weeks  = chunkWeeks(cells);
   const today  = toISO(new Date());
@@ -81,22 +83,24 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
                       isToday ? 'today' : '',
                       isPast  ? 'past'  : '',
                     ].filter(Boolean).join(' ')}
-                    onClick={() => isAdmin && dayShifts.length === 0 && onCellClick?.({ date: dateStr })}
                   >
                     <div className="month-cell-num">{cell.date.getDate()}</div>
 
                     {dayShifts.slice(0, 3).map((shift, j) => {
+                      const type  = shift.type || 'travail';
                       const name  = shift.last_name
                         ? `${shift.first_name?.[0]}. ${shift.last_name}`
                         : null;
-                      const hours = `${shift.start_time?.slice(0, 5)} → ${shift.end_time?.slice(0, 5)}`;
+                      const hours = type === 'travail'
+                        ? `${shift.start_time?.slice(0, 5)} → ${shift.end_time?.slice(0, 5)}`
+                        : TYPE_LABELS[type];
 
                       return (
                         <div
                           key={j}
-                          className="month-shift-badge"
+                          className={`month-shift-badge${typeClass(type)}`}
                           onClick={(e) => { e.stopPropagation(); isAdmin && onShiftClick?.(shift); }}
-                          title={name ? `${name} · ${hours}` : hours}
+                          data-tooltip={name ? `${name} · ${hours}` : hours}
                         >
                           {name && <span className="badge-name">{name}</span>}
                           <span className="badge-hours">{hours}</span>
@@ -104,7 +108,7 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
                             <button
                               className="shift-delete-btn-inline"
                               onClick={(e) => { e.stopPropagation(); onShiftDelete?.(shift); }}
-                              title="Supprimer"
+                              data-tooltip="Supprimer"
                             >×</button>
                           )}
                         </div>
@@ -113,10 +117,6 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
 
                     {dayShifts.length > 3 && (
                       <div className="month-overflow">+{dayShifts.length - 3} autres</div>
-                    )}
-
-                    {isAdmin && dayShifts.length === 0 && cell.currentMonth && !isPast && (
-                      <div className="cell-add-hint">+ Ajouter</div>
                     )}
                   </td>
                 );

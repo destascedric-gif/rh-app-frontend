@@ -13,7 +13,7 @@ export default function EmployeeForm() {
 
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', phone: '',
-    jobTitle: '', department: '', contractType: '', workTime: '',
+    jobTitle: '', department: '', contractType: '', workTime: '', weeklyHours: '',
     hireDate: '', grossSalary: '', birthDate: '', socialSecurity: '',
   });
   const [loading,  setLoading]  = useState(true);
@@ -32,6 +32,7 @@ export default function EmployeeForm() {
         department:     emp.department      ?? '',
         contractType:   emp.contract_type   ?? '',
         workTime:       emp.work_time       ?? '',
+        weeklyHours:    emp.weekly_hours    ?? '',
         hireDate:       emp.hire_date?.slice(0,10) ?? '',
         grossSalary:    emp.gross_salary    ?? '',
         birthDate:      emp.birth_date?.slice(0,10) ?? '',
@@ -42,6 +43,15 @@ export default function EmployeeForm() {
   }, [id, token]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleWorkTimeChange = (e) => {
+    const workTime = e.target.value;
+    setForm((f) => ({
+      ...f,
+      workTime,
+      weeklyHours: workTime === 'Temps plein' ? 35 : workTime === 'Temps partiel' ? f.weeklyHours || '' : f.weeklyHours,
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -132,7 +142,7 @@ export default function EmployeeForm() {
             </div>
             <div className="field">
               <label>Temps de travail</label>
-              <select name="workTime" value={form.workTime} onChange={handleChange}>
+              <select name="workTime" value={form.workTime} onChange={handleWorkTimeChange}>
                 <option value="">Sélectionner…</option>
                 {WORK_TIMES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -140,12 +150,18 @@ export default function EmployeeForm() {
           </div>
           <div className="field-row">
             <div className="field">
-              <label>Date d'embauche</label>
-              <input type="date" name="hireDate" value={form.hireDate} onChange={handleChange} />
+              <label>Heures hebdomadaires</label>
+              <input type="number" step="0.5" min="0" max="60" name="weeklyHours" value={form.weeklyHours} onChange={handleChange} placeholder="35" />
             </div>
             <div className="field">
               <label>Salaire brut mensuel (€)</label>
               <input type="number" name="grossSalary" value={form.grossSalary} onChange={handleChange} placeholder="2500" />
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field">
+              <label>Date d'embauche</label>
+              <input type="date" name="hireDate" value={form.hireDate} onChange={handleChange} />
             </div>
           </div>
         </div>

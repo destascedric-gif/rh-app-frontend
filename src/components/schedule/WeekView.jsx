@@ -26,7 +26,7 @@ const formatDayHeader = (date) => {
   return { day, num, isToday };
 };
 
-export default function WeekView({ days, shifts, employees, isAdmin, onCellClick, onShiftClick, onShiftDelete }) {
+export default function WeekView({ days, shifts, employees, isAdmin, onShiftClick, onShiftDelete }) {
   const getShiftForUserAndDay = (userId, dateStr) =>
     shifts.find(s => s.user_id === userId && s.date?.slice(0, 10) === dateStr);
 
@@ -71,7 +71,6 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
                     <td
                       key={i}
                       className={`week-td-cell${shift ? ' has-shift' : ''}${isPast ? ' past' : ''}`}
-                      onClick={() => !shift && isAdmin && onCellClick?.({ userId: emp.id, date: dateStr })}
                     >
                       {shift ? (
                         <ShiftCard
@@ -82,7 +81,7 @@ export default function WeekView({ days, shifts, employees, isAdmin, onCellClick
                           onDelete={onShiftDelete}
                         />
                       ) : (
-                        isAdmin && !isPast && <div className="cell-add-hint">+ Ajouter</div>
+                        <div className="cell-empty">—</div>
                       )}
                     </td>
                   );

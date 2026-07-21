@@ -4,6 +4,13 @@ import { createShift, updateShift } from '../../api/schedule';
 
 const DEFAULT_BREAK = { start_time: '12:00', end_time: '13:00', label: 'Pause déjeuner' };
 
+const SHIFT_TYPES = [
+  { value: 'travail', label: 'Travail' },
+  { value: 'conge',   label: 'Congé' },
+  { value: 'repos',   label: 'Repos' },
+  { value: 'absence', label: 'Absence' },
+];
+
 export default function ShiftModal({ shift, date, userId, employees, onClose, onSaved }) {
   const { token } = useAuth();
   const isEdit    = !!shift;
@@ -11,6 +18,7 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
   const [form, setForm] = useState({
     userId:    userId ?? shift?.user_id ?? '',
     date:      date   ?? shift?.date    ?? '',
+    type:      shift?.type ?? 'travail',
     startTime: shift?.start_time?.slice(0,5) ?? '09:00',
     endTime:   shift?.end_time?.slice(0,5)   ?? '17:00',
     note:      shift?.note ?? '',
@@ -20,6 +28,8 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
       label:      b.label,
     })) ?? [{ ...DEFAULT_BREAK }],
   });
+
+  const isWorkShift = form.type === 'travail';
 
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
@@ -66,14 +76,15 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
     const payload = {
       userId:    form.userId,
       date:      form.date,
+      type:      form.type,
       startTime: form.startTime,
       endTime:   form.endTime,
       note:      form.note,
-      breaks:    form.breaks.map(b => ({
+      breaks:    isWorkShift ? form.breaks.map(b => ({
         start_time: b.start_time,
         end_time:   b.end_time,
         label:      b.label || 'Pause',
-      })),
+      })) : [],
     };
 
     try {
@@ -114,6 +125,19 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
             </div>
           )}
 
+          {/* Type de créneau */}
+          <div className="field">
+            <label>Type de créneau *</label>
+            <select
+              value={form.type}
+              onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+            >
+              {SHIFT_TYPES.map(t => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Date */}
           <div className="field">
             <label>Date *</label>
@@ -147,54 +171,58 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
             </div>
           </div>
 
-          {/* Aperçu durée nette */}
-          <div className="leave-preview">
-            Durée nette : <strong>{durationLabel}</strong>
-            <span className="text-muted"> (pauses déduites)</span>
-          </div>
-
-          {/* Pauses */}
-          <div style={{ marginTop: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <label style={{ fontWeight: 500, fontSize: 13 }}>Pauses</label>
-              <button type="button" className="btn-ghost" style={{ fontSize: 12, padding: '3px 10px' }} onClick={addBreak}>
-                + Ajouter une pause
-              </button>
+          {/* Aperçu durée nette (uniquement pour un créneau de travail) */}
+          {isWorkShift && (
+            <div className="leave-preview">
+              Durée nette : <strong>{durationLabel}</strong>
+              <span className="text-muted"> (pauses déduites)</span>
             </div>
+          )}
 
-            {form.breaks.map((b, i) => (
-              <div key={i} className="break-row">
-                <input
-                  type="text"
-                  value={b.label}
-                  onChange={e => updateBreak(i, 'label', e.target.value)}
-                  placeholder="Label"
-                  style={{ flex: 2 }}
-                />
-                <input
-                  type="time"
-                  value={b.start_time}
-                  onChange={e => updateBreak(i, 'start_time', e.target.value)}
-                  style={{ flex: 1 }}
-                />
-                <span style={{ color: 'var(--color-text-tertiary)', fontSize: 12 }}>→</span>
-                <input
-                  type="time"
-                  value={b.end_time}
-                  onChange={e => updateBreak(i, 'end_time', e.target.value)}
-                  style={{ flex: 1 }}
-                />
-                <button
-                  type="button"
-                  className="btn-ghost"
-                  style={{ fontSize: 12, padding: '3px 8px', color: 'var(--color-text-danger)' }}
-                  onClick={() => removeBreak(i)}
-                >
-                  ×
+          {/* Pauses (uniquement pour un créneau de travail) */}
+          {isWorkShift && (
+            <div style={{ marginTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <label style={{ fontWeight: 500, fontSize: 13 }}>Pauses</label>
+                <button type="button" className="btn-ghost" style={{ fontSize: 12, padding: '3px 10px' }} onClick={addBreak}>
+                  + Ajouter une pause
                 </button>
               </div>
-            ))}
-          </div>
+
+              {form.breaks.map((b, i) => (
+                <div key={i} className="break-row">
+                  <input
+                    type="text"
+                    value={b.label}
+                    onChange={e => updateBreak(i, 'label', e.target.value)}
+                    placeholder="Label"
+                    style={{ flex: 2 }}
+                  />
+                  <input
+                    type="time"
+                    value={b.start_time}
+                    onChange={e => updateBreak(i, 'start_time', e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <span style={{ color: 'var(--color-text-tertiary)', fontSize: 12 }}>→</span>
+                  <input
+                    type="time"
+                    value={b.end_time}
+                    onChange={e => updateBreak(i, 'end_time', e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-ghost"
+                    style={{ fontSize: 12, padding: '3px 8px', color: 'var(--color-text-danger)' }}
+                    onClick={() => removeBreak(i)}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Note */}
           <div className="field" style={{ marginTop: '1rem' }}>

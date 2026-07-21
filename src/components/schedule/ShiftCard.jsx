@@ -1,8 +1,13 @@
 const formatTime = (t) => t?.slice(0, 5) ?? '';
 
+const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence' };
+const typeClass = (type) => type && type !== 'travail' ? ` shift-type--${type}` : '';
+
 export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact = false }) {
   const start = formatTime(shift.start_time);
   const end   = formatTime(shift.end_time);
+  const type  = shift.type || 'travail';
+  const isWorkShift = type === 'travail';
 
   // Première pause uniquement (la plus courante)
   const firstBreak = shift.breaks?.[0];
@@ -13,18 +18,26 @@ export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact =
   if (compact) {
     return (
       <div
-        className="week-shift-badge"
+        className={`week-shift-badge${typeClass(type)}`}
         onClick={onClick}
-        title={`${start} → ${end}${breakLabel ? ` · pause ${breakLabel}` : ''}`}
+        data-tooltip={isWorkShift
+          ? `${start} → ${end}${breakLabel ? ` · pause ${breakLabel}` : ''}`
+          : TYPE_LABELS[type]}
       >
-        <span className="badge-start">{start}</span>
-        {breakLabel && <span className="badge-break">{breakLabel}</span>}
-        <span className="badge-end">{end}</span>
+        {isWorkShift ? (
+          <>
+            <span className="badge-start">{start}</span>
+            {breakLabel && <span className="badge-break">{breakLabel}</span>}
+            <span className="badge-end">{end}</span>
+          </>
+        ) : (
+          <span className="badge-type-label">{TYPE_LABELS[type]}</span>
+        )}
         {isAdmin && (
           <button
             className="shift-delete-btn-inline"
             onClick={(e) => { e.stopPropagation(); onDelete?.(shift); }}
-            title="Supprimer"
+            data-tooltip="Supprimer"
           >×</button>
         )}
       </div>
@@ -32,9 +45,10 @@ export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact =
   }
 
   return (
-    <div className="shift-card" onClick={onClick}>
+    <div className={`shift-card${typeClass(type)}`} onClick={onClick}>
+      {!isWorkShift && <div className="shift-type-tag">{TYPE_LABELS[type]}</div>}
       <div className="shift-times">{start} → {end}</div>
-      {shift.breaks?.length > 0 && (
+      {isWorkShift && shift.breaks?.length > 0 && (
         <div className="shift-breaks">
           {shift.breaks.map((b, i) => (
             <span key={i} className="shift-break-tag">
@@ -43,15 +57,17 @@ export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact =
           ))}
         </div>
       )}
-      <div className="shift-net">
-        {shift.net_hours ? `${shift.net_hours}h nettes` : ''}
-      </div>
+      {isWorkShift && (
+        <div className="shift-net">
+          {shift.net_hours ? `${shift.net_hours}h nettes` : ''}
+        </div>
+      )}
       {shift.note && <div className="shift-note">{shift.note}</div>}
       {isAdmin && (
         <button
           className="shift-delete-btn"
           onClick={(e) => { e.stopPropagation(); onDelete?.(shift); }}
-          title="Supprimer ce créneau"
+          data-tooltip="Supprimer ce créneau"
         >×</button>
       )}
     </div>

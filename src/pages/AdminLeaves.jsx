@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getAllRequests, reviewRequest } from '../api/leaves';
+import { getAllRequests, reviewRequest, getEmployeeBalance } from '../api/leaves';
 import LeaveStatusBadge from '../components/leaves/LeaveStatusBadge';
+import LeaveBalanceCard from '../components/leaves/LeaveBalanceCard';
 
 const formatDate = (d) => new Date(d).toLocaleDateString('fr-FR');
 
@@ -25,6 +26,12 @@ export default function AdminLeaves() {
   const [adminNote,  setAdminNote]  = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error,      setError]      = useState('');
+  const [emailWarning, setEmailWarning] = useState('');
+
+  // Solde employé
+  const [balanceFor, setBalanceFor] = useState(null); // { id, name }
+  const [balances,   setBalances]   = useState([]);
+  const [balanceLoading, setBalanceLoading] = useState(false);
 
   const load = async (status) => {
     setLoading(true);
@@ -43,7 +50,8 @@ export default function AdminLeaves() {
     setSubmitting(true);
     setError('');
     try {
-      await reviewRequest(selected.id, { status: decision, adminNote }, token);
+      const result = await reviewRequest(selected.id, { status: decision, adminNote }, token);
+      setEmailWarning(result.emailSent === false ? "L'email de notification n'a pas pu être envoyé à l'employé." : '');
       setSelected(null);
       setAdminNote('');
       setDecision('');
@@ -52,6 +60,17 @@ export default function AdminLeaves() {
       setError(err.message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const openBalance = async (r) => {
+    setBalanceFor({ id: r.employee_id, name: r.employee_name });
+    setBalanceLoading(true);
+    try {
+      const data = await getEmployeeBalance(r.employee_id, token);
+      setBalances(data);
+    } finally {
+      setBalanceLoading(false);
     }
   };
 
@@ -69,6 +88,8 @@ export default function AdminLeaves() {
           </p>
         </div>
       </div>
+
+      {emailWarning && <p className="notif-bar">{emailWarning}</p>}
 
       {/* Filtres */}
       <div className="filter-tabs">
@@ -126,18 +147,23 @@ export default function AdminLeaves() {
                 <td className="text-muted">{r.reason || '—'}</td>
                 <td><LeaveStatusBadge status={r.status} /></td>
                 <td>
-                  {r.status === 'en_attente' ? (
-                    <button
-                      className="btn-primary small"
-                      onClick={() => { setSelected(r); setDecision(''); setAdminNote(''); }}
-                    >
-                      Traiter
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <button className="btn-ghost" style={{ padding: '3px 10px', fontSize: 12 }} onClick={() => openBalance(r)}>
+                      Solde
                     </button>
-                  ) : (
-                    <span className="text-muted">
-                      {r.reviewed_at ? formatDate(r.reviewed_at) : '—'}
-                    </span>
-                  )}
+                    {r.status === 'en_attente' ? (
+                      <button
+                        className="btn-primary small"
+                        onClick={() => { setSelected(r); setDecision(''); setAdminNote(''); }}
+                      >
+                        Traiter
+                      </button>
+                    ) : (
+                      <span className="text-muted">
+                        {r.reviewed_at ? formatDate(r.reviewed_at) : '—'}
+                      </span>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -202,6 +228,34 @@ export default function AdminLeaves() {
               >
                 {submitting ? 'Enregistrement…' : 'Confirmer'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Solde de congés d'un employé */}
+      {balanceFor && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Solde de congés — {balanceFor.name}</h3>
+            {balanceLoading ? (
+              <p className="tab-loading">Chargement…</p>
+            ) : balances.length === 0 ? (
+              <p className="empty-state">Aucun solde initialisé pour cet employé.</p>
+            ) : (
+              <div className="balance-grid">
+                {balances.map((b) => (
+                  <LeaveBalanceCard
+                    key={b.leave_type}
+                    leaveType={b.leave_type}
+                    balanceDays={parseFloat(b.balance_days)}
+                    usedDays={parseFloat(b.used_days)}
+                  />
+                ))}
+              </div>
+            )}
+            <div className="form-actions">
+              <button className="btn-ghost" onClick={() => setBalanceFor(null)}>Fermer</button>
             </div>
           </div>
         </div>

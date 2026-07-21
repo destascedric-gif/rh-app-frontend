@@ -1,10 +1,25 @@
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { useAuth } from './context/AuthContext'
+import { getSettings } from './api/settings'
+import {
+  DashboardIcon, EmployeesIcon, LeavesIcon, ScheduleIcon, PayrollIcon, TimesheetIcon, SettingsIcon,
+} from './components/NavIcons'
 
 export default function Layout({ children }) {
   const navigate  = useNavigate()
   const location  = useLocation()
-  const { user, logout, isAdmin } = useAuth()
+  const { user, token, logout, isAdmin } = useAuth()
+
+  // Applique la couleur principale personnalisée par l'entreprise
+  useEffect(() => {
+    if (!token) return
+    getSettings(token)
+      .then((s) => {
+        if (s.primary_color) document.documentElement.style.setProperty('--primary', s.primary_color)
+      })
+      .catch(() => {})
+  }, [token])
 
   const handleLogout = () => { logout(); navigate('/login'); }
 
@@ -21,17 +36,19 @@ export default function Layout({ children }) {
         {isAdmin ? (
           <>
             <div className="nav-section">Menu</div>
-            <div className={isActive('/dashboard')} onClick={() => navigate('/dashboard')}>◻ Tableau de bord</div>
-            <div className={isActive('/employees')} onClick={() => navigate('/employees')}>◻ Employés</div>
-            <div className={isActive('/admin/leaves')} onClick={() => navigate('/admin/leaves')}>◻ Congés</div>
-            <div className={isActive('/admin/schedule')} onClick={() => navigate('/admin/schedule')}>◻ Planning</div>
-            <div className={isActive('/admin/payroll')} onClick={() => navigate('/admin/payroll')}>◻ Paie</div>
+            <div className={isActive('/dashboard')} onClick={() => navigate('/dashboard')}><DashboardIcon /> Tableau de bord</div>
+            <div className={isActive('/employees')} onClick={() => navigate('/employees')}><EmployeesIcon /> Employés</div>
+            <div className={isActive('/admin/leaves')} onClick={() => navigate('/admin/leaves')}><LeavesIcon /> Congés</div>
+            <div className={isActive('/admin/schedule')} onClick={() => navigate('/admin/schedule')}><ScheduleIcon /> Planning</div>
+            <div className={isActive('/admin/payroll')} onClick={() => navigate('/admin/payroll')}><PayrollIcon /> Paie</div>
+            <div className={isActive('/parametres')} onClick={() => navigate('/parametres')}><SettingsIcon /> Paramètres</div>
           </>
         ) : (
           <>
             <div className="nav-section">Menu</div>
-            <div className={isActive('/mon-espace')} onClick={() => navigate('/mon-espace')}>◻ Mon espace</div>
-            <div className={isActive('/mon-planning')} onClick={() => navigate('/mon-planning')}>◻ Mon planning</div>
+            <div className={isActive('/mon-espace')} onClick={() => navigate('/mon-espace')}><LeavesIcon /> Mon espace</div>
+            <div className={isActive('/mon-planning')} onClick={() => navigate('/mon-planning')}><ScheduleIcon /> Mon planning</div>
+            <div className={isActive('/mon-pointage')} onClick={() => navigate('/mon-pointage')}><TimesheetIcon /> Mon pointage</div>
           </>
         )}
 

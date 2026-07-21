@@ -16,8 +16,10 @@ export default function InviteEmployee() {
     setLoading(true);
     setError('');
     try {
-      await inviteEmployee(form, token);
-      setMsg(`Invitation envoyée à ${form.email} !`);
+      const result = await inviteEmployee(form, token);
+      setMsg(result.emailSent === false
+        ? `Employé créé, mais l'email n'a pas pu être envoyé. Vous pourrez le renvoyer depuis sa fiche.`
+        : `Invitation envoyée à ${form.email} !`);
       setForm({ firstName: '', lastName: '', email: '', jobTitle: '' });
     } catch (err) {
       setError(err.message);
@@ -41,8 +43,8 @@ export default function InviteEmployee() {
         {msg && <p style={{color:'green'}}>{msg}</p>}
         {error && <p className="error-msg">{error}</p>}
         <div style={{display:'flex', gap:'12px', marginTop:'1rem'}}>
-          <button type="button" className="btn-ghost" onClick={() => navigate('/dashboard')}>
-            Passer cette étape
+          <button type="button" className="btn-ghost" onClick={() => navigate('/employees')}>
+            Annuler
           </button>
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Envoi…' : "Envoyer l'invitation"}
