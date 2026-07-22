@@ -1,11 +1,5 @@
 // Onglet "Résumé général" — affiche toutes les infos personnelles et pro
 
-const maskSSN = (ssn) => {
-  if (!ssn) return '—';
-  // Masque tout sauf les 4 derniers chiffres
-  return '•'.repeat(ssn.length - 4) + ssn.slice(-4);
-};
-
 const InfoRow = ({ label, value }) => (
   <div className="info-row">
     <span className="info-label">{label}</span>
@@ -25,7 +19,6 @@ export default function ResumeTab({ employee, formatDate }) {
           <InfoRow label="Email"               value={employee.email} />
           <InfoRow label="Téléphone"           value={employee.phone} />
           <InfoRow label="Date de naissance"   value={formatDate(employee.birth_date)} />
-          <InfoRow label="N° Sécurité sociale" value={maskSSN(employee.social_security)} />
         </div>
       </section>
 

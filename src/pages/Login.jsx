@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { login as apiLogin } from '../api/auth';
+import { login as apiLogin, checkSetupStatus } from '../api/auth';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,6 +10,18 @@ export default function Login() {
   const [form, setForm]     = useState({ email: '', password: '' });
   const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingSetup, setCheckingSetup] = useState(true);
+
+  // Tant qu'aucune entreprise n'a terminé la configuration initiale,
+  // on envoie directement vers l'assistant de création de compte.
+  useEffect(() => {
+    checkSetupStatus()
+      .then((res) => {
+        if (!res.setupComplete) navigate('/setup/admin', { replace: true });
+        else setCheckingSetup(false);
+      })
+      .catch(() => setCheckingSetup(false));
+  }, [navigate]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -31,6 +43,8 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  if (checkingSetup) return null;
 
   return (
     <div className="auth-container">

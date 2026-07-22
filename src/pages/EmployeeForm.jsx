@@ -14,7 +14,7 @@ export default function EmployeeForm() {
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', phone: '',
     jobTitle: '', department: '', contractType: '', workTime: '', weeklyHours: '',
-    hireDate: '', grossSalary: '', birthDate: '', socialSecurity: '',
+    hireDate: '', grossSalary: '', birthDate: '',
   });
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
@@ -36,7 +36,6 @@ export default function EmployeeForm() {
         hireDate:       emp.hire_date?.slice(0,10) ?? '',
         grossSalary:    emp.gross_salary    ?? '',
         birthDate:      emp.birth_date?.slice(0,10) ?? '',
-        socialSecurity: emp.social_security ?? '',
       });
     }).catch(err => setError(err.message))
       .finally(() => setLoading(false));
@@ -111,10 +110,6 @@ export default function EmployeeForm() {
             <div className="field">
               <label>Date de naissance</label>
               <input type="date" name="birthDate" value={form.birthDate} onChange={handleChange} />
-            </div>
-            <div className="field">
-              <label>N° Sécurité sociale</label>
-              <input name="socialSecurity" value={form.socialSecurity} onChange={handleChange} placeholder="1 85 05 75 116 001 42" />
             </div>
           </div>
         </div>
