@@ -586,6 +586,9 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   gap: 12px;
 }
 
+.notif-bar--success { background: var(--success-bg); border-color: #BBF7D0; color: var(--success); }
+.notif-bar--danger  { background: var(--danger-bg);  border-color: #FECACA; color: var(--danger);  }
+
 .notif-item {
   display: flex;
   justify-content: space-between;
@@ -1132,6 +1135,17 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 }
 
 /* ── Paie ──────────────────────────────────── */
+.payroll-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: start;
+}
+@media (max-width: 768px) {
+  .payroll-grid { grid-template-columns: 1fr; }
+}
+
 .leave-preview {
   font-size: 13px;
   background: var(--primary-light);

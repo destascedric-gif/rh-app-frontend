@@ -128,15 +128,15 @@ export default function AdminPayroll() {
       </div>
 
       {/* Notifications */}
-      {error   && <div className="notif-bar" style={{ background:'#FCEBEB', borderColor:'#F09595', color:'#791F1F' }}>{error}</div>}
-      {success && <div className="notif-bar" style={{ background:'#EAF3DE', borderColor:'#97C459', color:'#27500A' }}>{success}</div>}
+      {error   && <div className="notif-bar notif-bar--danger">{error}</div>}
+      {success && <div className="notif-bar notif-bar--success">{success}</div>}
 
       {/* Panneaux côte à côte */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
+      <div className="payroll-grid">
 
         {/* Génération individuelle */}
         <div className="section-card">
-          <h3 style={{ fontSize: 14, fontWeight: 500, marginBottom: 14 }}>Générer un bulletin</h3>
+          <h3>Générer un bulletin</h3>
           <form onSubmit={handleGenerate}>
             <div className="field">
               <label>Employé *</label>
@@ -164,18 +164,16 @@ export default function AdminPayroll() {
                 </select>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button type="submit" className="btn-primary" disabled={generating} style={{ flex: 1 }}>
-                {generating ? 'Génération…' : '⬇ Générer & télécharger'}
-              </button>
-            </div>
+            <button type="submit" className="btn-primary" disabled={generating} style={{ width: '100%' }}>
+              {generating ? 'Génération…' : '⬇ Générer & télécharger'}
+            </button>
           </form>
         </div>
 
         {/* Génération groupée + stats */}
         <div className="section-card">
-          <h3 style={{ fontSize: 14, fontWeight: 500, marginBottom: 14 }}>Génération groupée</h3>
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 12 }}>
+          <h3>Génération groupée</h3>
+          <p className="hint" style={{ marginBottom: 14, lineHeight: 1.5 }}>
             Génère les bulletins de tous les employés actifs pour une période donnée.
             Les bulletins déjà existants sont ignorés.
           </p>
@@ -185,18 +183,18 @@ export default function AdminPayroll() {
 
           {/* Stats masse salariale */}
           {payslips.length > 0 && (
-            <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <div className="metric-card">
-                <div className="metric-label">Masse salariale brute</div>
-                <div className="metric-value" style={{ fontSize: 16 }}>
+            <div className="timesheet-summary" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 16, marginBottom: 0 }}>
+              <div className="summary-card">
+                <div className="summary-value">
                   {totalBrut.toLocaleString('fr-FR', { minimumFractionDigits: 0 })} €
                 </div>
+                <div className="summary-label">Masse salariale brute</div>
               </div>
-              <div className="metric-card">
-                <div className="metric-label">Total net versé</div>
-                <div className="metric-value" style={{ fontSize: 16 }}>
+              <div className="summary-card">
+                <div className="summary-value">
                   {totalNet.toLocaleString('fr-FR', { minimumFractionDigits: 0 })} €
                 </div>
+                <div className="summary-label">Total net versé</div>
               </div>
             </div>
           )}
@@ -206,12 +204,12 @@ export default function AdminPayroll() {
       {/* Filtres + liste */}
       <div className="section-header">
         <span className="section-title">Bulletins générés</span>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} style={{ fontSize: 13 }}>
+        <div className="timesheet-filters" style={{ margin: 0 }}>
+          <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)}>
             <option value="">Tous les mois</option>
             {MONTHS.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
           </select>
-          <select value={filterYear} onChange={e => setFilterYear(Number(e.target.value))} style={{ fontSize: 13 }}>
+          <select value={filterYear} onChange={e => setFilterYear(Number(e.target.value))}>
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
@@ -223,7 +221,7 @@ export default function AdminPayroll() {
         <p className="empty-state">Aucun bulletin pour cette période.</p>
       ) : (
         <div className="table-wrap">
-          <table>
+          <table className="rh-table">
             <thead>
               <tr>
                 <th>Employé</th>
@@ -231,7 +229,7 @@ export default function AdminPayroll() {
                 <th>Brut</th>
                 <th>Net</th>
                 <th>Cotisations</th>
-                <th>Actions</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -250,11 +248,11 @@ export default function AdminPayroll() {
                     </td>
                     <td>{MONTHS[p.period_month - 1]} {p.period_year}</td>
                     <td><strong>{Number(p.gross_amount).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</strong></td>
-                    <td style={{ color: '#185FA5', fontWeight: 500 }}>
+                    <td style={{ color: 'var(--primary)', fontWeight: 500 }}>
                       {Number(p.net_amount).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €
                     </td>
-                    <td style={{ color: 'var(--color-text-secondary)', fontSize: 12 }}>
-                      {cotis.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €
+                    <td>
+                      <span className="text-muted">{cotis.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 6 }}>
@@ -263,7 +261,7 @@ export default function AdminPayroll() {
                         </button>
                         <button
                           className="btn-ghost btn-sm"
-                          style={{ color: 'var(--color-text-danger)' }}
+                          style={{ color: 'var(--danger)' }}
                           onClick={() => handleDelete(p.id)}
                         >
                           Supprimer
@@ -279,7 +277,7 @@ export default function AdminPayroll() {
       )}
 
       {/* Note légale */}
-      <p style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 16 }}>
+      <p className="hint" style={{ marginTop: 16 }}>
         Les cotisations sont calculées avec des taux simplifiés à titre indicatif.
         Pour une paie conforme, utilisez un logiciel de paie agréé ou un expert-comptable.
       </p>

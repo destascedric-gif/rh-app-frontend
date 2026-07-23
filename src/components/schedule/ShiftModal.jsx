@@ -204,7 +204,7 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
                     onChange={e => updateBreak(i, 'start_time', e.target.value)}
                     style={{ flex: 1 }}
                   />
-                  <span style={{ color: 'var(--color-text-tertiary)', fontSize: 12 }}>→</span>
+                  <span style={{ color: 'var(--text-light)', fontSize: 12 }}>→</span>
                   <input
                     type="time"
                     value={b.end_time}
@@ -214,7 +214,7 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
                   <button
                     type="button"
                     className="btn-ghost"
-                    style={{ fontSize: 12, padding: '3px 8px', color: 'var(--color-text-danger)' }}
+                    style={{ fontSize: 12, padding: '3px 8px', color: 'var(--danger)' }}
                     onClick={() => removeBreak(i)}
                   >
                     ×
