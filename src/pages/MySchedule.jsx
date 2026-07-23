@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { getMySchedule } from '../api/schedule';
 import WeekView, { getWeekDays, toISO } from '../components/schedule/WeekView';
 import MonthView from '../components/schedule/MonthView';
+import ScheduleLegend from '../components/schedule/ScheduleLegend';
 
 const getMondayOfWeek = (date = new Date()) => {
   const d   = new Date(date);
@@ -106,6 +107,8 @@ export default function MySchedule() {
           <button className={`role-btn ${view==='month'?'active':''}`} onClick={() => setView('month')}>Mois</button>
         </div>
       </div>
+
+      <ScheduleLegend />
 
       {loading ? (
         <p className="tab-loading">Chargement…</p>

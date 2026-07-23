@@ -791,6 +791,34 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   box-shadow: var(--shadow);
 }
 
+/* ── Légende planning ──────────────────────────── */
+.schedule-legend {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-dot--travail { background: var(--primary); }
+.legend-dot--conge   { background: var(--warning); }
+.legend-dot--repos   { background: var(--text-muted); }
+.legend-dot--absence { background: var(--danger); }
+
 /* ── Grille semaine ───────────────────────────── */
 .week-grid {
   background: var(--bg-card);
@@ -808,6 +836,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 
 .col-emp { width: 160px; }
 .col-day { width: auto; }
+.col-total { width: 76px; }
 
 .week-th-emp {
   width: 160px;
@@ -825,6 +854,21 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 }
 .week-th-day:last-child { border-right: none; }
 .week-th-day.today { background: var(--primary-light); }
+.week-th-day.weekend { background: var(--bg-hover); }
+
+.week-th-total {
+  width: 76px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
 
 .week-day-name {
   font-size: 11px;
@@ -849,6 +893,19 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   vertical-align: middle;
 }
 
+.week-td-emp-inner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.emp-color-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .week-td-cell {
   padding: 6px;
   border-right: 1px solid var(--border);
@@ -861,6 +918,18 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 .week-td-cell.has-shift { cursor: pointer; }
 .week-td-cell.has-shift:hover { background: var(--bg); }
 .week-td-cell.past { opacity: 0.5; }
+.week-td-cell.weekend { background: rgba(240, 237, 232, 0.4); }
+
+.week-td-total {
+  width: 76px;
+  border-bottom: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  background: var(--bg);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
 
 .week-table tbody tr:last-child td { border-bottom: none; }
 
@@ -968,6 +1037,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   letter-spacing: 0.05em;
 }
 .month-th:last-child { border-right: none; }
+.month-th.weekend { background: var(--bg-hover); }
 
 .month-td {
   border-right: 1px solid var(--border);
@@ -980,6 +1050,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 }
 .month-td:last-child { border-right: none; }
 .month-td.other-month { background: var(--bg); opacity: 0.5; }
+.month-td.weekend { background: rgba(240, 237, 232, 0.4); }
 .month-td.today { background: var(--primary-light); }
 .month-td.past { opacity: 0.6; }
 
@@ -1012,10 +1083,18 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 }
 .month-shift-badge:hover { background: #DBEAFE; }
 
-.badge-name {
-  font-weight: 600;
-  color: var(--primary);
+.badge-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 8.5px;
+  font-weight: 700;
   flex-shrink: 0;
+  line-height: 1;
 }
 
 .badge-hours {

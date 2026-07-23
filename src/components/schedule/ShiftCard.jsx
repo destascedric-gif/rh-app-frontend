@@ -3,7 +3,7 @@ const formatTime = (t) => t?.slice(0, 5) ?? '';
 const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence' };
 const typeClass = (type) => type && type !== 'travail' ? ` shift-type--${type}` : '';
 
-export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact = false }) {
+export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact = false, accentColor }) {
   const start = formatTime(shift.start_time);
   const end   = formatTime(shift.end_time);
   const type  = shift.type || 'travail';
@@ -15,10 +15,16 @@ export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact =
     ? `${formatTime(firstBreak.start_time)}-${formatTime(firstBreak.end_time)}`
     : null;
 
+  // La couleur d'accent identifie l'employé d'un coup d'œil (cohérente avec
+  // la vue mois) ; seuls les créneaux de travail l'utilisent, les autres
+  // types gardent leur couleur sémantique (congé/repos/absence).
+  const accentStyle = accentColor && isWorkShift ? { borderLeftColor: accentColor } : undefined;
+
   if (compact) {
     return (
       <div
         className={`week-shift-badge${typeClass(type)}`}
+        style={accentStyle}
         onClick={onClick}
         data-tooltip={isWorkShift
           ? `${start} → ${end}${breakLabel ? ` · pause ${breakLabel}` : ''}`

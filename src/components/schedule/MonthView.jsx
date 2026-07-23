@@ -1,4 +1,5 @@
 import { toISO } from './WeekView';
+import { getEmployeeColor } from './employeeColor';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence' };
@@ -58,8 +59,8 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
         {/* En-tête jours */}
         <thead>
           <tr>
-            {DAY_LABELS.map(d => (
-              <th key={d} className="month-th">{d}</th>
+            {DAY_LABELS.map((d, i) => (
+              <th key={d} className={`month-th${i >= 5 ? ' weekend' : ''}`}>{d}</th>
             ))}
           </tr>
         </thead>
@@ -82,14 +83,18 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
                       !cell.currentMonth ? 'other-month' : '',
                       isToday ? 'today' : '',
                       isPast  ? 'past'  : '',
+                      di >= 5 ? 'weekend' : '',
                     ].filter(Boolean).join(' ')}
                   >
                     <div className="month-cell-num">{cell.date.getDate()}</div>
 
                     {dayShifts.slice(0, 3).map((shift, j) => {
-                      const type  = shift.type || 'travail';
-                      const name  = shift.last_name
-                        ? `${shift.first_name?.[0]}. ${shift.last_name}`
+                      const type = shift.type || 'travail';
+                      const fullName = shift.last_name
+                        ? `${shift.first_name} ${shift.last_name}`
+                        : null;
+                      const initials = fullName
+                        ? `${shift.first_name?.[0] ?? ''}${shift.last_name?.[0] ?? ''}`.toUpperCase()
                         : null;
                       const hours = type === 'travail'
                         ? `${shift.start_time?.slice(0, 5)} → ${shift.end_time?.slice(0, 5)}`
@@ -100,9 +105,13 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
                           key={j}
                           className={`month-shift-badge${typeClass(type)}`}
                           onClick={(e) => { e.stopPropagation(); isAdmin && onShiftClick?.(shift); }}
-                          data-tooltip={name ? `${name} · ${hours}` : hours}
+                          data-tooltip={fullName ? `${fullName} · ${hours}` : hours}
                         >
-                          {name && <span className="badge-name">{name}</span>}
+                          {initials && (
+                            <span className="badge-avatar" style={{ background: getEmployeeColor(shift.user_id) }}>
+                              {initials}
+                            </span>
+                          )}
                           <span className="badge-hours">{hours}</span>
                           {isAdmin && (
                             <button
