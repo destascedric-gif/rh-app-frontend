@@ -5,7 +5,7 @@ import { setupCompany as apiSetupCompany } from '../api/auth';
 
 export default function SetupCompany() {
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, login } = useAuth();
 
   const [form, setForm] = useState({
     name: '', siret: '', address: '', city: '', postalCode: '', sector: '',
@@ -20,8 +20,10 @@ export default function SetupCompany() {
     setError('');
     setLoading(true);
     try {
-      await apiSetupCompany(form, token);
-      // Après setup entreprise, l'admin ajoute ses employés
+      const data = await apiSetupCompany(form, token);
+      // Le token précédent ne portait pas encore l'entreprise (companyId null) —
+      // on remplace la session par le nouveau token/profil renvoyés par l'API.
+      login(data.user, data.token);
       navigate('/dashboard');
     } catch (err) {
       setError(err.message);
