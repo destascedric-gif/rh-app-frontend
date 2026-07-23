@@ -10,6 +10,12 @@ const MONTHS = [
 const formatTime = (t) => t ? t.slice(0, 5) : '—';
 const EMPTY_FORM = { date: '', clockIn: '', clockOut: '', breakMinutes: 0, note: '' };
 
+const STATUS_BADGE = {
+  'validé':     { label: 'Validé',      className: 'badge-active' },
+  'en_attente': { label: 'En attente',  className: 'badge-pending' },
+  'refusé':     { label: 'Refusé',      className: 'badge-inactive' },
+};
+
 export default function MyTimesheet() {
   const { token } = useAuth();
 
@@ -30,8 +36,10 @@ export default function MyTimesheet() {
 
   useEffect(() => { load(); }, [month, year, token]);
 
-  const totalHours = rows.reduce((sum, r) => sum + (parseFloat(r.total_hours) || 0), 0);
-  const daysWorked = rows.filter((r) => r.clock_in).length;
+  // Seules les heures validées par l'admin comptent dans les totaux affichés.
+  const validatedRows = rows.filter((r) => r.status === 'validé');
+  const totalHours = validatedRows.reduce((sum, r) => sum + (parseFloat(r.total_hours) || 0), 0);
+  const daysWorked = validatedRows.filter((r) => r.clock_in).length;
   const years = Array.from({ length: 3 }, (_, i) => now.getFullYear() - i);
 
   const openNew = () => {
@@ -83,7 +91,7 @@ export default function MyTimesheet() {
       <div className="page-header">
         <div>
           <h1>Mon pointage</h1>
-          <p className="page-subtitle">Saisissez vos heures travaillées jour par jour.</p>
+          <p className="page-subtitle">Saisissez vos heures travaillées jour par jour — chaque saisie doit être validée par un administrateur.</p>
         </div>
       </div>
 
@@ -123,26 +131,30 @@ export default function MyTimesheet() {
           <table className="rh-table">
             <thead>
               <tr>
-                <th>Date</th><th>Arrivée</th><th>Départ</th><th>Pause</th><th>Total</th><th>Note</th><th></th>
+                <th>Date</th><th>Arrivée</th><th>Départ</th><th>Pause</th><th>Total</th><th>Note</th><th>Statut</th><th></th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
-                <tr key={r.id}>
-                  <td>{new Date(r.date).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit' })}</td>
-                  <td>{formatTime(r.clock_in)}</td>
-                  <td>{formatTime(r.clock_out)}</td>
-                  <td>{r.break_minutes ? `${r.break_minutes} min` : '—'}</td>
-                  <td><strong>{r.total_hours ? `${r.total_hours} h` : '—'}</strong></td>
-                  <td className="text-muted">{r.note || ''}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn-ghost" style={{ padding: '3px 8px' }} onClick={() => openEdit(r)}>Modifier</button>
-                      <button className="btn-ghost" style={{ padding: '3px 8px', color: 'var(--danger)' }} onClick={() => handleDelete(r.id)} disabled={saving}>×</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {rows.map((r) => {
+                const badge = STATUS_BADGE[r.status] ?? STATUS_BADGE['validé'];
+                return (
+                  <tr key={r.id}>
+                    <td>{new Date(r.date).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit' })}</td>
+                    <td>{formatTime(r.clock_in)}</td>
+                    <td>{formatTime(r.clock_out)}</td>
+                    <td>{r.break_minutes ? `${r.break_minutes} min` : '—'}</td>
+                    <td><strong>{r.total_hours ? `${r.total_hours} h` : '—'}</strong></td>
+                    <td className="text-muted">{r.note || ''}</td>
+                    <td><span className={`badge ${badge.className}`}>{badge.label}</span></td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button className="btn-ghost" style={{ padding: '3px 8px' }} onClick={() => openEdit(r)}>Modifier</button>
+                        <button className="btn-ghost" style={{ padding: '3px 8px', color: 'var(--danger)' }} onClick={() => handleDelete(r.id)} disabled={saving}>×</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}

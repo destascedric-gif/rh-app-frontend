@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { getTimesheets, addTimesheet, updateTimesheet, deleteTimesheet } from '../../api/employees';
+import { getTimesheets, addTimesheet, updateTimesheet, deleteTimesheet, reviewTimesheet } from '../../api/employees';
+
+const STATUS_BADGE = {
+  'validé':     { label: 'Validé',      className: 'badge-active' },
+  'en_attente': { label: 'En attente',  className: 'badge-pending' },
+  'refusé':     { label: 'Refusé',      className: 'badge-inactive' },
+};
 
 const MONTHS = [
   'Janvier','Février','Mars','Avril','Mai','Juin',
@@ -33,8 +39,12 @@ export default function TimesheetTab({ employeeId }) {
 
   useEffect(() => { load(); }, [employeeId, month, year, token]);
 
-  const totalHours = rows.reduce((sum, r) => sum + (parseFloat(r.total_hours) || 0), 0);
-  const daysWorked = rows.filter((r) => r.clock_in).length;
+  // Seules les heures validées comptent dans les totaux — une saisie de
+  // l'employé encore en attente ne doit pas gonfler ses statistiques.
+  const validatedRows = rows.filter((r) => r.status === 'validé');
+  const totalHours = validatedRows.reduce((sum, r) => sum + (parseFloat(r.total_hours) || 0), 0);
+  const daysWorked = validatedRows.filter((r) => r.clock_in).length;
+  const pendingCount = rows.filter((r) => r.status === 'en_attente').length;
   const years = Array.from({ length: 3 }, (_, i) => now.getFullYear() - i);
 
   const openNew = () => {
@@ -84,6 +94,16 @@ export default function TimesheetTab({ employeeId }) {
     }
   };
 
+  const handleReview = async (id, status) => {
+    setSaving(true);
+    try {
+      await reviewTimesheet(employeeId, id, status, token);
+      await load();
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="timesheet-tab">
       {/* Filtres mois / année */}
@@ -100,6 +120,12 @@ export default function TimesheetTab({ employeeId }) {
         </div>
         <button className="btn-primary" onClick={openNew}>+ Ajouter une entrée</button>
       </div>
+
+      {pendingCount > 0 && (
+        <p className="notif-bar">
+          🕐 {pendingCount} entrée{pendingCount > 1 ? 's' : ''} saisie{pendingCount > 1 ? 's' : ''} par l'employé en attente de validation.
+        </p>
+      )}
 
       {/* Résumé du mois */}
       <div className="timesheet-summary">
@@ -134,26 +160,37 @@ export default function TimesheetTab({ employeeId }) {
               <th>Pause</th>
               <th>Total</th>
               <th>Note</th>
+              <th>Statut</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
-              <tr key={r.id}>
-                <td>{new Date(r.date).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit' })}</td>
-                <td>{formatTime(r.clock_in)}</td>
-                <td>{formatTime(r.clock_out)}</td>
-                <td>{r.break_minutes ? `${r.break_minutes} min` : '—'}</td>
-                <td><strong>{r.total_hours ? `${r.total_hours} h` : '—'}</strong></td>
-                <td className="text-muted">{r.note || ''}</td>
-                <td>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button className="btn-ghost" style={{ padding: '3px 8px' }} onClick={() => openEdit(r)}>Modifier</button>
-                    <button className="btn-ghost" style={{ padding: '3px 8px', color: 'var(--danger)' }} onClick={() => handleDelete(r.id)} disabled={saving}>×</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {rows.map((r) => {
+              const badge = STATUS_BADGE[r.status] ?? STATUS_BADGE['validé'];
+              return (
+                <tr key={r.id}>
+                  <td>{new Date(r.date).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit' })}</td>
+                  <td>{formatTime(r.clock_in)}</td>
+                  <td>{formatTime(r.clock_out)}</td>
+                  <td>{r.break_minutes ? `${r.break_minutes} min` : '—'}</td>
+                  <td><strong>{r.total_hours ? `${r.total_hours} h` : '—'}</strong></td>
+                  <td className="text-muted">{r.note || ''}</td>
+                  <td><span className={`badge ${badge.className}`}>{badge.label}</span></td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {r.status === 'en_attente' && (
+                        <>
+                          <button className="btn-ghost" style={{ padding: '3px 8px', color: 'var(--success)' }} onClick={() => handleReview(r.id, 'validé')} disabled={saving}>Valider</button>
+                          <button className="btn-ghost" style={{ padding: '3px 8px', color: 'var(--danger)' }} onClick={() => handleReview(r.id, 'refusé')} disabled={saving}>Refuser</button>
+                        </>
+                      )}
+                      <button className="btn-ghost" style={{ padding: '3px 8px' }} onClick={() => openEdit(r)}>Modifier</button>
+                      <button className="btn-ghost" style={{ padding: '3px 8px', color: 'var(--danger)' }} onClick={() => handleDelete(r.id)} disabled={saving}>×</button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}

@@ -33,6 +33,8 @@ export const updateTimesheet    = (id, timesheetId, data, token) =>
   request('PUT', `/employees/${id}/timesheets/${timesheetId}`, token, data);
 export const deleteTimesheet    = (id, timesheetId, token) =>
   request('DELETE', `/employees/${id}/timesheets/${timesheetId}`, token);
+export const reviewTimesheet    = (id, timesheetId, status, token) =>
+  request('PATCH', `/employees/${id}/timesheets/${timesheetId}/status`, token, { status });
 
 export const getMyTimesheets    = (params, token) =>
   request('GET', `/employees/me/timesheets?${new URLSearchParams(params)}`, token);
