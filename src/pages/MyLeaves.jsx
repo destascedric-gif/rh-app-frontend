@@ -15,6 +15,7 @@ export default function MyLeaves() {
   const [notifications, setNotifications] = useState([]);
   const [showForm,      setShowForm]      = useState(false);
   const [loading,       setLoading]       = useState(true);
+  const [balanceWarning, setBalanceWarning] = useState('');
 
   const load = async () => {
     try {
@@ -35,6 +36,7 @@ export default function MyLeaves() {
 
   const handleSuccess = async (data) => {
     setShowForm(false);
+    setBalanceWarning(data.balanceWarning || '');
     await load();
   };
 
@@ -69,6 +71,12 @@ export default function MyLeaves() {
             />
           </div>
         </div>
+      )}
+
+      {balanceWarning && (
+        <p style={{ color: 'var(--warning)', background: 'var(--warning-bg)', padding: '10px 14px', borderRadius: 8, fontSize: 13, marginBottom: 16 }}>
+          ⚠ {balanceWarning}
+        </p>
       )}
 
       {/* Notifications */}
