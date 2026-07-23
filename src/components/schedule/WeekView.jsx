@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import ShiftCard from './ShiftCard';
 import { getEmployeeColor } from './employeeColor';
 
@@ -28,7 +29,9 @@ const formatDayHeader = (date) => {
   return { day, num, isToday, isWeekend };
 };
 
-export default function WeekView({ days, shifts, employees, isAdmin, onShiftClick, onShiftDelete }) {
+export default function WeekView({ days, shifts, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop }) {
+  const [dragOverCell, setDragOverCell] = useState(null);
+
   const getShiftForUserAndDay = (userId, dateStr) =>
     shifts.find(s => s.user_id === userId && s.date?.slice(0, 10) === dateStr);
 
@@ -103,10 +106,23 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
                     const isPast     = d < new Date(new Date().setHours(0, 0, 0, 0));
                     const { isWeekend } = formatDayHeader(d);
                     const { continuesPrev, continuesNext } = getRunEdges(emp.id, i);
+                    const cellKey    = `${emp.id}-${dateStr}`;
+                    const isDragOver = dragOverCell === cellKey;
                     return (
                       <td
                         key={i}
-                        className={`week-td-cell${shift ? ' has-shift' : ''}${isPast ? ' past' : ''}${isWeekend ? ' weekend' : ''}`}
+                        className={`week-td-cell${shift ? ' has-shift' : ''}${isPast ? ' past' : ''}${isWeekend ? ' weekend' : ''}${isDragOver ? ' drag-over' : ''}`}
+                        onDragOver={(e) => { if (onTemplateDrop) e.preventDefault(); }}
+                        onDragEnter={(e) => { if (onTemplateDrop) { e.preventDefault(); setDragOverCell(cellKey); } }}
+                        onDragLeave={() => setDragOverCell((k) => (k === cellKey ? null : k))}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDragOverCell(null);
+                          if (!onTemplateDrop) return;
+                          const raw = e.dataTransfer.getData('application/json');
+                          if (!raw) return;
+                          onTemplateDrop(emp.id, dateStr, JSON.parse(raw));
+                        }}
                       >
                         {shift ? (
                           <ShiftCard

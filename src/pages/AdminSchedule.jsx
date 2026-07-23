@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getAdminSchedule, deleteShift } from '../api/schedule';
+import { getAdminSchedule, createShift, deleteShift } from '../api/schedule';
 import { getEmployees } from '../api/employees';
+import { getShiftTemplates } from '../api/shiftTemplates';
 import WeekView, { getWeekDays, toISO } from '../components/schedule/WeekView';
 import MonthView from '../components/schedule/MonthView';
 import ShiftModal from '../components/schedule/ShiftModal';
 import ScheduleLegend from '../components/schedule/ScheduleLegend';
+import TemplatePalette from '../components/schedule/TemplatePalette';
 
 const getMondayOfWeek = (date = new Date()) => {
   const d   = new Date(date);
@@ -24,6 +26,7 @@ export default function AdminSchedule() {
   const [monday,      setMonday]      = useState(getMondayOfWeek());
   const [monthDate,   setMonthDate]   = useState(new Date());
   const [employees,   setEmployees]   = useState([]);
+  const [templates,   setTemplates]   = useState([]);
   const [shifts,      setShifts]      = useState([]);
   const [filteredEmp, setFilteredEmp] = useState('');
   const [loading,     setLoading]     = useState(true);
@@ -31,6 +34,7 @@ export default function AdminSchedule() {
 
   useEffect(() => {
     getEmployees(token).then(setEmployees).catch(console.error);
+    getShiftTemplates(token).then(setTemplates).catch(console.error);
   }, [token]);
 
   const getDateRange = useCallback(() => {
@@ -85,6 +89,24 @@ export default function AdminSchedule() {
     });
   };
 
+  // Dépose d'un horaire type sur une case du planning : crée le créneau
+  // directement avec les horaires du modèle, sans passer par la fenêtre de
+  // création (choix du client — la rapidité prime sur la confirmation).
+  const handleTemplateDrop = async (userId, date, template) => {
+    try {
+      const breaks = template.break_start
+        ? [{ start_time: template.break_start, end_time: template.break_end, label: 'Pause' }]
+        : [];
+      const saved = await createShift(
+        { userId, date, startTime: template.start_time, endTime: template.end_time, breaks, type: 'travail' },
+        token
+      );
+      handleSaved(saved);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   const weekDays = getWeekDays(monday);
 
   const displayedEmployees = filteredEmp
@@ -136,6 +158,7 @@ export default function AdminSchedule() {
       </div>
 
       <ScheduleLegend />
+      {view === 'week' && <TemplatePalette templates={templates} />}
 
       {loading ? (
         <p className="tab-loading">Chargement…</p>
@@ -147,6 +170,7 @@ export default function AdminSchedule() {
           isAdmin={true}
           onShiftClick={(shift) => setModal({ shift })}
           onShiftDelete={handleDelete}
+          onTemplateDrop={handleTemplateDrop}
         />
       ) : (
         <MonthView

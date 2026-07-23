@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getSettings, updateSettings } from '../api/settings';
 import { changePassword } from '../api/auth';
+import { getShiftTemplates, createShiftTemplate, updateShiftTemplate, deleteShiftTemplate } from '../api/shiftTemplates';
 
 const EMPTY_PASSWORD_FORM = { currentPassword: '', newPassword: '', confirmPassword: '' };
+const EMPTY_TEMPLATE_FORM = { name: '', startTime: '', endTime: '', breakStart: '', breakEnd: '' };
+const formatTime = (t) => t ? t.slice(0, 5) : '';
 
 export default function Settings() {
   const { token } = useAuth();
@@ -19,6 +22,12 @@ export default function Settings() {
   const [pwError, setPwError] = useState('');
   const [pwSuccess, setPwSuccess] = useState('');
 
+  const [templates,     setTemplates]     = useState([]);
+  const [templateForm,  setTemplateForm]  = useState(EMPTY_TEMPLATE_FORM);
+  const [editingTplId,  setEditingTplId]  = useState(null);
+  const [tplSaving,     setTplSaving]     = useState(false);
+  const [tplError,      setTplError]      = useState('');
+
   useEffect(() => {
     getSettings(token).then((data) => {
       setForm({
@@ -32,6 +41,57 @@ export default function Settings() {
     }).catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [token]);
+
+  const loadTemplates = () => getShiftTemplates(token).then(setTemplates).catch((err) => setTplError(err.message));
+
+  useEffect(() => { loadTemplates(); }, [token]);
+
+  const openNewTemplate = () => { setTemplateForm(EMPTY_TEMPLATE_FORM); setEditingTplId('new'); setTplError(''); };
+
+  const openEditTemplate = (t) => {
+    setTemplateForm({
+      name: t.name,
+      startTime: formatTime(t.start_time),
+      endTime: formatTime(t.end_time),
+      breakStart: formatTime(t.break_start),
+      breakEnd: formatTime(t.break_end),
+    });
+    setEditingTplId(t.id);
+    setTplError('');
+  };
+
+  const handleTemplateSubmit = async (e) => {
+    e.preventDefault();
+    setTplSaving(true);
+    setTplError('');
+    try {
+      const payload = {
+        name: templateForm.name,
+        startTime: templateForm.startTime,
+        endTime: templateForm.endTime,
+        breakStart: templateForm.breakStart || null,
+        breakEnd: templateForm.breakEnd || null,
+      };
+      if (editingTplId === 'new') await createShiftTemplate(payload, token);
+      else await updateShiftTemplate(editingTplId, payload, token);
+      setEditingTplId(null);
+      await loadTemplates();
+    } catch (err) {
+      setTplError(err.message);
+    } finally {
+      setTplSaving(false);
+    }
+  };
+
+  const handleTemplateDelete = async (id) => {
+    if (!confirm('Supprimer ce modèle ?')) return;
+    try {
+      await deleteShiftTemplate(id, token);
+      setTemplates((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      setTplError(err.message);
+    }
+  };
 
   const handleChange = (field, value) => setForm((f) => ({ ...f, [field]: value }));
 
@@ -179,6 +239,112 @@ export default function Settings() {
           </button>
         </div>
       </form>
+
+      <div className="section-card">
+        <div className="tab-toolbar">
+          <h3 style={{ marginBottom: 0 }}>Horaires types</h3>
+          <button type="button" className="btn-ghost btn-sm" onClick={openNewTemplate}>+ Ajouter</button>
+        </div>
+        <p className="hint" style={{ marginBottom: 14 }}>
+          Modèles réutilisables (ex : "Matin", 9h–17h) à glisser directement sur le planning
+          pour créer un créneau sans ressaisir les horaires.
+        </p>
+
+        {templates.length === 0 ? (
+          <p className="empty-state">Aucun horaire type pour l'instant.</p>
+        ) : (
+          <div className="table-wrap" style={{ marginBottom: editingTplId ? 14 : 0 }}>
+            <table className="rh-table">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Horaires</th>
+                  <th>Pause</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {templates.map((t) => (
+                  <tr key={t.id}>
+                    <td><strong>{t.name}</strong></td>
+                    <td>{formatTime(t.start_time)} → {formatTime(t.end_time)}</td>
+                    <td className="text-muted">
+                      {t.break_start ? `${formatTime(t.break_start)}–${formatTime(t.break_end)}` : '—'}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button type="button" className="btn-ghost btn-sm" onClick={() => openEditTemplate(t)}>Modifier</button>
+                        <button
+                          type="button"
+                          className="btn-ghost btn-sm"
+                          style={{ color: 'var(--danger)' }}
+                          onClick={() => handleTemplateDelete(t.id)}
+                        >Supprimer</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {editingTplId && (
+          <form onSubmit={handleTemplateSubmit} className="inline-form">
+            <div className="field-row">
+              <div className="field">
+                <label>Nom *</label>
+                <input
+                  type="text" required placeholder="Ex : Matin"
+                  value={templateForm.name}
+                  onChange={(e) => setTemplateForm((f) => ({ ...f, name: e.target.value }))}
+                />
+              </div>
+              <div className="field">
+                <label>Début *</label>
+                <input
+                  type="time" required
+                  value={templateForm.startTime}
+                  onChange={(e) => setTemplateForm((f) => ({ ...f, startTime: e.target.value }))}
+                />
+              </div>
+              <div className="field">
+                <label>Fin *</label>
+                <input
+                  type="time" required
+                  value={templateForm.endTime}
+                  onChange={(e) => setTemplateForm((f) => ({ ...f, endTime: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Pause — début <span className="hint">(optionnel)</span></label>
+                <input
+                  type="time"
+                  value={templateForm.breakStart}
+                  onChange={(e) => setTemplateForm((f) => ({ ...f, breakStart: e.target.value }))}
+                />
+              </div>
+              <div className="field">
+                <label>Pause — fin <span className="hint">(optionnel)</span></label>
+                <input
+                  type="time"
+                  value={templateForm.breakEnd}
+                  onChange={(e) => setTemplateForm((f) => ({ ...f, breakEnd: e.target.value }))}
+                />
+              </div>
+            </div>
+            {tplError && <p className="error-msg">{tplError}</p>}
+            <div className="form-actions">
+              <button type="button" className="btn-ghost" onClick={() => setEditingTplId(null)} disabled={tplSaving}>Annuler</button>
+              <button type="submit" className="btn-primary" disabled={tplSaving}>
+                {tplSaving ? 'Enregistrement…' : 'Enregistrer'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
 
       <form onSubmit={handlePasswordSubmit}>
         <div className="section-card">
