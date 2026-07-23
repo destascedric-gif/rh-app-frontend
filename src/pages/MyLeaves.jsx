@@ -15,7 +15,7 @@ export default function MyLeaves() {
   const [notifications, setNotifications] = useState([]);
   const [showForm,      setShowForm]      = useState(false);
   const [loading,       setLoading]       = useState(true);
-  const [balanceWarning, setBalanceWarning] = useState('');
+  const [balanceWarning, setBalanceWarning] = useState(null); // { available, requested }
 
   const load = async () => {
     try {
@@ -36,7 +36,7 @@ export default function MyLeaves() {
 
   const handleSuccess = async (data) => {
     setShowForm(false);
-    setBalanceWarning(data.balanceWarning || '');
+    setBalanceWarning(data.balanceWarning || null);
     await load();
   };
 
@@ -74,9 +74,32 @@ export default function MyLeaves() {
       )}
 
       {balanceWarning && (
-        <p style={{ color: 'var(--warning)', background: 'var(--warning-bg)', padding: '10px 14px', borderRadius: 8, fontSize: 13, marginBottom: 16 }}>
-          ⚠ {balanceWarning}
-        </p>
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', gap: 12,
+          background: 'var(--warning-bg)', border: '1px solid #FDE68A',
+          borderRadius: 10, padding: '14px 16px', marginBottom: 16,
+        }}>
+          <div style={{
+            width: 26, height: 26, borderRadius: '50%', background: 'var(--warning)',
+            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 14, fontWeight: 700, flexShrink: 0,
+          }}>!</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--warning)', marginBottom: 2 }}>
+              Solde insuffisant
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+              Demande envoyée malgré tout — <strong style={{ color: 'var(--text)' }}>{balanceWarning.available} j</strong> disponible(s)
+              {' '}pour <strong style={{ color: 'var(--text)' }}>{balanceWarning.requested} j</strong> demandé(s).
+              L'administrateur pourra tout de même l'approuver.
+            </div>
+          </div>
+          <button
+            onClick={() => setBalanceWarning(null)}
+            style={{ background: 'none', border: 'none', color: 'var(--warning)', fontSize: 16, cursor: 'pointer', lineHeight: 1, padding: 0 }}
+            aria-label="Fermer"
+          >×</button>
+        </div>
       )}
 
       {/* Notifications */}
