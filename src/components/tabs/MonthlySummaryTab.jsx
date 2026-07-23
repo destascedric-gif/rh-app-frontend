@@ -47,7 +47,7 @@ export default function MonthlySummaryTab({ employeeId }) {
             </div>
             <div className="summary-card">
               <div className="summary-value">{summary.daysWorked}</div>
-              <div className="summary-label">Jours pointés</div>
+              <div className="summary-label">Jours travaillés</div>
             </div>
             <div className="summary-card">
               <div className="summary-value">
