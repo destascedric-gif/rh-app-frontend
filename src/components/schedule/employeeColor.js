@@ -12,3 +12,15 @@ export const getEmployeeColor = (userId) => {
   for (let i = 0; i < userId.length; i++) hash = (hash * 31 + userId.charCodeAt(i)) % 997;
   return EMPLOYEE_COLORS[hash % EMPLOYEE_COLORS.length];
 };
+
+const hexToRgba = (hex, alpha) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+// Version très légère de la couleur d'un employé, utilisée comme fond des
+// créneaux (le trait/bordure gardant la teinte pleine pour l'identité).
+export const getEmployeeColorLight = (userId, alpha = 0.14) =>
+  hexToRgba(getEmployeeColor(userId), alpha);

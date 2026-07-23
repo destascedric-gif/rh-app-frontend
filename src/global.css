@@ -802,22 +802,23 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-size: 12px;
   color: var(--text-muted);
 }
 
-.legend-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
+.legend-item em {
+  font-style: italic;
+  color: var(--text-muted);
 }
 
-.legend-dot--travail { background: var(--primary); }
-.legend-dot--conge   { background: var(--warning); }
-.legend-dot--repos   { background: var(--text-muted); }
-.legend-dot--absence { background: var(--danger); }
+.legend-swatch {
+  width: 26px;
+  height: 9px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #7C3AED, #DB2777, #0891B2, #4D7C0F);
+}
 
 /* ── Grille semaine ───────────────────────────── */
 .week-grid {
@@ -949,9 +950,9 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   font-size: 11.5px;
   cursor: pointer;
   position: relative;
-  transition: background 0.1s;
+  transition: filter 0.1s;
 }
-.shift-card:hover { background: #DBEAFE; }
+.shift-card:hover { filter: brightness(0.96); }
 .shift-times { font-weight: 600; color: var(--primary); }
 .shift-net   { font-size: 10.5px; color: var(--text-muted); }
 .shift-note  { font-size: 10.5px; color: var(--text-muted); font-style: italic; }
@@ -983,9 +984,9 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   border-left: 3px solid var(--primary);
   cursor: pointer;
   position: relative;
-  transition: background 0.1s;
+  transition: filter 0.1s;
 }
-.week-shift-badge:hover { background: #DBEAFE; }
+.week-shift-badge:hover { filter: brightness(0.96); }
 
 .badge-start {
   font-size: 11.5px;
@@ -1080,8 +1081,9 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
+  transition: filter 0.1s;
 }
-.month-shift-badge:hover { background: #DBEAFE; }
+.month-shift-badge:hover { filter: brightness(0.96); }
 
 .badge-avatar {
   display: inline-flex;
@@ -1152,35 +1154,41 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   pointer-events: none;
 }
 
-/* ── Types de créneau (travail / congé / repos / absence) ── */
-.shift-type--conge   { background: var(--warning-bg); border-color: #FDE68A; }
-.shift-type--conge.week-shift-badge   { border-left-color: var(--warning); }
-.shift-type--conge:hover { background: #FEF3C7; }
-.shift-type--conge .badge-type-label,
-.shift-type--conge .shift-type-tag { color: var(--warning); }
-
-.shift-type--repos   { background: var(--bg-hover); border-color: var(--border); }
-.shift-type--repos.week-shift-badge  { border-left-color: var(--text-muted); }
-.shift-type--repos:hover { background: var(--border); }
-.shift-type--repos .badge-type-label,
-.shift-type--repos .shift-type-tag { color: var(--text-muted); }
-
-.shift-type--absence { background: var(--danger-bg); border-color: #FECACA; }
-.shift-type--absence.week-shift-badge { border-left-color: var(--danger); }
-.shift-type--absence:hover { background: #FEE2E2; }
-.shift-type--absence .badge-type-label,
-.shift-type--absence .shift-type-tag { color: var(--danger); }
+/* ── Créneaux hors travail (congé / repos / absence) ──────────
+   Plus de teinte dédiée par type : l'identité visuelle vient
+   uniquement de la couleur de l'employé (moins de couleurs à l'écran),
+   le texte en italique suffit à distinguer un congé/repos/absence
+   d'un créneau de travail. ── */
+.shift-non-work { font-style: italic; }
 
 .badge-type-label {
   font-size: 11.5px;
   font-weight: 600;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
 .shift-type-tag {
   font-weight: 600;
   font-size: 11px;
+  color: var(--text-muted);
   margin-bottom: 2px;
+}
+
+/* ── Créneaux reliés sur plusieurs jours (façon Google Agenda) ──
+   Un congé/repos/absence qui se poursuit le jour suivant perd son
+   coin arrondi et sa bordure du côté concerné, pour lire comme une
+   seule barre continue plutôt que des cases séparées répétées. ── */
+.week-shift-badge.continues-prev,
+.month-shift-badge.continues-prev {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
+}
+.week-shift-badge.continues-next,
+.month-shift-badge.continues-next {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 /* ── Select employés toolbar ── */

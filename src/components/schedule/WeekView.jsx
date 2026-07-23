@@ -44,6 +44,20 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
       return sum + (isWorkShift ? (shift.net_hours ?? 0) : 0);
     }, 0);
 
+  // Un congé/repos/absence qui se poursuit la veille/le lendemain (même
+  // employé, même type) est affiché relié plutôt que comme des cases
+  // séparées répétées (façon Google Agenda).
+  const getRunEdges = (userId, dayIndex) => {
+    const shift = getShiftForUserAndDay(userId, toISO(days[dayIndex]));
+    const type  = shift?.type || 'travail';
+    if (!shift || type === 'travail') return { continuesPrev: false, continuesNext: false };
+
+    const sameType = (other) => other && (other.type || 'travail') === type;
+    const prev = dayIndex > 0 ? getShiftForUserAndDay(userId, toISO(days[dayIndex - 1])) : null;
+    const next = dayIndex < days.length - 1 ? getShiftForUserAndDay(userId, toISO(days[dayIndex + 1])) : null;
+    return { continuesPrev: sameType(prev), continuesNext: sameType(next) };
+  };
+
   // ── Vue admin ──
   if (employees) {
     return (
@@ -88,6 +102,7 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
                     const shift      = getShiftForUserAndDay(emp.id, dateStr);
                     const isPast     = d < new Date(new Date().setHours(0, 0, 0, 0));
                     const { isWeekend } = formatDayHeader(d);
+                    const { continuesPrev, continuesNext } = getRunEdges(emp.id, i);
                     return (
                       <td
                         key={i}
@@ -98,7 +113,8 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
                             shift={shift}
                             isAdmin={isAdmin}
                             compact={true}
-                            accentColor={empColor}
+                            continuesPrev={continuesPrev}
+                            continuesNext={continuesNext}
                             onClick={() => isAdmin && onShiftClick?.(shift)}
                             onDelete={onShiftDelete}
                           />
@@ -144,10 +160,18 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
               const dateStr = toISO(d);
               const shift   = getShiftForDay(dateStr);
               const { isWeekend } = formatDayHeader(d);
+
+              const type = shift?.type || 'travail';
+              const sameType = (other) => other && (other.type || 'travail') === type;
+              const prevShift = i > 0 ? getShiftForDay(toISO(days[i - 1])) : null;
+              const nextShift = i < days.length - 1 ? getShiftForDay(toISO(days[i + 1])) : null;
+              const continuesPrev = shift && type !== 'travail' && sameType(prevShift);
+              const continuesNext = shift && type !== 'travail' && sameType(nextShift);
+
               return (
                 <td key={i} className={`week-td-cell${shift ? ' has-shift' : ''}${isWeekend ? ' weekend' : ''}`}>
                   {shift
-                    ? <ShiftCard shift={shift} isAdmin={false} compact={true} />
+                    ? <ShiftCard shift={shift} isAdmin={false} compact={true} continuesPrev={continuesPrev} continuesNext={continuesNext} />
                     : <div className="cell-empty">—</div>
                   }
                 </td>

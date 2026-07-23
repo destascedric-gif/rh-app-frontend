@@ -1,13 +1,18 @@
+import { getEmployeeColor, getEmployeeColorLight } from './employeeColor';
+
 const formatTime = (t) => t?.slice(0, 5) ?? '';
 
 const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence' };
-const typeClass = (type) => type && type !== 'travail' ? ` shift-type--${type}` : '';
 
-export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact = false, accentColor }) {
+export default function ShiftCard({
+  shift, isAdmin, onClick, onDelete, compact = false,
+  continuesPrev = false, continuesNext = false,
+}) {
   const start = formatTime(shift.start_time);
   const end   = formatTime(shift.end_time);
   const type  = shift.type || 'travail';
   const isWorkShift = type === 'travail';
+  const showLabel = !continuesPrev;
 
   // Première pause uniquement (la plus courante)
   const firstBreak = shift.breaks?.[0];
@@ -15,16 +20,20 @@ export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact =
     ? `${formatTime(firstBreak.start_time)}-${formatTime(firstBreak.end_time)}`
     : null;
 
-  // La couleur d'accent identifie l'employé d'un coup d'œil (cohérente avec
-  // la vue mois) ; seuls les créneaux de travail l'utilisent, les autres
-  // types gardent leur couleur sémantique (congé/repos/absence).
-  const accentStyle = accentColor && isWorkShift ? { borderLeftColor: accentColor } : undefined;
+  // L'identité visuelle vient de la couleur de l'employé (constante d'une
+  // vue à l'autre), pas du type de créneau — moins de couleurs à l'écran.
+  const empColor      = getEmployeeColor(shift.user_id);
+  const empColorLight = getEmployeeColorLight(shift.user_id);
+  const style = { borderLeftColor: empColor, background: empColorLight };
+
+  const runClass = `${continuesPrev ? ' continues-prev' : ''}${continuesNext ? ' continues-next' : ''}`;
+  const typeClass = !isWorkShift ? ' shift-non-work' : '';
 
   if (compact) {
     return (
       <div
-        className={`week-shift-badge${typeClass(type)}`}
-        style={accentStyle}
+        className={`week-shift-badge${typeClass}${runClass}`}
+        style={style}
         onClick={onClick}
         data-tooltip={isWorkShift
           ? `${start} → ${end}${breakLabel ? ` · pause ${breakLabel}` : ''}`
@@ -36,9 +45,9 @@ export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact =
             {breakLabel && <span className="badge-break">{breakLabel}</span>}
             <span className="badge-end">{end}</span>
           </>
-        ) : (
+        ) : showLabel ? (
           <span className="badge-type-label">{TYPE_LABELS[type]}</span>
-        )}
+        ) : null}
         {isAdmin && (
           <button
             className="shift-delete-btn-inline"
@@ -51,9 +60,9 @@ export default function ShiftCard({ shift, isAdmin, onClick, onDelete, compact =
   }
 
   return (
-    <div className={`shift-card${typeClass(type)}`} onClick={onClick}>
-      {!isWorkShift && <div className="shift-type-tag">{TYPE_LABELS[type]}</div>}
-      <div className="shift-times">{start} → {end}</div>
+    <div className={`shift-card${typeClass}${runClass}`} style={style} onClick={onClick}>
+      {!isWorkShift && showLabel && <div className="shift-type-tag">{TYPE_LABELS[type]}</div>}
+      {isWorkShift && <div className="shift-times">{start} → {end}</div>}
       {isWorkShift && shift.breaks?.length > 0 && (
         <div className="shift-breaks">
           {shift.breaks.map((b, i) => (

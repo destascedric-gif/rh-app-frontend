@@ -1,9 +1,8 @@
 import { toISO } from './WeekView';
-import { getEmployeeColor } from './employeeColor';
+import { getEmployeeColor, getEmployeeColorLight } from './employeeColor';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence' };
-const typeClass = (type) => type && type !== 'travail' ? ` shift-type--${type}` : '';
 
 const getMonthCells = (year, month) => {
   const firstDay = new Date(year, month, 1);
@@ -67,71 +66,94 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
 
         {/* Semaines */}
         <tbody>
-          {weeks.map((week, wi) => (
-            <tr key={wi}>
-              {week.map((cell, di) => {
-                const dateStr   = toISO(cell.date);
-                const dayShifts = getShiftsForDay(dateStr);
-                const isToday   = dateStr === today;
-                const isPast    = cell.date < new Date(new Date().setHours(0, 0, 0, 0));
+          {weeks.map((week, wi) => {
+            // Pré-calculé une fois par semaine pour vérifier, pour chaque
+            // créneau, si le même employé a le même type de créneau la
+            // veille/le lendemain dans la ligne — sert à relier visuellement
+            // un congé/repos/absence de plusieurs jours (façon Google
+            // Agenda) plutôt que de répéter des cases séparées.
+            const rowDayShifts = week.map((cell) => getShiftsForDay(toISO(cell.date)));
 
-                return (
-                  <td
-                    key={di}
-                    className={[
-                      'month-td',
-                      !cell.currentMonth ? 'other-month' : '',
-                      isToday ? 'today' : '',
-                      isPast  ? 'past'  : '',
-                      di >= 5 ? 'weekend' : '',
-                    ].filter(Boolean).join(' ')}
-                  >
-                    <div className="month-cell-num">{cell.date.getDate()}</div>
+            return (
+              <tr key={wi}>
+                {week.map((cell, di) => {
+                  const dateStr   = toISO(cell.date);
+                  const dayShifts = rowDayShifts[di];
+                  const isToday   = dateStr === today;
+                  const isPast    = cell.date < new Date(new Date().setHours(0, 0, 0, 0));
 
-                    {dayShifts.slice(0, 3).map((shift, j) => {
-                      const type = shift.type || 'travail';
-                      const fullName = shift.last_name
-                        ? `${shift.first_name} ${shift.last_name}`
-                        : null;
-                      const initials = fullName
-                        ? `${shift.first_name?.[0] ?? ''}${shift.last_name?.[0] ?? ''}`.toUpperCase()
-                        : null;
-                      const hours = type === 'travail'
-                        ? `${shift.start_time?.slice(0, 5)} → ${shift.end_time?.slice(0, 5)}`
-                        : TYPE_LABELS[type];
+                  return (
+                    <td
+                      key={di}
+                      className={[
+                        'month-td',
+                        !cell.currentMonth ? 'other-month' : '',
+                        isToday ? 'today' : '',
+                        isPast  ? 'past'  : '',
+                        di >= 5 ? 'weekend' : '',
+                      ].filter(Boolean).join(' ')}
+                    >
+                      <div className="month-cell-num">{cell.date.getDate()}</div>
 
-                      return (
-                        <div
-                          key={j}
-                          className={`month-shift-badge${typeClass(type)}`}
-                          onClick={(e) => { e.stopPropagation(); isAdmin && onShiftClick?.(shift); }}
-                          data-tooltip={fullName ? `${fullName} · ${hours}` : hours}
-                        >
-                          {initials && (
-                            <span className="badge-avatar" style={{ background: getEmployeeColor(shift.user_id) }}>
-                              {initials}
-                            </span>
-                          )}
-                          <span className="badge-hours">{hours}</span>
-                          {isAdmin && (
-                            <button
-                              className="shift-delete-btn-inline"
-                              onClick={(e) => { e.stopPropagation(); onShiftDelete?.(shift); }}
-                              data-tooltip="Supprimer"
-                            >×</button>
-                          )}
-                        </div>
-                      );
-                    })}
+                      {dayShifts.slice(0, 3).map((shift, j) => {
+                        const type = shift.type || 'travail';
+                        const fullName = shift.last_name
+                          ? `${shift.first_name} ${shift.last_name}`
+                          : null;
+                        const initials = fullName
+                          ? `${shift.first_name?.[0] ?? ''}${shift.last_name?.[0] ?? ''}`.toUpperCase()
+                          : null;
+                        const hours = type === 'travail'
+                          ? `${shift.start_time?.slice(0, 5)} → ${shift.end_time?.slice(0, 5)}`
+                          : TYPE_LABELS[type];
 
-                    {dayShifts.length > 3 && (
-                      <div className="month-overflow">+{dayShifts.length - 3} autres</div>
-                    )}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
+                        const sameRun = (other) =>
+                          other && other.user_id === shift.user_id && (other.type || 'travail') === type;
+                        const continuesPrev = type !== 'travail' && di > 0
+                          && rowDayShifts[di - 1].some(sameRun);
+                        const continuesNext = type !== 'travail' && di < 6
+                          && rowDayShifts[di + 1].some(sameRun);
+                        const showLabel = !continuesPrev;
+
+                        const empColor      = getEmployeeColor(shift.user_id);
+                        const empColorLight = getEmployeeColorLight(shift.user_id);
+                        const style = { borderLeftColor: empColor, background: empColorLight };
+                        const runClass = `${continuesPrev ? ' continues-prev' : ''}${continuesNext ? ' continues-next' : ''}`;
+
+                        return (
+                          <div
+                            key={j}
+                            className={`month-shift-badge${type !== 'travail' ? ' shift-non-work' : ''}${runClass}`}
+                            style={style}
+                            onClick={(e) => { e.stopPropagation(); isAdmin && onShiftClick?.(shift); }}
+                            data-tooltip={fullName ? `${fullName} · ${hours}` : hours}
+                          >
+                            {initials && showLabel && (
+                              <span className="badge-avatar" style={{ background: empColor }}>
+                                {initials}
+                              </span>
+                            )}
+                            {showLabel && <span className="badge-hours">{hours}</span>}
+                            {isAdmin && (
+                              <button
+                                className="shift-delete-btn-inline"
+                                onClick={(e) => { e.stopPropagation(); onShiftDelete?.(shift); }}
+                                data-tooltip="Supprimer"
+                              >×</button>
+                            )}
+                          </div>
+                        );
+                      })}
+
+                      {dayShifts.length > 3 && (
+                        <div className="month-overflow">+{dayShifts.length - 3} autres</div>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
