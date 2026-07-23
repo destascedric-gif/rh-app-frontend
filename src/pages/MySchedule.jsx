@@ -29,7 +29,11 @@ export default function MySchedule() {
     const d = s.date?.slice(0, 10);
     return d >= toISO(weekDays[0]) && d <= toISO(weekDays[6]);
   });
-  const weekHours  = weekShifts.reduce((sum, s) => sum + (s.net_hours ?? 0), 0);
+  // Seuls les créneaux de travail comptent comme des heures effectives —
+  // un jour de congé/repos/absence n'est pas du temps travaillé, même si
+  // le créneau s'étend sur toute la journée pour l'affichage au planning.
+  const workShifts = weekShifts.filter(s => !s.type || s.type === 'travail');
+  const weekHours  = workShifts.reduce((sum, s) => sum + (s.net_hours ?? 0), 0);
 
   const getDateRange = useCallback(() => {
     if (view === 'week') {
