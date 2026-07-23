@@ -1,34 +1,47 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getEmployees } from '../api/employees';
+import { getEmployees, getPendingTimesheets, reviewTimesheet } from '../api/employees';
 import { getAllRequests } from '../api/leaves';
 
 export default function Dashboard() {
   const { token } = useAuth();
   const navigate  = useNavigate();
 
-  const [employees, setEmployees] = useState([]);
-  const [leaves,    setLeaves]    = useState([]);
-  const [loading,   setLoading]   = useState(true);
+  const [employees,        setEmployees]        = useState([]);
+  const [leaves,            setLeaves]            = useState([]);
+  const [pendingTimesheets, setPendingTimesheets] = useState([]);
+  const [loading,          setLoading]           = useState(true);
+  const [reviewingId,      setReviewingId]       = useState(null);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [emps, lvs] = await Promise.all([
-          getEmployees(token),
-          getAllRequests('en_attente', token),
-        ]);
-        setEmployees(emps);
-        setLeaves(lvs);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [token]);
+  const load = async () => {
+    try {
+      const [emps, lvs, ts] = await Promise.all([
+        getEmployees(token),
+        getAllRequests('en_attente', token),
+        getPendingTimesheets(token),
+      ]);
+      setEmployees(emps);
+      setLeaves(lvs);
+      setPendingTimesheets(ts);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, [token]);
+
+  const handleReviewTimesheet = async (timesheet, status) => {
+    setReviewingId(timesheet.id);
+    try {
+      await reviewTimesheet(timesheet.employee_id, timesheet.id, status, token);
+      setPendingTimesheets((prev) => prev.filter((t) => t.id !== timesheet.id));
+    } finally {
+      setReviewingId(null);
+    }
+  };
 
   const actifs    = employees.filter(e => e.is_active).length;
   const enAttente = employees.filter(e => !e.invite_accepted).length;
@@ -64,9 +77,11 @@ export default function Dashboard() {
           <div className="metric-sub">Dans l'équipe</div>
         </div>
         <div className="metric-card">
-          <div className="metric-label">Modules actifs</div>
-          <div className="metric-value">4</div>
-          <div className="metric-sub">Congés, planning, paie, RH</div>
+          <div className="metric-label">Pointages en attente</div>
+          <div className="metric-value" style={{ color: pendingTimesheets.length > 0 ? '#B45309' : 'inherit' }}>
+            {pendingTimesheets.length}
+          </div>
+          <div className="metric-sub">{pendingTimesheets.length > 0 ? 'À valider' : 'Aucune demande'}</div>
         </div>
       </div>
 
@@ -109,6 +124,67 @@ export default function Dashboard() {
                       <button className="btn-primary btn-sm" onClick={() => navigate('/admin/leaves')}>
                         Traiter
                       </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Pointages en attente de validation */}
+      {pendingTimesheets.length > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <div className="section-header">
+            <span className="section-title">Pointages en attente</span>
+          </div>
+          <div className="table-wrap">
+            <table className="rh-table">
+              <thead>
+                <tr>
+                  <th>Employé</th>
+                  <th>Date</th>
+                  <th>Arrivée</th>
+                  <th>Départ</th>
+                  <th>Total</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingTimesheets.slice(0, 5).map(t => (
+                  <tr key={t.id}>
+                    <td>
+                      <div className="cell-emp">
+                        <div className="avatar-xs">{t.employee_name?.split(' ').map(n => n[0]).join('')}</div>
+                        <div>
+                          <div className="emp-name">{t.employee_name}</div>
+                          <div className="emp-email">{t.job_title}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{new Date(t.date).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit' })}</td>
+                    <td>{t.clock_in ? t.clock_in.slice(0, 5) : '—'}</td>
+                    <td>{t.clock_out ? t.clock_out.slice(0, 5) : '—'}</td>
+                    <td><strong>{t.total_hours ? `${t.total_hours} h` : '—'}</strong></td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button
+                          className="btn-primary btn-sm"
+                          disabled={reviewingId === t.id}
+                          onClick={() => handleReviewTimesheet(t, 'validé')}
+                        >
+                          Valider
+                        </button>
+                        <button
+                          className="btn-ghost btn-sm"
+                          style={{ color: 'var(--danger)' }}
+                          disabled={reviewingId === t.id}
+                          onClick={() => handleReviewTimesheet(t, 'refusé')}
+                        >
+                          Refuser
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

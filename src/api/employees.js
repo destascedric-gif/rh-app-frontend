@@ -46,3 +46,5 @@ export const deleteMyTimesheet  = (timesheetId, token) =>
 
 export const getMonthlySummary  = (id, params, token) =>
   request('GET', `/employees/${id}/monthly-summary?${new URLSearchParams(params)}`, token);
+
+export const getPendingTimesheets = (token) => request('GET', '/employees/timesheets/pending', token);
