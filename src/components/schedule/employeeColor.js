@@ -2,7 +2,9 @@
 // volontairement en dehors des teintes déjà utilisées pour le sens (bleu
 // primary = travail, ambre = congé, rouge = absence, vert = succès), pour
 // ne jamais laisser croire qu'une couleur d'employé signifie autre chose.
-const EMPLOYEE_COLORS = ['#7C3AED', '#C026D3', '#DB2777', '#0891B2', '#0D9488', '#4D7C0F'];
+// Tons doux/pastel choisis pour rester en harmonie avec le fond crème et
+// les couleurs sobres du reste du site, plutôt que des couleurs vives.
+const EMPLOYEE_COLORS = ['#8B7BB8', '#B87B9E', '#5D9994', '#7D9770', '#BC9152', '#96658C'];
 
 // Choix déterministe : le même employé garde toujours la même couleur d'une
 // vue à l'autre (semaine / mois) sans avoir besoin de la stocker en base.

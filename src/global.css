@@ -813,12 +813,19 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 }
 
 .legend-swatch {
-  width: 26px;
-  height: 9px;
-  border-radius: 4px;
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
-  background: linear-gradient(90deg, #7C3AED, #DB2777, #0891B2, #4D7C0F);
 }
+
+.legend-swatch-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+  margin-left: -5px;
+}
+.legend-swatch-dot:first-child { margin-left: 0; }
 
 /* ── Grille semaine ───────────────────────────── */
 .week-grid {
