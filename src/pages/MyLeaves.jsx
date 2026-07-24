@@ -104,21 +104,32 @@ export default function MyLeaves() {
 
       {/* Notifications */}
       {notifications.length > 0 && (
-        <div className="notifications-bar">
-          <div className="notif-header">
-            <span>🔔 Notifications {unreadCount > 0 && <strong>({unreadCount} non lue{unreadCount > 1 ? 's' : ''})</strong>}</span>
+        <div className="leave-notifications">
+          <div className="leave-notifications-head">
+            <span className="leave-notifications-title">
+              Notifications
+              {unreadCount > 0 && <span className="leave-notifications-count">{unreadCount}</span>}
+            </span>
             {unreadCount > 0 && (
-              <button className="btn-ghost small" onClick={handleMarkRead}>
+              <button className="btn-ghost btn-sm" onClick={handleMarkRead}>
                 Tout marquer comme lu
               </button>
             )}
           </div>
-          {notifications.slice(0, 3).map((n) => (
-            <div key={n.id} className={`notif-item ${n.is_read ? 'read' : 'unread'}`}>
-              <span>{n.message}</span>
-              <span className="text-muted">{formatDate(n.created_at)}</span>
-            </div>
-          ))}
+          <div className="leave-notifications-list">
+            {notifications.slice(0, 3).map((n) => {
+              const isRefused  = n.message.startsWith('❌');
+              const isApproved = n.message.startsWith('✅');
+              const message = n.message.replace(/^(✅|❌)\s*/, '');
+              return (
+                <div key={n.id} className={`leave-notif-row${n.is_read ? '' : ' unread'}`}>
+                  <span className={`leave-notif-dot${isApproved ? ' success' : isRefused ? ' danger' : ''}`} />
+                  <span className="leave-notif-message">{message}</span>
+                  <span className="leave-notif-date">{formatDate(n.created_at)}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

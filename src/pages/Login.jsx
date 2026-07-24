@@ -36,7 +36,7 @@ export default function Login() {
 
       // Redirige selon le rôle
       if (data.user.role === 'admin') navigate('/dashboard');
-      else navigate('/mon-espace');
+      else navigate('/mon-planning');
     } catch (err) {
       setError(err.message);
     } finally {

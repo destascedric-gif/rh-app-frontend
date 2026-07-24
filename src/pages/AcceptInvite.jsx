@@ -37,7 +37,7 @@ export default function AcceptInvite() {
       const data = await apiAcceptInvite({ token, password: form.password });
       login(data.user, data.token);
       setSuccess(true);
-      setTimeout(() => navigate('/mon-espace'), 2000);
+      setTimeout(() => navigate('/mon-planning'), 2000);
     } catch (err) {
       setError(err.message);
     } finally {

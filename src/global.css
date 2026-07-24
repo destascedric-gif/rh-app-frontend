@@ -584,7 +584,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 .info-value, .info-val { font-weight: 500; }
 
 /* ── Notifications ─────────────────────────── */
-.notif-bar, .notifications-bar {
+.notif-bar {
   background: var(--primary-light);
   border: 1px solid #BFDBFE;
   border-radius: var(--radius);
@@ -601,17 +601,83 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 .notif-bar--success { background: var(--success-bg); border-color: #BBF7D0; color: var(--success); }
 .notif-bar--danger  { background: var(--danger-bg);  border-color: #FECACA; color: var(--danger);  }
 
-.notif-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  font-size: 13px;
-  border-bottom: 1px solid var(--border);
-  gap: 12px;
+/* ── Notifications congés (carte + liste, pas un bandeau plein) ── */
+.leave-notifications {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+  margin-bottom: 16px;
 }
-.notif-item.unread { font-weight: 500; }
-.notif-item.read   { color: var(--text-muted); }
+
+.leave-notifications-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.leave-notifications-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.leave-notifications-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.leave-notifications-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.leave-notif-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.leave-notif-row:first-child { border-top: none; padding-top: 0; }
+.leave-notif-row.unread { color: var(--text); font-weight: 500; }
+
+.leave-notif-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-light);
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.leave-notif-dot.success { background: var(--success); }
+.leave-notif-dot.danger  { background: var(--danger); }
+
+.leave-notif-message { flex: 1; line-height: 1.45; }
+
+.leave-notif-date {
+  font-size: 11.5px;
+  color: var(--text-light);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 
 /* ── Soldes congés ─────────────────────────── */
 .balance-grid {

@@ -22,7 +22,7 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth()
   if (loading) return <div>Chargement…</div>
   if (!user) return <Navigate to="/login" />
-  if (adminOnly && user.role !== 'admin') return <Navigate to="/mon-espace" />
+  if (adminOnly && user.role !== 'admin') return <Navigate to="/mon-planning" />
   return <Layout>{children}</Layout>
 }
 
