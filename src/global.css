@@ -163,6 +163,7 @@ body {
 .main-content {
   margin-left: var(--sidebar-w);
   flex: 1;
+  min-width: 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -186,6 +187,7 @@ body {
 .page {
   padding: 28px;
   flex: 1;
+  min-width: 0;
   max-width: 1100px;
 }
 
@@ -1555,4 +1557,6 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   }
   .week-table, .month-table { min-width: 720px; }
   .rh-table { min-width: 520px; }
+  .schedule-period { min-width: 150px; font-size: 12.5px; white-space: nowrap; }
+  .schedule-nav { gap: 4px; }
 }
