@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from './context/AuthContext'
 import { getSettings } from './api/settings'
 import {
@@ -10,6 +10,7 @@ export default function Layout({ children }) {
   const navigate  = useNavigate()
   const location  = useLocation()
   const { user, token, logout, isAdmin } = useAuth()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   // Applique la couleur principale personnalisée par l'entreprise
   useEffect(() => {
@@ -21,13 +22,33 @@ export default function Layout({ children }) {
       .catch(() => {})
   }, [token])
 
+  // Referme le menu mobile à chaque changement de page
+  useEffect(() => { setMenuOpen(false) }, [location.pathname])
+
   const handleLogout = () => { logout(); navigate('/login'); }
 
   const isActive = (path) => location.pathname.startsWith(path) ? 'nav-item active' : 'nav-item'
 
+  const go = (path) => navigate(path)
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <div className="sidebar">
+    <div className="app-layout">
+      {/* Barre du haut visible uniquement sur mobile — seul point d'accès au menu quand la barre latérale est masquée */}
+      <div className="mobile-topbar">
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+          aria-expanded={menuOpen}
+        >
+          <span /><span /><span />
+        </button>
+        <span className="mobile-topbar-title">Orgaly</span>
+      </div>
+
+      {menuOpen && <div className="sidebar-backdrop" onClick={() => setMenuOpen(false)} />}
+
+      <div className={`sidebar${menuOpen ? ' open' : ''}`}>
         <div className="sidebar-logo">
           <div className="logo-name">Orgaly</div>
           <div className="logo-sub">Gestion RH</div>
@@ -36,19 +57,19 @@ export default function Layout({ children }) {
         {isAdmin ? (
           <>
             <div className="nav-section">Menu</div>
-            <div className={isActive('/dashboard')} onClick={() => navigate('/dashboard')}><DashboardIcon /> Tableau de bord</div>
-            <div className={isActive('/employees')} onClick={() => navigate('/employees')}><EmployeesIcon /> Employés</div>
-            <div className={isActive('/admin/leaves')} onClick={() => navigate('/admin/leaves')}><LeavesIcon /> Congés</div>
-            <div className={isActive('/admin/schedule')} onClick={() => navigate('/admin/schedule')}><ScheduleIcon /> Planning</div>
-            <div className={isActive('/admin/payroll')} onClick={() => navigate('/admin/payroll')}><PayrollIcon /> Paie</div>
-            <div className={isActive('/parametres')} onClick={() => navigate('/parametres')}><SettingsIcon /> Paramètres</div>
+            <button className={isActive('/dashboard')} onClick={() => go('/dashboard')}><DashboardIcon /> Tableau de bord</button>
+            <button className={isActive('/employees')} onClick={() => go('/employees')}><EmployeesIcon /> Employés</button>
+            <button className={isActive('/admin/leaves')} onClick={() => go('/admin/leaves')}><LeavesIcon /> Congés</button>
+            <button className={isActive('/admin/schedule')} onClick={() => go('/admin/schedule')}><ScheduleIcon /> Planning</button>
+            <button className={isActive('/admin/payroll')} onClick={() => go('/admin/payroll')}><PayrollIcon /> Paie</button>
+            <button className={isActive('/parametres')} onClick={() => go('/parametres')}><SettingsIcon /> Paramètres</button>
           </>
         ) : (
           <>
             <div className="nav-section">Menu</div>
-            <div className={isActive('/mon-espace')} onClick={() => navigate('/mon-espace')}><LeavesIcon /> Mon espace</div>
-            <div className={isActive('/mon-planning')} onClick={() => navigate('/mon-planning')}><ScheduleIcon /> Mon planning</div>
-            <div className={isActive('/mon-pointage')} onClick={() => navigate('/mon-pointage')}><TimesheetIcon /> Mon pointage</div>
+            <button className={isActive('/mon-espace')} onClick={() => go('/mon-espace')}><LeavesIcon /> Mon espace</button>
+            <button className={isActive('/mon-planning')} onClick={() => go('/mon-planning')}><ScheduleIcon /> Mon planning</button>
+            <button className={isActive('/mon-pointage')} onClick={() => go('/mon-pointage')}><TimesheetIcon /> Mon pointage</button>
           </>
         )}
 
@@ -66,7 +87,7 @@ export default function Layout({ children }) {
         </div>
       </div>
 
-      <div style={{ marginLeft: 220, flex: 1, background: '#F7F5F2', minHeight: '100vh' }}>
+      <div className="main-content">
         {children}
       </div>
     </div>
