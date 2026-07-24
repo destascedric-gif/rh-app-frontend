@@ -6,6 +6,9 @@ import LeaveBalanceCard from '../components/leaves/LeaveBalanceCard';
 
 const formatDate = (d) => new Date(d).toLocaleDateString('fr-FR');
 
+// Seuls les congés payés s'accumulent en un vrai solde (voir LeaveBalanceCard).
+const BALANCE_TYPES = new Set(['Congés payés']);
+
 // Mini avatar initiales
 const Avatar = ({ name, photoUrl }) => {
   if (photoUrl) return <img src={photoUrl} alt="" className="avatar-sm" />;
@@ -250,6 +253,7 @@ export default function AdminLeaves() {
                     leaveType={b.leave_type}
                     balanceDays={parseFloat(b.balance_days)}
                     usedDays={parseFloat(b.used_days)}
+                    hasBalance={BALANCE_TYPES.has(b.leave_type)}
                   />
                 ))}
               </div>

@@ -7,6 +7,9 @@ import LeaveStatusBadge  from '../components/leaves/LeaveStatusBadge';
 
 const formatDate = (d) => new Date(d).toLocaleDateString('fr-FR');
 
+// Seuls les congés payés s'accumulent en un vrai solde (voir LeaveBalanceCard).
+const BALANCE_TYPES = new Set(['Congés payés']);
+
 export default function MyLeaves() {
   const { token } = useAuth();
 
@@ -143,6 +146,7 @@ export default function MyLeaves() {
               leaveType={type}
               balanceDays={balance_days}
               usedDays={used_days}
+              hasBalance={BALANCE_TYPES.has(type)}
             />
           ))}
         </div>
