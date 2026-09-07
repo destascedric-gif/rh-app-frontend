@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { setupAdmin as apiSetupAdmin } from '../api/auth';
 
@@ -85,6 +85,10 @@ export default function SetupAdmin() {
             {loading ? 'Création…' : 'Continuer →'}
           </button>
         </form>
+
+        <p className="auth-switch">
+          Déjà un compte ? <Link to="/login">Se connecter</Link>
+        </p>
       </div>
     </div>
   );

@@ -498,6 +498,15 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 .step.done { color: var(--success); }
 .step.done span { background: var(--success-bg); color: var(--success); }
 
+.auth-switch {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+.auth-switch a { color: var(--primary); font-weight: 600; text-decoration: none; }
+.auth-switch a:hover { text-decoration: underline; }
+
 /* ── Messages ──────────────────────────────── */
 .error-msg {
   font-size: 12.5px;

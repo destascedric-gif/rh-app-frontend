@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { login as apiLogin, checkSetupStatus } from '../api/auth';
+import { login as apiLogin } from '../api/auth';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,18 +10,6 @@ export default function Login() {
   const [form, setForm]     = useState({ email: '', password: '' });
   const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
-  const [checkingSetup, setCheckingSetup] = useState(true);
-
-  // Tant qu'aucune entreprise n'a terminé la configuration initiale,
-  // on envoie directement vers l'assistant de création de compte.
-  useEffect(() => {
-    checkSetupStatus()
-      .then((res) => {
-        if (!res.setupComplete) navigate('/setup/admin', { replace: true });
-        else setCheckingSetup(false);
-      })
-      .catch(() => setCheckingSetup(false));
-  }, [navigate]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -34,8 +22,10 @@ export default function Login() {
       const data = await apiLogin(form);
       login(data.user, data.token);
 
-      // Redirige selon le rôle
-      if (data.user.role === 'admin') navigate('/dashboard');
+      // Inscription laissée inachevée (compte créé mais entreprise jamais
+      // renseignée) : on renvoie terminer l'étape 2 plutôt que de bloquer.
+      if (!data.user.companyId) navigate('/setup/company');
+      else if (data.user.role === 'admin') navigate('/dashboard');
       else navigate('/mon-planning');
     } catch (err) {
       setError(err.message);
@@ -43,8 +33,6 @@ export default function Login() {
       setLoading(false);
     }
   };
-
-  if (checkingSetup) return null;
 
   return (
     <div className="auth-container">
@@ -83,6 +71,10 @@ export default function Login() {
             {loading ? 'Connexion…' : 'Se connecter'}
           </button>
         </form>
+
+        <p className="auth-switch">
+          Pas encore de compte ? <Link to="/setup/admin">Créer mon entreprise</Link>
+        </p>
       </div>
     </div>
   );
