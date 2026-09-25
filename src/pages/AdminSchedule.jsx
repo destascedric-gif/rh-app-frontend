@@ -171,6 +171,7 @@ export default function AdminSchedule() {
           onShiftClick={(shift) => setModal({ shift })}
           onShiftDelete={handleDelete}
           onTemplateDrop={handleTemplateDrop}
+          templates={templates}
         />
       ) : (
         <MonthView
@@ -181,6 +182,7 @@ export default function AdminSchedule() {
           selectedUserId={filteredEmp}
           onShiftClick={(shift) => setModal({ shift })}
           onShiftDelete={handleDelete}
+          templates={templates}
         />
       )}
 

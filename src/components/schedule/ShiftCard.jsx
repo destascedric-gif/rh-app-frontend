@@ -1,4 +1,5 @@
 import { getEmployeeColor, getEmployeeColorLight } from './employeeColor';
+import { getShiftTimeType } from './shiftTimeType';
 
 const formatTime = (t) => t?.slice(0, 5) ?? '';
 
@@ -6,7 +7,7 @@ const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absen
 
 export default function ShiftCard({
   shift, isAdmin, onClick, onDelete, compact = false,
-  continuesPrev = false, continuesNext = false,
+  continuesPrev = false, continuesNext = false, templates = [],
 }) {
   const start = formatTime(shift.start_time);
   const end   = formatTime(shift.end_time);
@@ -20,19 +21,22 @@ export default function ShiftCard({
     ? `${formatTime(firstBreak.start_time)}-${formatTime(firstBreak.end_time)}`
     : null;
 
-  // L'identité visuelle vient de la couleur de l'employé (constante d'une
-  // vue à l'autre), pas du type de créneau — moins de couleurs à l'écran.
+  // Un créneau de travail est coloré par ouverture/fermeture (voir
+  // shiftTimeType.js) ; un congé/repos/absence garde la couleur de
+  // l'employé, seul repère utile puisqu'il n'a pas d'horaire à distinguer.
+  const timeType = isWorkShift ? getShiftTimeType(shift, templates) : null;
   const empColor      = getEmployeeColor(shift.user_id);
   const empColorLight = getEmployeeColorLight(shift.user_id);
-  const style = { borderLeftColor: empColor, background: empColorLight };
+  const style = isWorkShift ? undefined : { borderLeftColor: empColor, background: empColorLight };
 
   const runClass = `${continuesPrev ? ' continues-prev' : ''}${continuesNext ? ' continues-next' : ''}`;
-  const typeClass = !isWorkShift ? ' shift-non-work' : '';
+  const nonWorkClass = !isWorkShift ? ' shift-non-work' : '';
 
   if (compact) {
+    const timeTypeClass = isWorkShift ? ` week-shift-badge--${timeType}` : '';
     return (
       <div
-        className={`week-shift-badge${typeClass}${runClass}`}
+        className={`week-shift-badge${nonWorkClass}${timeTypeClass}${runClass}`}
         style={style}
         onClick={onClick}
         data-tooltip={isWorkShift
@@ -59,8 +63,9 @@ export default function ShiftCard({
     );
   }
 
+  const timeTypeClass = isWorkShift ? ` shift-card--${timeType}` : '';
   return (
-    <div className={`shift-card${typeClass}${runClass}`} style={style} onClick={onClick}>
+    <div className={`shift-card${nonWorkClass}${timeTypeClass}${runClass}`} style={style} onClick={onClick}>
       {!isWorkShift && showLabel && <div className="shift-type-tag">{TYPE_LABELS[type]}</div>}
       {isWorkShift && <div className="shift-times">{start} → {end}</div>}
       {isWorkShift && shift.breaks?.length > 0 && (

@@ -29,7 +29,7 @@ const formatDayHeader = (date) => {
   return { day, num, isToday, isWeekend };
 };
 
-export default function WeekView({ days, shifts, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop }) {
+export default function WeekView({ days, shifts, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, templates = [] }) {
   const [dragOverCell, setDragOverCell] = useState(null);
 
   const getShiftForUserAndDay = (userId, dateStr) =>
@@ -131,6 +131,7 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
                             compact={true}
                             continuesPrev={continuesPrev}
                             continuesNext={continuesNext}
+                            templates={templates}
                             onClick={() => isAdmin && onShiftClick?.(shift)}
                             onDelete={onShiftDelete}
                           />
@@ -187,7 +188,7 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
               return (
                 <td key={i} className={`week-td-cell${shift ? ' has-shift' : ''}${isWeekend ? ' weekend' : ''}`}>
                   {shift
-                    ? <ShiftCard shift={shift} isAdmin={false} compact={true} continuesPrev={continuesPrev} continuesNext={continuesNext} />
+                    ? <ShiftCard shift={shift} isAdmin={false} compact={true} continuesPrev={continuesPrev} continuesNext={continuesNext} templates={templates} />
                     : <div className="cell-empty">—</div>
                   }
                 </td>

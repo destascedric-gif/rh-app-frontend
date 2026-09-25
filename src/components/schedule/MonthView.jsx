@@ -1,5 +1,6 @@
 import { toISO } from './WeekView';
 import { getEmployeeColor, getEmployeeColorLight } from './employeeColor';
+import { getShiftTimeType } from './shiftTimeType';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence' };
@@ -36,7 +37,7 @@ const chunkWeeks = (cells) => {
   return weeks;
 };
 
-export default function MonthView({ year, month, shifts, isAdmin, selectedUserId, onShiftClick, onShiftDelete }) {
+export default function MonthView({ year, month, shifts, isAdmin, selectedUserId, onShiftClick, onShiftDelete, templates = [] }) {
   const cells  = getMonthCells(year, month);
   const weeks  = chunkWeeks(cells);
   const today  = toISO(new Date());
@@ -115,15 +116,20 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
                           && rowDayShifts[di + 1].some(sameRun);
                         const showLabel = !continuesPrev;
 
+                        const isWorkShift = type === 'travail';
+                        const timeType = isWorkShift ? getShiftTimeType(shift, templates) : null;
                         const empColor      = getEmployeeColor(shift.user_id);
                         const empColorLight = getEmployeeColorLight(shift.user_id);
-                        const style = { borderLeftColor: empColor, background: empColorLight };
+                        // Un créneau de travail est coloré par ouverture/fermeture ;
+                        // un congé/repos/absence garde la couleur de l'employé.
+                        const style = isWorkShift ? undefined : { borderLeftColor: empColor, background: empColorLight };
                         const runClass = `${continuesPrev ? ' continues-prev' : ''}${continuesNext ? ' continues-next' : ''}`;
+                        const timeTypeClass = isWorkShift ? ` month-shift-badge--${timeType}` : '';
 
                         return (
                           <div
                             key={j}
-                            className={`month-shift-badge${type !== 'travail' ? ' shift-non-work' : ''}${runClass}`}
+                            className={`month-shift-badge${!isWorkShift ? ' shift-non-work' : ''}${timeTypeClass}${runClass}`}
                             style={style}
                             onClick={(e) => { e.stopPropagation(); isAdmin && onShiftClick?.(shift); }}
                             data-tooltip={fullName ? `${fullName} · ${hours}` : hours}

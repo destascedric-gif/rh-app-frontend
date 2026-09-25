@@ -3,36 +3,47 @@
    Esthétique : épuré, professionnel, chaleureux
    ============================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap');
 
 /* ── Variables ─────────────────────────────── */
 :root {
-  --bg:          #F7F5F2;
+  --bg:          #F8F7F4;
   --bg-card:     #FFFFFF;
-  --bg-hover:    #F0EDE8;
-  --border:      #E5E1DA;
-  --border-dark: #C8C3BA;
+  --bg-hover:    #F0EFEA;
+  --border:      #E7E5E0;
+  --border-dark: #CFCBC2;
 
-  --text:        #1C1917;
-  --text-muted:  #78716C;
-  --text-light:  #A8A29E;
+  --text:        #171B2E;
+  --text-muted:  #4B4F5A;
+  --text-light:  #8B8F99;
 
-  --primary:     #1C4ED8;
-  --primary-hover: #1D40AF;
-  --primary-light: #EFF6FF;
+  --primary:     #3457D5;
+  --primary-hover: #2A46B8;
+  --primary-light: #EAF0FF;
 
   --success:     #15803D;
   --success-bg:  #F0FDF4;
-  --warning:     #B45309;
-  --warning-bg:  #FFFBEB;
+  --warning:     #B9791E;
+  --warning-bg:  #FCF1DE;
   --danger:      #B91C1C;
   --danger-bg:   #FEF2F2;
 
-  --sidebar-w:   220px;
-  --radius:      8px;
-  --radius-lg:   12px;
-  --shadow:      0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md:   0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+  /* Créneaux de travail : ouverture / fermeture (indépendant de --primary) */
+  --shift-open:     #3457D5;
+  --shift-open-bg:  #EAF0FF;
+  --shift-close:    #B9791E;
+  --shift-close-bg: #FCF1DE;
+
+  --sidebar-bg:  #12182B;
+  --sidebar-active: #1E2745;
+  --sidebar-text: #9AA3B8;
+  --sidebar-w:   256px;
+  --radius:      9px;
+  --radius-lg:   14px;
+  --shadow:      0 1px 3px rgba(23,27,46,0.06), 0 1px 2px rgba(23,27,46,0.04);
+  --shadow-md:   0 4px 6px rgba(23,27,46,0.05), 0 2px 4px rgba(23,27,46,0.04);
+
+  --font-display: 'Space Grotesk', sans-serif;
 }
 
 /* ── Reset & Base ──────────────────────────── */
@@ -41,11 +52,24 @@
 html { font-size: 15px; }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Public Sans', sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Titres en Space Grotesk, corps de texte en Public Sans (voir mockup) */
+.page-header h1,
+.auth-card h1,
+.employee-header-info h1,
+.metric-value,
+.section-title,
+.modal h3,
+.balance-available, .balance-big,
+.summary-value,
+.logo-name {
+  font-family: var(--font-display), sans-serif;
 }
 
 /* ── Layout principal ──────────────────────── */
@@ -58,7 +82,7 @@ body {
 .sidebar {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
-  background: var(--text);
+  background: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -77,8 +101,25 @@ body {
   margin-bottom: 8px;
 }
 
+.sidebar-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-logo-mark {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .sidebar-logo .logo-name {
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--font-display), sans-serif;
   font-size: 20px;
   color: #FFFFFF;
   letter-spacing: -0.3px;
@@ -108,14 +149,14 @@ body {
   margin: 2px 10px;
   padding: 9px 12px;
   font-size: 13.5px;
-  font-weight: 400;
+  font-weight: 600;
   font-family: inherit;
-  color: rgba(255,255,255,0.6);
+  color: var(--sidebar-text);
   cursor: pointer;
   background: none;
   border: none;
   border-left: 2px solid transparent;
-  border-radius: 8px;
+  border-radius: 10px;
   transition: background 0.15s ease, color 0.15s ease;
   text-decoration: none;
   text-align: left;
@@ -133,16 +174,16 @@ body {
 
 .nav-item:hover {
   color: #FFFFFF;
-  background: rgba(28, 78, 216, 0.35);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .nav-item:hover svg { opacity: 1; }
 
 .nav-item.active {
   color: #FFFFFF;
-  background: var(--primary);
+  background: var(--sidebar-active);
   border-left-color: transparent;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .nav-item.active svg { opacity: 1; }
@@ -204,7 +245,7 @@ body {
 }
 
 /* ── Boutons ───────────────────────────────── */
-button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
+button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 .btn-primary {
   background: var(--primary);
@@ -418,7 +459,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   border: 1px solid var(--border-dark);
   border-radius: var(--radius);
   font-size: 13.5px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Public Sans', sans-serif;
   background: var(--bg-card);
   color: var(--text);
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -547,7 +588,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 .tab-btn {
   padding: 8px 16px;
   font-size: 13.5px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Public Sans', sans-serif;
   background: transparent;
   border: none;
   color: var(--text-muted);
@@ -756,7 +797,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 12.5px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Public Sans', sans-serif;
   cursor: pointer;
   background: transparent;
   border: 1px solid var(--border-dark);
@@ -783,7 +824,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   border: 1px solid var(--border-dark);
   border-radius: var(--radius);
   font-size: 13.5px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Public Sans', sans-serif;
   background: var(--bg-card);
   color: var(--text);
   margin-bottom: 16px;
@@ -864,7 +905,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   padding: 5px 14px;
   border-radius: 6px;
   font-size: 12.5px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Public Sans', sans-serif;
   background: transparent;
   border: none;
   color: var(--text-muted);
@@ -1092,7 +1133,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   transition: filter 0.1s;
 }
 .shift-card:hover { filter: brightness(0.96); }
-.shift-times { font-weight: 600; color: var(--primary); }
+.shift-times { font-weight: 600; color: inherit; }
 .shift-net   { font-size: 10.5px; color: var(--text-muted); }
 .shift-note  { font-size: 10.5px; color: var(--text-muted); font-style: italic; }
 .shift-break-tag {
@@ -1130,14 +1171,14 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 .badge-start {
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--primary);
+  color: inherit;
   line-height: 1.4;
 }
 
 .badge-end {
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--primary);
+  color: inherit;
   line-height: 1.4;
 }
 
@@ -1148,6 +1189,29 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 }
 
 .week-shift-badge:hover .shift-delete-btn-inline { opacity: 1; }
+
+/* ── Créneaux de travail : couleur par ouverture / fermeture ──
+   (indépendant de l'employé, qui reste identifié par le point de couleur
+   dans la ligne — voir .emp-color-dot) ── */
+.shift-card--ouverture,
+.week-shift-badge--ouverture,
+.month-shift-badge--ouverture {
+  background: var(--shift-open-bg);
+  border-left-color: var(--shift-open);
+  color: var(--shift-open);
+}
+.shift-card--fermeture,
+.week-shift-badge--fermeture,
+.month-shift-badge--fermeture {
+  background: var(--shift-close-bg);
+  border-left-color: var(--shift-close);
+  color: var(--shift-close);
+}
+/* .shift-card a une bordure pleine (pas un liseré à gauche comme les
+   badges compacts) — on la recolore entièrement plutôt que juste le bord
+   gauche, qui jurerait avec les 3 autres côtés restés bleu clair. */
+.shift-card--ouverture  { border-color: var(--shift-open); }
+.shift-card--fermeture  { border-color: var(--shift-close); }
 
 /* ── Grille mois ───────────────────────────── */
 .month-grid {
@@ -1236,6 +1300,11 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   font-weight: 700;
   flex-shrink: 0;
   line-height: 1;
+}
+
+.month-shift-badge--ouverture .badge-hours,
+.month-shift-badge--fermeture .badge-hours {
+  color: inherit;
 }
 
 .badge-hours {
@@ -1339,7 +1408,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   border: 1px solid var(--border-dark);
   border-radius: var(--radius);
   font-size: 13.5px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Public Sans', sans-serif;
   background: var(--bg-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center;
   color: var(--text);
   cursor: pointer;
@@ -1394,7 +1463,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   border: 1px solid var(--border-dark);
   border-radius: var(--radius);
   font-size: 13px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Public Sans', sans-serif;
   background: var(--bg-card);
   color: var(--text);
   outline: none;
@@ -1412,7 +1481,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   border: 1px solid var(--border-dark);
   border-radius: var(--radius);
   font-size: 13.5px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Public Sans', sans-serif;
   background: var(--bg-card);
   color: var(--text);
   outline: none;
@@ -1448,7 +1517,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   padding: 10px;
   border-radius: var(--radius);
   font-size: 13.5px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Public Sans', sans-serif;
   cursor: pointer;
   border: 1px solid var(--border-dark);
   background: transparent;
@@ -1464,13 +1533,13 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   background: var(--success-bg); color: var(--success);
   border: 1px solid #86EFAC; padding: 4px 10px;
   border-radius: var(--radius); font-size: 12px; cursor: pointer; font-weight: 500;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Public Sans', sans-serif;
 }
 .btn-refuse {
   background: var(--danger-bg); color: var(--danger);
   border: 1px solid #FCA5A5; padding: 4px 10px;
   border-radius: var(--radius); font-size: 12px; cursor: pointer; font-weight: 500;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Public Sans', sans-serif;
 }
 .btn-approve:hover { background: #DCFCE7; }
 .btn-refuse:hover  { background: #FEE2E2; }
@@ -1551,7 +1620,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
   align-items: center;
   gap: 14px;
   padding: 12px 16px;
-  background: var(--text);
+  background: var(--sidebar-bg);
   position: fixed;
   top: 0;
   left: 0;
@@ -1583,7 +1652,7 @@ button { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 .mobile-menu-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 .mobile-topbar-title {
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--font-display), sans-serif;
   font-size: 17px;
   color: #fff;
 }
