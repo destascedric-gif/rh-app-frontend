@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { login as apiLogin } from '../api/auth';
+import { LegalLinks } from './legal/LegalLayout';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -75,6 +76,7 @@ export default function Login() {
         <p className="auth-switch">
           Pas encore de compte ? <Link to="/setup/admin">Créer mon entreprise</Link>
         </p>
+        <LegalLinks />
       </div>
     </div>
   );

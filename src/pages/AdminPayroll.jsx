@@ -127,6 +127,14 @@ export default function AdminPayroll() {
         </div>
       </div>
 
+      {/* Avertissement permanent : les bulletins ne remplacent pas une paie déclarative */}
+      <div className="payroll-disclaimer" role="note">
+        <strong>Paie non certifiée.</strong> Orgaly n'est pas un logiciel de paie certifié et n'effectue
+        aucune déclaration sociale (DSN). Les bulletins sont calculés avec des taux simplifiés, sans
+        convention collective, allègements ni prélèvement à la source : faites-les vérifier par un
+        professionnel de la paie avant de les remettre à vos salariés.
+      </div>
+
       {/* Notifications */}
       {error   && <div className="notif-bar notif-bar--danger">{error}</div>}
       {success && <div className="notif-bar notif-bar--success">{success}</div>}
@@ -275,12 +283,6 @@ export default function AdminPayroll() {
           </table>
         </div>
       )}
-
-      {/* Note légale */}
-      <p className="hint" style={{ marginTop: 16 }}>
-        Les cotisations sont calculées avec des taux simplifiés à titre indicatif.
-        Pour une paie conforme, utilisez un logiciel de paie agréé ou un expert-comptable.
-      </p>
     </div>
   );
 }

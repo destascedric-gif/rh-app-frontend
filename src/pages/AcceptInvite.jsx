@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { acceptInvite as apiAcceptInvite } from '../api/auth';
 
@@ -97,6 +97,12 @@ export default function AcceptInvite() {
           >
             {loading ? 'Création…' : 'Créer mon mot de passe'}
           </button>
+          <p className="hint consent-note">
+            En activant votre compte, vous acceptez les{' '}
+            <Link to="/cgu" target="_blank">conditions générales d'utilisation</Link>. Vos données sont
+            gérées par votre employeur ; voir la{' '}
+            <Link to="/confidentialite" target="_blank">politique de confidentialité</Link>.
+          </p>
         </form>
       </div>
     </div>

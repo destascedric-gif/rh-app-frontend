@@ -59,6 +59,13 @@ export const TimesheetIcon = () => (
   </svg>
 );
 
+export const BillingIcon = () => (
+  <svg {...base}>
+    <rect x="3" y="5.5" width="18" height="13" rx="2" />
+    <path d="M3 10h18M7 15h3" />
+  </svg>
+);
+
 export const SettingsIcon = () => (
   <svg {...base}>
     <circle cx="12" cy="12" r="3" />

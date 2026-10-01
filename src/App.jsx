@@ -17,6 +17,12 @@ import AdminPayroll from './pages/AdminPayroll'
 import InviteEmployee from './pages/InviteEmployee'
 import MyTimesheet from './pages/MyTimesheet'
 import Settings from './pages/Settings'
+import Billing from './pages/Billing'
+import MentionsLegales from './pages/legal/MentionsLegales'
+import Cgu from './pages/legal/Cgu'
+import Cgv from './pages/legal/Cgv'
+import Confidentialite from './pages/legal/Confidentialite'
+import Dpa from './pages/legal/Dpa'
 
 const PrivateRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth()
@@ -35,6 +41,12 @@ function App() {
           <Route path="/setup/admin" element={<SetupAdmin />} />
           <Route path="/setup/company" element={<SetupCompany />} />
           <Route path="/accept-invite" element={<AcceptInvite />} />
+          {/* Documents légaux : publics, accessibles sans compte */}
+          <Route path="/mentions-legales" element={<MentionsLegales />} />
+          <Route path="/cgu" element={<Cgu />} />
+          <Route path="/cgv" element={<Cgv />} />
+          <Route path="/confidentialite" element={<Confidentialite />} />
+          <Route path="/dpa" element={<Dpa />} />
           <Route path="/dashboard" element={<PrivateRoute adminOnly><Dashboard /></PrivateRoute>} />
           <Route path="/employees" element={<PrivateRoute adminOnly><EmployeeList /></PrivateRoute>} />
           <Route path="/employees/:id" element={<PrivateRoute adminOnly><EmployeeDetail /></PrivateRoute>} />
@@ -44,6 +56,7 @@ function App() {
           <Route path="/admin/schedule" element={<PrivateRoute adminOnly><AdminSchedule /></PrivateRoute>} />
           <Route path="/admin/payroll" element={<PrivateRoute adminOnly><AdminPayroll /></PrivateRoute>} />
           <Route path="/parametres" element={<PrivateRoute adminOnly><Settings /></PrivateRoute>} />
+          <Route path="/abonnement" element={<PrivateRoute adminOnly><Billing /></PrivateRoute>} />
           <Route path="/mon-espace" element={<PrivateRoute><MyLeaves /></PrivateRoute>} />
           <Route path="/mon-planning" element={<PrivateRoute><MySchedule /></PrivateRoute>} />
           <Route path="/mon-pointage" element={<PrivateRoute><MyTimesheet /></PrivateRoute>} />

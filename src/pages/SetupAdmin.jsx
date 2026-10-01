@@ -2,18 +2,22 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { setupAdmin as apiSetupAdmin } from '../api/auth';
+import { LegalLinks } from './legal/LegalLayout';
 
 export default function SetupAdmin() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const [form, setForm] = useState({
-    firstName: '', lastName: '', email: '', password: '', phone: '',
+    firstName: '', lastName: '', email: '', password: '', phone: '', acceptCgu: false,
   });
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => setForm({
+    ...form,
+    [e.target.name]: e.target.type === 'checkbox' ? e.target.checked : e.target.value,
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -79,6 +83,15 @@ export default function SetupAdmin() {
               onChange={handleChange} placeholder="+33 6 00 00 00 00" />
           </div>
 
+          <label className="consent-check">
+            <input type="checkbox" name="acceptCgu" checked={form.acceptCgu} onChange={handleChange} required />
+            <span>
+              J'accepte les <Link to="/cgu" target="_blank">conditions générales d'utilisation</Link>,
+              l'<Link to="/dpa" target="_blank">accord de sous-traitance des données</Link> et j'ai lu
+              la <Link to="/confidentialite" target="_blank">politique de confidentialité</Link>. *
+            </span>
+          </label>
+
           {error && <p className="error-msg">{error}</p>}
 
           <button type="submit" disabled={loading} className="btn-primary">
@@ -89,6 +102,7 @@ export default function SetupAdmin() {
         <p className="auth-switch">
           Déjà un compte ? <Link to="/login">Se connecter</Link>
         </p>
+        <LegalLinks />
       </div>
     </div>
   );

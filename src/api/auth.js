@@ -12,7 +12,10 @@ const post = async (url, body, token = null) => {
   });
 
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Erreur serveur');
+  if (!res.ok) {
+    // code : motif exploitable par l'interface (ex. PLAN_LIMIT → lien vers l'abonnement)
+    throw Object.assign(new Error(data.message || 'Erreur serveur'), { code: data.code });
+  }
   return data;
 };
 

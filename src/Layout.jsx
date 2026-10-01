@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react'
 import { useAuth } from './context/AuthContext'
 import { getSettings } from './api/settings'
 import {
-  DashboardIcon, EmployeesIcon, LeavesIcon, ScheduleIcon, PayrollIcon, TimesheetIcon, SettingsIcon,
+  DashboardIcon, EmployeesIcon, LeavesIcon, ScheduleIcon, PayrollIcon, TimesheetIcon, SettingsIcon, BillingIcon,
 } from './components/NavIcons'
+import { LegalLinks } from './pages/legal/LegalLayout'
 
 export default function Layout({ children }) {
   const navigate  = useNavigate()
@@ -71,6 +72,7 @@ export default function Layout({ children }) {
             <button className={isActive('/admin/leaves')} onClick={() => go('/admin/leaves')}><LeavesIcon /> Congés</button>
             <button className={isActive('/admin/schedule')} onClick={() => go('/admin/schedule')}><ScheduleIcon /> Planning</button>
             <button className={isActive('/admin/payroll')} onClick={() => go('/admin/payroll')}><PayrollIcon /> Paie</button>
+            <button className={isActive('/abonnement')} onClick={() => go('/abonnement')}><BillingIcon /> Abonnement</button>
             <button className={isActive('/parametres')} onClick={() => go('/parametres')}><SettingsIcon /> Paramètres</button>
           </>
         ) : (
@@ -93,6 +95,7 @@ export default function Layout({ children }) {
           <button onClick={handleLogout} style={{ marginTop: 10, width: '100%', padding: '7px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 6, color: 'rgba(255,255,255,0.6)', fontSize: 12, cursor: 'pointer' }}>
             Se déconnecter
           </button>
+          <LegalLinks className="legal-links legal-links--sidebar" />
         </div>
       </div>
 
