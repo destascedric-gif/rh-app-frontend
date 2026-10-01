@@ -8,6 +8,8 @@ import MonthView from '../components/schedule/MonthView';
 import ShiftModal from '../components/schedule/ShiftModal';
 import ScheduleLegend from '../components/schedule/ScheduleLegend';
 import TemplatePalette from '../components/schedule/TemplatePalette';
+import PhoneCalendar from '../components/schedule/PhoneCalendar';
+import useMediaQuery, { PHONE_QUERY } from '../utils/useMediaQuery';
 
 const getMondayOfWeek = (date = new Date()) => {
   const d   = new Date(date);
@@ -23,6 +25,9 @@ export default function AdminSchedule() {
   const { token } = useAuth();
 
   const [view,        setView]        = useState('week');
+  // Sur téléphone, toujours le calendrier du mois (façon agenda)
+  const isPhone   = useMediaQuery(PHONE_QUERY);
+  const shownView = isPhone ? 'month' : view;
   const [monday,      setMonday]      = useState(getMondayOfWeek());
   const [monthDate,   setMonthDate]   = useState(new Date());
   const [employees,   setEmployees]   = useState([]);
@@ -38,7 +43,7 @@ export default function AdminSchedule() {
   }, [token]);
 
   const getDateRange = useCallback(() => {
-    if (view === 'week') {
+    if (shownView === 'week') {
       const days = getWeekDays(monday);
       return { start: toISO(days[0]), end: toISO(days[6]) };
     }
@@ -48,7 +53,7 @@ export default function AdminSchedule() {
       start: toISO(new Date(y, m, 1)),
       end:   toISO(new Date(y, m + 1, 0)),
     };
-  }, [view, monday, monthDate]);
+  }, [shownView, monday, monthDate]);
 
   const loadShifts = useCallback(async () => {
     setLoading(true);
@@ -138,30 +143,43 @@ export default function AdminSchedule() {
         </select>
 
         <div className="schedule-nav">
-          <button className="btn-ghost" onClick={view === 'week' ? prevWeek : prevMonth}>←</button>
+          <button className="btn-ghost" onClick={shownView === 'week' ? prevWeek : prevMonth}>←</button>
           <span className="schedule-period">
-            {view === 'week'
+            {shownView === 'week'
               ? `${weekDays[0].getDate()} ${MONTH_NAMES[weekDays[0].getMonth()]} → ${weekDays[6].getDate()} ${MONTH_NAMES[weekDays[6].getMonth()]} ${weekDays[6].getFullYear()}`
               : `${MONTH_NAMES[monthDate.getMonth()]} ${monthDate.getFullYear()}`
             }
           </span>
-          <button className="btn-ghost" onClick={view === 'week' ? nextWeek : nextMonth}>→</button>
+          <button className="btn-ghost" onClick={shownView === 'week' ? nextWeek : nextMonth}>→</button>
           <button className="btn-ghost" onClick={() => { setMonday(getMondayOfWeek()); setMonthDate(new Date()); }}>
             Aujourd'hui
           </button>
         </div>
 
-        <div className="role-toggle">
+        {!isPhone && <div className="role-toggle">
           <button className={`role-btn ${view==='week'?'active':''}`} onClick={() => setView('week')}>Semaine</button>
           <button className={`role-btn ${view==='month'?'active':''}`} onClick={() => setView('month')}>Mois</button>
-        </div>
+        </div>}
       </div>
 
       <ScheduleLegend />
-      {view === 'week' && <TemplatePalette templates={templates} />}
+      {shownView === 'week' && <TemplatePalette templates={templates} />}
 
       {loading ? (
         <p className="tab-loading">Chargement…</p>
+      ) : isPhone ? (
+        <PhoneCalendar
+          key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
+          year={monthDate.getFullYear()}
+          month={monthDate.getMonth()}
+          shifts={shifts}
+          templates={templates}
+          isAdmin
+          selectedUserId={filteredEmp}
+          onShiftClick={(shift) => setModal({ shift })}
+          onShiftDelete={handleDelete}
+          onAddShift={(date) => setModal({ date })}
+        />
       ) : view === 'week' ? (
         <WeekView
           days={weekDays}

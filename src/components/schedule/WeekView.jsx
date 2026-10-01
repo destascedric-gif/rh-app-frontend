@@ -18,8 +18,6 @@ export const toISO = (date) => {
 };
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-const DAY_NAMES_LONG = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-
 const formatDayHeader = (date) => {
   const dow      = date.getDay();
   const idx      = dow === 0 ? 6 : dow - 1;
@@ -153,30 +151,8 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
   }
 
   // ── Vue employé ──
-  // Deux rendus : la grille (écrans larges) et une liste jour par jour
-  // (téléphone), le CSS n'en affiche qu'un selon la largeur.
   return (
-    <>
-    <ul className="week-list" aria-label="Planning de la semaine">
-      {days.map((d, i) => {
-        const shift = getShiftForDay(toISO(d));
-        const { isToday } = formatDayHeader(d);
-        return (
-          <li key={i} className={`week-list-day${isToday ? ' today' : ''}`}>
-            <div className="week-list-date">
-              <span className="week-list-name">{DAY_NAMES_LONG[i]}</span>
-              <span className="week-list-num">{d.getDate()}</span>
-            </div>
-            <div className="week-list-shift">
-              {shift
-                ? <ShiftCard shift={shift} isAdmin={false} compact={false} templates={templates} />
-                : <span className="cell-empty">Pas de créneau</span>}
-            </div>
-          </li>
-        );
-      })}
-    </ul>
-    <div className="week-grid week-grid--employee">
+    <div className="week-grid">
       <table className="week-table">
         <colgroup>
           {days.map((_, i) => <col key={i} className="col-day" />)}
@@ -221,6 +197,5 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
         </tbody>
       </table>
     </div>
-    </>
   );
 }

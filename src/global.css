@@ -1945,22 +1945,89 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 /* ── Téléphone : l'application connectée ──────────────────────
    Tableaux en cartes, barres d'outils qui passent à la ligne,
-   planning employé en liste, colonne des noms fixe au planning. */
-.week-list { display: none; }
-.week-list-day {
+   calendrier du mois façon agenda, colonne des noms fixe au planning. */
+
+/* Calendrier du mois (PhoneCalendar, affiché uniquement sur téléphone) */
+.pcal { margin: 0 -8px; }
+.pcal-head { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-bottom: 4px; }
+.pcal-head div { text-align: center; font-size: 12px; color: var(--text-muted); padding: 4px 0; }
+.pcal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+.pcal-day {
+  min-height: 74px;
+  min-width: 0;
+  padding: 4px 2px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  font-family: inherit;
+  color: var(--text);
+  text-align: center;
+}
+.pcal-day--other { background: transparent; color: var(--text-light); }
+.pcal-day--other .pcal-chip { opacity: 0.55; }
+.pcal-day--selected { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+.pcal-num { align-self: center; min-width: 24px; height: 24px; line-height: 24px; border-radius: 12px; font-size: 13px; font-weight: 600; margin-bottom: 1px; }
+.pcal-num--today { background: var(--primary); color: #fff; }
+.pcal-chip {
+  display: block;
+  border-radius: 4px;
+  padding: 1px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pcal-chip--open  { background: var(--shift-open);  color: #fff; }
+.pcal-chip--close { background: #9A5B12; color: #fff; }
+.pcal-chip--off   { background: var(--bg-hover); color: var(--text-muted); font-style: italic; font-weight: 500; }
+.pcal-more { font-size: 10px; color: var(--text-muted); }
+
+.pcal-detail { margin: 16px 8px 0; }
+.pcal-detail-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.pcal-detail-head h2 { font-size: 17px; font-weight: 600; }
+.pcal-empty { font-size: 13.5px; color: var(--text-muted); padding: 8px 0; }
+.pcal-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.pcal-row { display: flex; align-items: stretch; gap: 6px; }
+.pcal-item {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  padding: 10px 12px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 10px 14px;
+  font-family: inherit;
+  color: var(--text);
+  text-align: left;
+  min-height: 48px;
 }
-.week-list-day.today { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
-.week-list-date { width: 72px; flex-shrink: 0; display: flex; flex-direction: column; }
-.week-list-name { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
-.week-list-num { font-family: var(--font-display); font-size: 22px; font-weight: 600; line-height: 1.1; }
-.week-list-shift { flex: 1; min-width: 0; }
+.pcal-bar { width: 4px; align-self: stretch; border-radius: 2px; flex-shrink: 0; }
+.pcal-bar--open  { background: var(--shift-open); }
+.pcal-bar--close { background: var(--shift-close); }
+.pcal-bar--off   { background: var(--border-dark); }
+.pcal-item-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pcal-item-name { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; }
+.pcal-item-time { font-size: 13.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.pcal-item-hours { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pcal-delete {
+  width: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--danger);
+}
 
 @media (max-width: 768px) {
   /* Planning gérant : les noms restent visibles quand on fait défiler les jours */
@@ -1985,10 +2052,6 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   .employee-header-actions { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; align-items: center; }
   .emp-meta { overflow-wrap: anywhere; }
   .tabs, .tabs-nav { overflow-x: auto; }
-
-  /* Planning employé : une ligne par jour au lieu de la grille */
-  .week-list { display: flex; flex-direction: column; gap: 8px; list-style: none; margin: 0; padding: 0; }
-  .week-grid--employee { display: none; }
 
   /* Tableaux : une carte par ligne, chaque valeur précédée du titre de sa
      colonne (data-label posé par useTableCellLabels) */
