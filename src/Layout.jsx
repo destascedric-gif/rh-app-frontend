@@ -4,7 +4,7 @@ import { useAuth } from './context/AuthContext'
 import { getSettings } from './api/settings'
 import {
   DashboardIcon, EmployeesIcon, LeavesIcon, ScheduleIcon, PayrollIcon, TimesheetIcon, SettingsIcon, BillingIcon,
-  HelpIcon,
+  HelpIcon, LogoutIcon,
 } from './components/NavIcons'
 import { LegalLinks } from './pages/legal/LegalLayout'
 import { EDITOR } from './legal/legalInfo'
@@ -63,48 +63,48 @@ export default function Layout({ children }) {
               <path d="M12 11v10" />
             </svg>
           </div>
-          <div>
-            <div className="logo-name">Orgaly</div>
-            <div className="logo-sub">Gestion RH</div>
-          </div>
+          <div className="logo-name">Orgaly</div>
         </div>
 
         {isAdmin ? (
           <>
-            <div className="nav-section">Menu</div>
             <button className={isActive('/dashboard')} onClick={() => go('/dashboard')}><DashboardIcon /> Tableau de bord</button>
-            <button className={isActive('/employees')} onClick={() => go('/employees')}><EmployeesIcon /> Employés</button>
-            <button className={isActive('/admin/leaves')} onClick={() => go('/admin/leaves')}><LeavesIcon /> Congés</button>
             <button className={isActive('/admin/schedule')} onClick={() => go('/admin/schedule')}><ScheduleIcon /> Planning</button>
+            <button className={isActive('/admin/leaves')} onClick={() => go('/admin/leaves')}><LeavesIcon /> Congés et absences</button>
             <button className={isActive('/admin/payroll')} onClick={() => go('/admin/payroll')}><PayrollIcon /> Paie</button>
-            <button className={isActive('/abonnement')} onClick={() => go('/abonnement')}><BillingIcon /> Abonnement</button>
-            <button className={isActive('/parametres')} onClick={() => go('/parametres')}><SettingsIcon /> Paramètres</button>
+            <button className={isActive('/employees')} onClick={() => go('/employees')}><EmployeesIcon /> Équipe</button>
           </>
         ) : (
           <>
-            <div className="nav-section">Menu</div>
             <button className={isActive('/mon-espace')} onClick={() => go('/mon-espace')}><LeavesIcon /> Mon espace</button>
             <button className={isActive('/mon-planning')} onClick={() => go('/mon-planning')}><ScheduleIcon /> Mon planning</button>
             <button className={isActive('/mon-pointage')} onClick={() => go('/mon-pointage')}><TimesheetIcon /> Mon pointage</button>
           </>
         )}
 
-        {/* Ouvre la messagerie de l'utilisateur vers l'adresse de contact d'Orgaly */}
-        <a className="nav-item nav-item--help" href={`mailto:${EDITOR.email}?subject=${encodeURIComponent("Besoin d'aide sur Orgaly")}`}>
-          <HelpIcon /> Besoin d'aide ?
-        </a>
+        {/* Réglages et aide, séparés des pages de travail, en bas du menu */}
+        <div className="nav-bottom">
+          {isAdmin && (
+            <>
+              <button className={isActive('/abonnement')} onClick={() => go('/abonnement')}><BillingIcon /> Abonnement</button>
+              <button className={isActive('/parametres')} onClick={() => go('/parametres')}><SettingsIcon /> Paramètres</button>
+            </>
+          )}
+          {/* Ouvre la messagerie de l'utilisateur vers l'adresse de contact d'Orgaly */}
+          <a className="nav-item nav-item--help" href={`mailto:${EDITOR.email}?subject=${encodeURIComponent("Besoin d'aide sur Orgaly")}`}>
+            <HelpIcon /> Besoin d'aide ?
+          </a>
+        </div>
 
         <div className="sidebar-bottom">
           <div className="user-chip">
-            <div className="avatar-xs">{user?.firstName?.[0]}{user?.lastName?.[0]}</div>
-            <div>
-              <div className="user-name" style={{ color: '#fff', fontSize: 12 }}>{user?.firstName} {user?.lastName}</div>
-              <div className="user-role" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>{isAdmin ? 'Administrateur' : 'Employé'}</div>
+            <div className="user-avatar">{user?.firstName?.[0]}{user?.lastName?.[0]}</div>
+            <div className="user-chip-text">
+              <div className="user-name">{user?.firstName} {user?.lastName}</div>
+              <div className="user-role">{isAdmin ? 'Administrateur' : 'Employé'}</div>
             </div>
+            <button className="logout-btn" onClick={handleLogout} aria-label="Se déconnecter" title="Se déconnecter"><LogoutIcon /></button>
           </div>
-          <button onClick={handleLogout} style={{ marginTop: 10, width: '100%', padding: '7px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 6, color: 'rgba(255,255,255,0.6)', fontSize: 12, cursor: 'pointer' }}>
-            Se déconnecter
-          </button>
           <LegalLinks className="legal-links legal-links--sidebar" />
         </div>
       </div>

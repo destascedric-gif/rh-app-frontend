@@ -83,7 +83,7 @@ export default function AdminLeaves() {
     <div className="page">
       <div className="page-header">
         <div>
-          <h1>Congés & absences</h1>
+          <h1>Congés et absences</h1>
           <p className="page-subtitle">
             {filter === 'en_attente' && pendingCount > 0
               ? `${pendingCount} demande(s) en attente de décision`

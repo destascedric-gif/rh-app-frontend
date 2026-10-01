@@ -189,7 +189,37 @@ body {
 .nav-item.active svg { opacity: 1; }
 
 /* Lien d'aide : poussé en bas du menu, juste au-dessus du profil */
-.nav-item--help { margin-top: auto; text-decoration: none; font-weight: 500; }
+.nav-item--help { text-decoration: none; }
+
+/* Réglages et aide : poussés en bas du menu, au-dessus du profil */
+.nav-bottom { margin-top: auto; padding-top: 12px; }
+
+/* Profil en bas du menu, avec la déconnexion en icône */
+.user-chip { display: flex; align-items: center; gap: 10px; }
+.user-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: #2A3358;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display), sans-serif;
+  font-size: 12.5px; font-weight: 600;
+  flex-shrink: 0;
+}
+.user-chip-text { flex: 1; min-width: 0; }
+.user-chip .user-name { color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-chip .user-role { color: #8891A8; font-size: 12px; }
+.logout-btn {
+  width: 34px; height: 34px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: 1px solid #232B45;
+  border-radius: 8px;
+  color: var(--sidebar-text);
+}
+.logout-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
+.logout-btn:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
 
 .nav-item.disabled {
   opacity: 0.3;

@@ -96,7 +96,7 @@ export default function EmployeeList() {
     <div className="page">
       <div className="page-header">
         <div>
-          <h1>Employés</h1>
+          <h1>Équipe</h1>
           <p className="page-subtitle">{employees.length} membre{employees.length > 1 ? 's' : ''}</p>
         </div>
         <button className="btn-primary" onClick={() => navigate('/invite')}>
