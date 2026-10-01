@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import ShiftCard from './ShiftCard';
+import MeetingTag from './MeetingTag';
+import { meetingsOn } from './meetingUtils';
 
 export const getWeekDays = (monday) => {
   return Array.from({ length: 7 }, (_, i) => {
@@ -27,7 +29,7 @@ const formatDayHeader = (date) => {
   return { day, num, isToday, isWeekend };
 };
 
-export default function WeekView({ days, shifts, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop }) {
+export default function WeekView({ days, shifts, meetings = [], employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick }) {
   const [dragOverCell, setDragOverCell] = useState(null);
 
   const getShiftForUserAndDay = (userId, dateStr) =>
@@ -104,6 +106,7 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
                     const { continuesPrev, continuesNext } = getRunEdges(emp.id, i);
                     const cellKey    = `${emp.id}-${dateStr}`;
                     const isDragOver = dragOverCell === cellKey;
+                    const cellMeetings = meetingsOn(meetings, dateStr, emp.id);
                     return (
                       <td
                         key={i}
@@ -130,9 +133,12 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
                             onClick={() => isAdmin && onShiftClick?.(shift)}
                             onDelete={onShiftDelete}
                           />
-                        ) : (
+                        ) : cellMeetings.length === 0 && (
                           <div className="cell-empty">—</div>
                         )}
+                        {cellMeetings.map((m) => (
+                          <MeetingTag key={m.id} meeting={m} onClick={isAdmin ? onMeetingClick : undefined} />
+                        ))}
                       </td>
                     );
                   })}
@@ -172,6 +178,7 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
               const dateStr = toISO(d);
               const shift   = getShiftForDay(dateStr);
               const { isWeekend } = formatDayHeader(d);
+              const dayMeetings = meetingsOn(meetings, dateStr);
 
               const type = shift?.type || 'travail';
               const sameType = (other) => other && (other.type || 'travail') === type;
@@ -184,8 +191,9 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
                 <td key={i} className={`week-td-cell${shift ? ' has-shift' : ''}${isWeekend ? ' weekend' : ''}`}>
                   {shift
                     ? <ShiftCard shift={shift} isAdmin={false} compact={true} continuesPrev={continuesPrev} continuesNext={continuesNext} />
-                    : <div className="cell-empty">—</div>
+                    : dayMeetings.length === 0 && <div className="cell-empty">—</div>
                   }
+                  {dayMeetings.map((m) => <MeetingTag key={m.id} meeting={m} />)}
                 </td>
               );
             })}

@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getMySchedule } from '../api/schedule';
 import { getMyBalance, getMyRequests } from '../api/leaves';
+import { getMeetings } from '../api/meetings';
+import MeetingTag from '../components/schedule/MeetingTag';
+import { meetingsOn } from '../components/schedule/meetingUtils';
 import { toISO } from '../components/schedule/WeekView';
 import { shiftColorVar } from '../components/schedule/shiftColor';
 import LeaveStatusBadge from '../components/leaves/LeaveStatusBadge';
@@ -34,6 +37,7 @@ export default function MySpace() {
   const navigate = useNavigate();
 
   const [shifts,   setShifts]   = useState([]);
+  const [meetings, setMeetings] = useState([]);
   const [requests, setRequests] = useState([]);
   const [cpLeft,   setCpLeft]   = useState(null);
   const [loading,  setLoading]  = useState(true);
@@ -49,9 +53,11 @@ export default function MySpace() {
       getMySchedule(toISO(new Date()), toISO(end), token),
       getMyRequests(token),
       getMyBalance(token),
+      getMeetings(toISO(new Date()), toISO(new Date()), token),
     ])
-      .then(([sched, reqs, bal]) => {
+      .then(([sched, reqs, bal, meets]) => {
         setShifts(sched);
+        setMeetings(meets);
         setRequests(reqs);
         const cp = bal.balances?.['Congés payés'];
         if (cp) setCpLeft(cp.balance_days - cp.used_days);
@@ -103,6 +109,20 @@ export default function MySpace() {
             <p className="myspace-off">
               {todayOff ? (todayOff.note || TYPE_LABELS[todayOff.type]) : 'Pas de créneau prévu aujourd\'hui.'}
             </p>
+          )}
+
+          {meetingsOn(meetings, todayStr).length > 0 && (
+            <div className="myspace-meetings">
+              {meetingsOn(meetings, todayStr).map((m) => (
+                <div key={m.id} className="myspace-meeting">
+                  <MeetingTag meeting={m} />
+                  <span className="myspace-meeting-who">
+                    avec {m.participants.filter((p) => p.id !== user?.id).map((p) => p.first_name).join(', ') || 'vous seul'}
+                    {m.note ? ` · ${m.note}` : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
 
           {nextShift && (

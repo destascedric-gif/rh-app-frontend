@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getMySchedule } from '../api/schedule';
+import { getMeetings } from '../api/meetings';
 import WeekView, { getWeekDays, toISO } from '../components/schedule/WeekView';
 import MonthView from '../components/schedule/MonthView';
 import ScheduleLegend from '../components/schedule/ScheduleLegend';
@@ -21,7 +22,7 @@ const getMondayOfWeek = (date = new Date()) => {
 const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
 export default function MySchedule() {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
 
   // Sur téléphone, le calendrier du mois (façon agenda) s'ouvre par défaut ;
   // la semaine reste disponible, en cartes détaillées.
@@ -30,6 +31,7 @@ export default function MySchedule() {
   const [monday,    setMonday]    = useState(getMondayOfWeek());
   const [monthDate, setMonthDate] = useState(new Date());
   const [shifts,    setShifts]    = useState([]);
+  const [meetings,  setMeetings]  = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [templates, setTemplates] = useState([]);
 
@@ -62,8 +64,8 @@ export default function MySchedule() {
   useEffect(() => {
     setLoading(true);
     const { start, end } = getDateRange();
-    getMySchedule(start, end, token)
-      .then(setShifts)
+    Promise.all([getMySchedule(start, end, token), getMeetings(start, end, token)])
+      .then(([sched, meets]) => { setShifts(sched); setMeetings(meets); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [getDateRange, token]);
@@ -130,18 +132,20 @@ export default function MySchedule() {
       {loading ? (
         <p className="tab-loading">Chargement…</p>
       ) : isPhone && view === 'week' ? (
-        <PhoneWeekList days={weekDays} shifts={shifts} />
+        <PhoneWeekList days={weekDays} shifts={shifts} meetings={meetings} />
       ) : isPhone ? (
         <PhoneCalendar
           key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
           year={monthDate.getFullYear()}
           month={monthDate.getMonth()}
           shifts={shifts}
+          meetings={meetings}
         />
       ) : view === 'week' ? (
         <WeekView
           days={weekDays}
           shifts={shifts}
+          meetings={meetings}
           isAdmin={false}
         />
       ) : (
@@ -149,8 +153,8 @@ export default function MySchedule() {
           year={monthDate.getFullYear()}
           month={monthDate.getMonth()}
           shifts={shifts}
+          meetings={meetings}
           isAdmin={false}
-          selectedUserId={user?.id}
         />
       )}
     </div>

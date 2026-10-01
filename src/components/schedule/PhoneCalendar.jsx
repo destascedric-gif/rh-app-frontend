@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { toISO } from './WeekView';
 import { shiftColorVar } from './shiftColor';
+import MeetingTag, { MeetingIcon } from './MeetingTag';
+import { meetingsOn } from './meetingUtils';
 
 // Calendrier du mois pour téléphone, façon Google Agenda : la grille tient
 // dans la largeur de l'écran, chaque jour porte de petites étiquettes, et
@@ -44,8 +46,8 @@ const getMonthWeeks = (year, month) => {
 const chipKind = (shift) => ((shift.type || 'travail') === 'travail' ? 'work' : 'off');
 
 export default function PhoneCalendar({
-  year, month, shifts, isAdmin = false, selectedUserId,
-  onShiftClick, onShiftDelete, onAddShift,
+  year, month, shifts, meetings = [], isAdmin = false, selectedUserIds = [],
+  onShiftClick, onShiftDelete, onAddShift, onMeetingClick,
 }) {
   const todayStr = toISO(new Date());
   const inMonth  = (d) => d.getMonth() === month;
@@ -58,9 +60,12 @@ export default function PhoneCalendar({
       : toISO(new Date(year, month, 1));
   });
 
-  const visibleShifts = selectedUserId
-    ? shifts.filter((s) => s.user_id === selectedUserId)
+  const visibleShifts = selectedUserIds.length > 0
+    ? shifts.filter((s) => selectedUserIds.includes(s.user_id))
     : shifts;
+  // Réunions d'un jour, limitées aux employés affichés
+  const meetingsOnDay = (dateStr) => meetingsOn(meetings, dateStr)
+    .filter((m) => selectedUserIds.length === 0 || m.participants?.some((p) => selectedUserIds.includes(p.id)));
   // Créneaux travaillés d'abord (par heure de début), puis repos / congés :
   // les cases n'affichent que 3 étiquettes, elles doivent montrer qui travaille.
   const shiftsOn = (dateStr) => visibleShifts
@@ -74,6 +79,7 @@ export default function PhoneCalendar({
   const weeks = getMonthWeeks(year, month);
   const selectedDate = new Date(`${selected}T12:00:00`);
   const selectedShifts = shiftsOn(selected);
+  const selectedMeetings = meetingsOnDay(selected);
 
   return (
     <div className="pcal">
@@ -85,8 +91,10 @@ export default function PhoneCalendar({
         {weeks.flat().map((day) => {
           const dateStr = toISO(day);
           const dayShifts = shiftsOn(dateStr);
+          const hasMeeting = meetingsOnDay(dateStr).length > 0;
           const label = `${DAY_NAMES[day.getDay()]} ${day.getDate()} ${MONTH_NAMES[day.getMonth()]}`
-            + (dayShifts.length ? `, ${dayShifts.length} créneau${dayShifts.length > 1 ? 'x' : ''}` : '');
+            + (dayShifts.length ? `, ${dayShifts.length} créneau${dayShifts.length > 1 ? 'x' : ''}` : '')
+            + (hasMeeting ? ', réunion' : '');
           return (
             <button
               key={dateStr}
@@ -100,7 +108,10 @@ export default function PhoneCalendar({
               aria-label={label}
               aria-pressed={dateStr === selected}
             >
-              <span className={`pcal-num${dateStr === todayStr ? ' pcal-num--today' : ''}`}>{day.getDate()}</span>
+              <span className="pcal-num-row">
+                <span className={`pcal-num${dateStr === todayStr ? ' pcal-num--today' : ''}`}>{day.getDate()}</span>
+                {hasMeeting && <span className="pcal-meeting"><MeetingIcon size={11} /></span>}
+              </span>
               {dayShifts.slice(0, MAX_CHIPS).map((s) => {
                 const kind = chipKind(s);
                 // Employé (un seul créneau par jour) : début et fin l'un sous
@@ -134,6 +145,17 @@ export default function PhoneCalendar({
             <button type="button" className="btn-ghost btn-sm" onClick={() => onAddShift(selected)}>+ Ajouter</button>
           )}
         </div>
+
+        {selectedMeetings.length > 0 && (
+          <div className="pcal-meetings">
+            {selectedMeetings.map((m) => (
+              <div key={m.id} className="pcal-meeting-row">
+                <MeetingTag meeting={m} onClick={isAdmin ? onMeetingClick : undefined} />
+                <span className="pcal-meeting-who">{m.participants?.map((p) => p.first_name).join(', ')}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {selectedShifts.length === 0 ? (
           <p className="pcal-empty">Aucun créneau ce jour-là.</p>

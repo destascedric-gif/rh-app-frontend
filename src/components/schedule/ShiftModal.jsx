@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { createShift, updateShift } from '../../api/schedule';
+import EmployeeMultiSelect from '../EmployeeMultiSelect';
 
 const DEFAULT_BREAK = { start_time: '12:00', end_time: '13:00', label: 'Pause déjeuner' };
 
@@ -16,7 +17,8 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
   const isEdit    = !!shift;
 
   const [form, setForm] = useState({
-    userId:    userId ?? shift?.user_id ?? '',
+    // Création : un ou plusieurs employés d'un coup ; modification : celui du créneau
+    userIds:   userId ? [userId] : shift?.user_id ? [shift.user_id] : [],
     date:      date   ?? shift?.date    ?? '',
     type:      shift?.type ?? 'travail',
     startTime: shift?.start_time?.slice(0,5) ?? '09:00',
@@ -73,8 +75,13 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
     setError('');
     setLoading(true);
 
+    if (form.userIds.length === 0) {
+      setError('Choisissez au moins un employé.');
+      setLoading(false);
+      return;
+    }
+
     const payload = {
-      userId:    form.userId,
       date:      form.date,
       type:      form.type,
       startTime: form.startTime,
@@ -87,17 +94,39 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
       })) : [],
     };
 
-    try {
-      const saved = isEdit
-        ? await updateShift(shift.id, payload, token)
-        : await createShift(payload, token);
-      onSaved?.(saved);
-      onClose();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    if (isEdit) {
+      try {
+        onSaved?.(await updateShift(shift.id, payload, token));
+        onClose();
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+      return;
     }
+
+    // Un créneau par employé choisi ; ceux qui ont échoué restent
+    // sélectionnés avec le message d'erreur, les autres sont enregistrés.
+    const failed = [];
+    for (const id of form.userIds) {
+      try {
+        onSaved?.(await createShift({ ...payload, userId: id }, token));
+      } catch (err) {
+        failed.push({ id, message: err.message });
+      }
+    }
+    setLoading(false);
+    if (failed.length === 0) {
+      onClose();
+      return;
+    }
+    const nameOf = (id) => {
+      const emp = employees?.find((e) => e.id === id);
+      return emp ? `${emp.first_name} ${emp.last_name}` : 'un employé';
+    };
+    setForm((f) => ({ ...f, userIds: failed.map((x) => x.id) }));
+    setError(failed.map((x) => `${nameOf(x.id)} : ${x.message}`).join(' '));
   };
 
   return (
@@ -107,21 +136,23 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
 
         <form onSubmit={handleSubmit}>
           {/* Employé */}
-          {!userId && employees && (
+          {isEdit ? (
             <div className="field">
-              <label>Employé *</label>
-              <select
-                value={form.userId}
-                onChange={e => setForm(f => ({ ...f, userId: e.target.value }))}
-                required
-              >
-                <option value="">Sélectionner…</option>
-                {employees.map(emp => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.first_name} {emp.last_name}
-                  </option>
-                ))}
-              </select>
+              <label>Employé</label>
+              <div className="field-static">{shift.first_name} {shift.last_name}</div>
+            </div>
+          ) : !userId && employees && (
+            <div className="field">
+              <label>Employés *</label>
+              <EmployeeMultiSelect
+                employees={employees}
+                value={form.userIds}
+                onChange={(ids) => setForm(f => ({ ...f, userIds: ids }))}
+                placeholder="Choisir un ou plusieurs employés…"
+              />
+              {form.userIds.length > 1 && (
+                <span className="hint">Le même créneau sera créé pour les {form.userIds.length} employés.</span>
+              )}
             </div>
           )}
 

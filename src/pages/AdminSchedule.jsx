@@ -1,14 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAdminSchedule, createShift, deleteShift } from '../api/schedule';
+import { getMeetings } from '../api/meetings';
 import { getEmployees } from '../api/employees';
 import { getShiftTemplates } from '../api/shiftTemplates';
 import WeekView, { getWeekDays, toISO } from '../components/schedule/WeekView';
 import MonthView from '../components/schedule/MonthView';
 import ShiftModal from '../components/schedule/ShiftModal';
+import MeetingModal from '../components/schedule/MeetingModal';
 import ScheduleLegend from '../components/schedule/ScheduleLegend';
 import TemplatePalette from '../components/schedule/TemplatePalette';
 import PhoneCalendar from '../components/schedule/PhoneCalendar';
+import EmployeeMultiSelect from '../components/EmployeeMultiSelect';
 import useMediaQuery, { PHONE_QUERY } from '../utils/useMediaQuery';
 import PageHeader from '../components/PageHeader';
 
@@ -34,9 +37,12 @@ export default function AdminSchedule() {
   const [employees,   setEmployees]   = useState([]);
   const [templates,   setTemplates]   = useState([]);
   const [shifts,      setShifts]      = useState([]);
-  const [filteredEmp, setFilteredEmp] = useState('');
+  const [meetings,    setMeetings]    = useState([]);
+  // Employés affichés (aucun choisi = tout le monde)
+  const [filteredIds, setFilteredIds] = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [modal,       setModal]       = useState(null);
+  const [meetingModal, setMeetingModal] = useState(null);
 
   useEffect(() => {
     getEmployees(token).then(setEmployees).catch(console.error);
@@ -56,18 +62,24 @@ export default function AdminSchedule() {
     };
   }, [shownView, monday, monthDate]);
 
+  // Tous les créneaux de la période : le filtre par employé se fait à
+  // l'affichage, pour pouvoir en choisir plusieurs.
   const loadShifts = useCallback(async () => {
     setLoading(true);
     try {
       const { start, end } = getDateRange();
-      const data = await getAdminSchedule(start, end, filteredEmp || null, token);
+      const [data, meets] = await Promise.all([
+        getAdminSchedule(start, end, null, token),
+        getMeetings(start, end, token),
+      ]);
       setShifts(data);
+      setMeetings(meets);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [getDateRange, filteredEmp, token]);
+  }, [getDateRange, token]);
 
   useEffect(() => { loadShifts(); }, [loadShifts]);
 
@@ -86,13 +98,21 @@ export default function AdminSchedule() {
     }
   };
 
+  // Un créneau enregistré remplace celui du même employé le même jour
   const handleSaved = (saved) => {
-    setShifts(prev => {
-      const exists = prev.find(s => s.id === saved.id);
-      return exists
-        ? prev.map(s => s.id === saved.id ? saved : s)
-        : [...prev, saved];
-    });
+    setShifts(prev => [
+      ...prev.filter(s => s.id !== saved.id
+        && !(s.user_id === saved.user_id && s.date?.slice(0, 10) === saved.date?.slice(0, 10))),
+      saved,
+    ]);
+  };
+
+  const handleMeetingSaved = (saved) => {
+    setMeetings(prev => [...prev.filter(m => m.id !== saved.id), saved]);
+  };
+
+  const handleMeetingDeleted = (id) => {
+    setMeetings(prev => prev.filter(m => m.id !== id));
   };
 
   // Dépose d'un horaire type sur une case du planning : crée le créneau
@@ -123,29 +143,40 @@ export default function AdminSchedule() {
   };
 
   const weekDays = getWeekDays(monday);
+  const range = getDateRange();
 
-  const displayedEmployees = filteredEmp
-    ? employees.filter(e => e.id === filteredEmp)
+  const displayedEmployees = filteredIds.length > 0
+    ? employees.filter(e => filteredIds.includes(e.id))
     : employees;
+
+  // Date proposée pour une nouvelle réunion : aujourd'hui s'il est affiché
+  const defaultMeetingDate = () => {
+    const today = toISO(new Date());
+    return today >= range.start && today <= range.end ? today : range.start;
+  };
 
   return (
     <div className="page">
       <PageHeader
         title="Planning"
-        actions={<button className="btn-primary" onClick={() => setModal({})}>+ Nouveau créneau</button>}
+        actions={(
+          <>
+            <button className="btn-secondary" onClick={() => setMeetingModal({ date: defaultMeetingDate() })}>+ Réunion</button>
+            <button className="btn-primary" onClick={() => setModal({})}>+ Nouveau créneau</button>
+          </>
+        )}
       />
 
       <div className="schedule-toolbar">
-        {/* Select employé stylisé */}
-        <select
-          value={filteredEmp}
-          onChange={e => setFilteredEmp(e.target.value)}
-        >
-          <option value="">Tous les employés</option>
-          {employees.map(e => (
-            <option key={e.id} value={e.id}>{e.first_name} {e.last_name}</option>
-          ))}
-        </select>
+        <div className="schedule-filter">
+          <EmployeeMultiSelect
+            employees={employees}
+            value={filteredIds}
+            onChange={setFilteredIds}
+            allLabel="Tous les employés"
+            emptyMeansAll
+          />
+        </div>
 
         <div className="schedule-nav">
           <button className="btn-ghost" onClick={shownView === 'week' ? prevWeek : prevMonth}>←</button>
@@ -178,31 +209,37 @@ export default function AdminSchedule() {
           year={monthDate.getFullYear()}
           month={monthDate.getMonth()}
           shifts={shifts}
+          meetings={meetings}
           isAdmin
-          selectedUserId={filteredEmp}
+          selectedUserIds={filteredIds}
           onShiftClick={(shift) => setModal({ shift })}
           onShiftDelete={handleDelete}
           onAddShift={(date) => setModal({ date })}
+          onMeetingClick={(meeting) => setMeetingModal({ meeting })}
         />
       ) : view === 'week' ? (
         <WeekView
           days={weekDays}
           shifts={shifts}
+          meetings={meetings}
           employees={displayedEmployees}
           isAdmin={true}
           onShiftClick={(shift) => setModal({ shift })}
           onShiftDelete={handleDelete}
           onTemplateDrop={handleTemplateDrop}
+          onMeetingClick={(meeting) => setMeetingModal({ meeting })}
         />
       ) : (
         <MonthView
           year={monthDate.getFullYear()}
           month={monthDate.getMonth()}
           shifts={shifts}
+          meetings={meetings}
           isAdmin={true}
-          selectedUserId={filteredEmp}
+          selectedUserIds={filteredIds}
           onShiftClick={(shift) => setModal({ shift })}
           onShiftDelete={handleDelete}
+          onMeetingClick={(meeting) => setMeetingModal({ meeting })}
         />
       )}
 
@@ -214,6 +251,19 @@ export default function AdminSchedule() {
           employees={employees}
           onClose={() => setModal(null)}
           onSaved={handleSaved}
+        />
+      )}
+
+      {meetingModal !== null && (
+        <MeetingModal
+          meeting={meetingModal.meeting}
+          date={meetingModal.date}
+          employees={employees.filter(e => e.is_active)}
+          shifts={shifts}
+          range={range}
+          onClose={() => setMeetingModal(null)}
+          onSaved={handleMeetingSaved}
+          onDeleted={handleMeetingDeleted}
         />
       )}
     </div>

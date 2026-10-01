@@ -1,6 +1,8 @@
 import { toISO } from './WeekView';
 import { getEmployeeColor, getEmployeeColorLight } from './employeeColor';
 import { shiftColorVar } from './shiftColor';
+import MeetingTag from './MeetingTag';
+import { meetingsOn } from './meetingUtils';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence' };
@@ -43,14 +45,17 @@ const chunkWeeks = (cells) => {
   return weeks;
 };
 
-export default function MonthView({ year, month, shifts, isAdmin, selectedUserId, onShiftClick, onShiftDelete }) {
+export default function MonthView({ year, month, shifts, meetings = [], isAdmin, selectedUserIds = [], onShiftClick, onShiftDelete, onMeetingClick }) {
   const cells  = getMonthCells(year, month);
   const weeks  = chunkWeeks(cells);
   const today  = toISO(new Date());
 
-  const filteredShifts = selectedUserId
-    ? shifts.filter(s => s.user_id === selectedUserId)
+  const filteredShifts = selectedUserIds.length > 0
+    ? shifts.filter(s => selectedUserIds.includes(s.user_id))
     : shifts;
+  // Réunions d'un jour, limitées aux employés affichés
+  const getMeetingsForDay = (dateStr) => meetingsOn(meetings, dateStr)
+    .filter((m) => selectedUserIds.length === 0 || m.participants?.some((p) => selectedUserIds.includes(p.id)));
 
   const getShiftsForDay = (dateStr) =>
     filteredShifts.filter(s => s.date?.slice(0, 10) === dateStr);
@@ -161,6 +166,9 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
                       {dayShifts.length > 3 && (
                         <div className="month-overflow">+{dayShifts.length - 3} autres</div>
                       )}
+                      {getMeetingsForDay(dateStr).map((m) => (
+                        <MeetingTag key={m.id} meeting={m} onClick={isAdmin ? onMeetingClick : undefined} />
+                      ))}
                     </td>
                   );
                 })}

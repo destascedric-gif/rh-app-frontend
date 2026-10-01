@@ -2502,3 +2502,99 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 @media (max-width: 640px) {
   .dash-card-head { flex-wrap: wrap; row-gap: 2px; }
 }
+
+/* ── Menu déroulant à choix multiple (EmployeeMultiSelect) ── */
+.ems { position: relative; min-width: 220px; }
+.ems-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 5px 10px 5px 12px;
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ems-field:hover { background: var(--bg-hover); }
+.ems-field--open, .ems-field:focus-visible { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-ring); outline: none; }
+.ems-placeholder { color: var(--text-light); flex: 1; }
+.ems-summary { flex: 1; }
+.ems-chips { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; min-width: 0; }
+.ems-chip { background: var(--primary-light); color: var(--primary); border-radius: 6px; padding: 1px 7px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.ems-chip--more { background: var(--bg-hover); color: var(--text-muted); }
+.ems-caret { flex-shrink: 0; color: var(--text-muted); }
+.ems-panel {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  min-width: 220px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+.ems-search { width: 100%; border: none; border-bottom: 1px solid var(--border); padding: 9px 12px; font: inherit; font-size: 13px; outline: none; }
+.ems-list { list-style: none; margin: 0; padding: 4px 0; max-height: 260px; overflow-y: auto; }
+.ems-option { display: flex; align-items: center; gap: 9px; padding: 7px 12px; font-size: 13.5px; cursor: pointer; }
+.ems-option:hover { background: var(--bg-hover); }
+.ems-option input { width: 16px; height: 16px; margin: 0; accent-color: var(--primary); cursor: pointer; }
+.ems-option--all { color: var(--primary); font-weight: 500; border-bottom: 1px solid var(--border); margin-bottom: 2px; }
+.ems-none { padding: 8px 12px; font-size: 13px; color: var(--text-muted); }
+.schedule-filter { min-width: 220px; }
+.field-static { padding: 8px 0; font-size: 14px; font-weight: 500; }
+
+/* ── Réunions : étiquette sous le créneau des participants ──
+   Style neutre (fond blanc, bordure, icône) : ne se confond avec aucune
+   couleur d'horaire type. Dans les cases étroites, l'heure passe à la ligne. */
+.meeting-tag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 4px;
+  width: 100%;
+  margin-top: 3px;
+  padding: 2px 6px;
+  border: 1px solid var(--border-dark);
+  border-radius: 5px;
+  background: var(--bg-card);
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+  min-width: 0;
+}
+.meeting-tag svg { flex-shrink: 0; color: var(--text-muted); }
+.meeting-tag-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meeting-tag-time { flex-basis: 100%; font-weight: 500; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.meeting-tag--button { cursor: pointer; }
+.meeting-tag--button:hover { background: var(--bg-hover); }
+.meeting-tag--button:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+/* Contextes larges : tout sur une ligne */
+.pweek-shift .meeting-tag, .myspace-meeting .meeting-tag, .pcal-meeting-row .meeting-tag {
+  width: auto; display: inline-flex; flex-wrap: nowrap; font-size: 12px; padding: 3px 8px;
+}
+.pweek-shift .meeting-tag-time, .myspace-meeting .meeting-tag-time, .pcal-meeting-row .meeting-tag-time { flex-basis: auto; }
+
+.pcal-num-row { display: flex; align-items: center; justify-content: center; gap: 1px; }
+.pcal-meeting { display: inline-flex; color: var(--text-muted); }
+.pcal-meetings { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.pcal-meeting-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pcal-meeting-who, .myspace-meeting-who { font-size: 12.5px; color: var(--text-muted); }
+.myspace-meetings { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.myspace-meeting { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+@media (max-width: 640px) {
+  .ems, .schedule-filter { min-width: 0; width: 100%; }
+}
