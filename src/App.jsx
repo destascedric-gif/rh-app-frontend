@@ -18,6 +18,7 @@ import InviteEmployee from './pages/InviteEmployee'
 import MyTimesheet from './pages/MyTimesheet'
 import Settings from './pages/Settings'
 import Billing from './pages/Billing'
+import Landing from './pages/Landing'
 import MentionsLegales from './pages/legal/MentionsLegales'
 import Cgu from './pages/legal/Cgu'
 import Cgv from './pages/legal/Cgv'
@@ -37,6 +38,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/setup/admin" element={<SetupAdmin />} />
           <Route path="/setup/company" element={<SetupCompany />} />
@@ -60,7 +62,7 @@ function App() {
           <Route path="/mon-espace" element={<PrivateRoute><MyLeaves /></PrivateRoute>} />
           <Route path="/mon-planning" element={<PrivateRoute><MySchedule /></PrivateRoute>} />
           <Route path="/mon-pointage" element={<PrivateRoute><MyTimesheet /></PrivateRoute>} />
-          <Route path="*" element={<Navigate to="/login" />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -16,7 +16,7 @@ export default function LegalLayout({ title, children }) {
   return (
     <div className="legal-page">
       <header className="legal-header">
-        <Link to="/login" className="legal-brand">Orgaly</Link>
+        <Link to="/" className="legal-brand">Orgaly</Link>
         <nav className="legal-nav" aria-label="Documents légaux">
           {LEGAL_PAGES.map((p) => (
             <NavLink key={p.path} to={p.path} className={({ isActive }) => (isActive ? 'active' : undefined)}>

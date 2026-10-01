@@ -8,7 +8,7 @@ export const EDITOR = {
   status:      'Entrepreneur individuel (micro-entreprise)',
   siren:       null, // ex. '123 456 789' — attribué à l'immatriculation (INPI)
   address:     null, // adresse professionnelle ou de domiciliation
-  email:       null, // adresse de contact affichée publiquement
+  email:       'contact@myorgaly.fr', // redirection OVH vers la boîte de l'éditeur
   publisher:   'Cédric Destas', // directeur de la publication
   // Mention obligatoire sur les factures tant que la franchise en base s'applique
   vatMention:  'TVA non applicable, art. 293 B du CGI',
