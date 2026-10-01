@@ -13,11 +13,14 @@ const Avatar = ({ firstName, lastName, photoUrl }) => {
   return <div className="avatar-initials">{initials}</div>;
 };
 
+// Seuls les cas à signaler ont un badge (un employé actif n'en a pas besoin)
 const StatusBadge = ({ inviteAccepted, isActive }) => {
   if (!isActive)       return <span className="badge badge-inactive">Inactif</span>;
-  if (!inviteAccepted) return <span className="badge badge-pending">En attente</span>;
-  return <span className="badge badge-active">Actif</span>;
+  if (!inviteAccepted) return <span className="badge badge-pending">Invitation en attente</span>;
+  return null;
 };
+
+const CONTRACTS = ['CDI', 'CDD', 'Alternance', 'Stage', 'Freelance'];
 
 export default function EmployeeList() {
   const { token } = useAuth();
@@ -28,6 +31,7 @@ export default function EmployeeList() {
   const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState('');
   const [showInactive, setShowInactive] = useState(false);
+  const [contractFilter, setContractFilter] = useState('');
   const [confirmTarget, setConfirmTarget] = useState(null); // { employee, action: 'deactivate' | 'reactivate' }
   const [actionMsg, setActionMsg] = useState('');
   const [busy, setBusy] = useState(false);
@@ -78,7 +82,8 @@ export default function EmployeeList() {
     }
   };
 
-  const visible = showInactive ? employees : employees.filter((e) => e.is_active);
+  const visible = (showInactive ? employees : employees.filter((e) => e.is_active))
+    .filter((e) => !contractFilter || e.contract_type === contractFilter);
 
   const filtered = visible.filter((e) => {
     const q = search.toLowerCase();
@@ -100,17 +105,21 @@ export default function EmployeeList() {
         actions={<button className="btn-primary" onClick={() => navigate('/invite')}>+ Ajouter un employé</button>}
       />
 
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+      <div className="team-filters">
         <input
           className="search-input"
-          style={{ flex: 1, marginBottom: 0 }}
-          placeholder="Rechercher par nom, poste, email…"
+          placeholder="Rechercher un employé…"
+          aria-label="Rechercher un employé"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+        <select value={contractFilter} onChange={(e) => setContractFilter(e.target.value)} aria-label="Filtrer par contrat">
+          <option value="">Tous les contrats</option>
+          {CONTRACTS.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <label className="team-inactive-toggle">
           <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
-          Voir les employés inactifs
+          Voir les inactifs
         </label>
       </div>
 
@@ -119,79 +128,40 @@ export default function EmployeeList() {
       {filtered.length === 0 ? (
         <p className="empty-state">Aucun employé trouvé.</p>
       ) : (
-        <div className="table-wrapper">
-          <table className="rh-table">
-            <thead>
-              <tr>
-                <th>Employé</th>
-                <th>Poste</th>
-                <th>Contrat</th>
-                <th>Temps</th>
-                <th>Statut</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((emp) => (
-                <tr key={emp.id} onClick={() => navigate(`/employees/${emp.id}`)} className="table-row-clickable">
-                  <td>
-                    <div className="cell-employee">
-                      <Avatar firstName={emp.first_name} lastName={emp.last_name} photoUrl={emp.photo_url} />
-                      <div>
-                        <div className="emp-name">{emp.first_name} {emp.last_name}</div>
-                        <div className="emp-email">{emp.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>{emp.job_title ?? '—'}</td>
-                  <td>{emp.contract_type ?? '—'}</td>
-                  <td>{emp.work_time ?? '—'}</td>
-                  <td>
-                    <StatusBadge
-                      inviteAccepted={emp.invite_accepted}
-                      isActive={emp.is_active}
-                    />
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                      {!emp.invite_accepted && emp.is_active && (
-                        <button
-                          className="btn-ghost"
-                          disabled={busy}
-                          onClick={(e) => { e.stopPropagation(); handleResend(emp); }}
-                        >
-                          Renvoyer l'invitation
-                        </button>
-                      )}
-                      {emp.is_active ? (
-                        <button
-                          className="btn-ghost"
-                          style={{ color: 'var(--danger)' }}
-                          onClick={(e) => { e.stopPropagation(); setConfirmTarget({ employee: emp, action: 'deactivate' }); }}
-                        >
-                          Désactiver
-                        </button>
-                      ) : (
-                        <button
-                          className="btn-ghost"
-                          onClick={(e) => { e.stopPropagation(); setConfirmTarget({ employee: emp, action: 'reactivate' }); }}
-                        >
-                          Réactiver
-                        </button>
-                      )}
-                      <button
-                        className="btn-ghost"
-                        onClick={(e) => { e.stopPropagation(); navigate(`/employees/${emp.id}`); }}
-                      >
-                        Voir →
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ul className="team-grid">
+          {filtered.map((emp) => (
+            <li key={emp.id} className={`team-card${emp.is_active ? '' : ' team-card--inactive'}`}>
+              <button type="button" className="team-card-main" onClick={() => navigate(`/employees/${emp.id}`)}>
+                <Avatar firstName={emp.first_name} lastName={emp.last_name} photoUrl={emp.photo_url} />
+                <span className="team-card-id">
+                  <span className="team-card-name">{emp.first_name} {emp.last_name}</span>
+                  <span className="team-card-job">{emp.job_title ?? 'Poste non défini'}</span>
+                </span>
+              </button>
+              <div className="team-card-tags">
+                {emp.contract_type && <span className={`team-tag${emp.contract_type === 'CDI' ? ' team-tag--blue' : ''}`}>{emp.contract_type}</span>}
+                {emp.work_time && <span className="team-tag">{emp.work_time}</span>}
+                <StatusBadge inviteAccepted={emp.invite_accepted} isActive={emp.is_active} />
+              </div>
+              <div className="team-card-actions">
+                {!emp.invite_accepted && emp.is_active && (
+                  <button className="btn-ghost btn-sm" disabled={busy} onClick={() => handleResend(emp)}>
+                    Renvoyer l'invitation
+                  </button>
+                )}
+                {emp.is_active ? (
+                  <button className="btn-ghost btn-sm" style={{ color: 'var(--danger)' }} onClick={() => setConfirmTarget({ employee: emp, action: 'deactivate' })}>
+                    Désactiver
+                  </button>
+                ) : (
+                  <button className="btn-ghost btn-sm" onClick={() => setConfirmTarget({ employee: emp, action: 'reactivate' })}>
+                    Réactiver
+                  </button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
 
       {confirmTarget && (

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getEmployees } from '../api/employees';
 import {
@@ -10,114 +10,104 @@ import PageHeader from '../components/PageHeader';
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin',
                  'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
-const now = new Date();
+const euros = (n) => Number(n).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+const monthWithArticle = (m) => (/^[AO]/.test(MONTHS[m - 1]) ? `d'${MONTHS[m - 1].toLowerCase()}` : `de ${MONTHS[m - 1].toLowerCase()}`);
 
 export default function AdminPayroll() {
   const { token } = useAuth();
+  const now = new Date();
 
-  const [employees,  setEmployees]  = useState([]);
-  const [payslips,   setPayslips]   = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [generating, setGenerating] = useState(false);
-  const [error,      setError]      = useState('');
-  const [success,    setSuccess]    = useState('');
-
-  // Filtres
-  const [filterYear,  setFilterYear]  = useState(now.getFullYear());
-  const [filterMonth, setFilterMonth] = useState('');
-
-  // Formulaire génération individuelle
-  const [genUserId, setGenUserId] = useState('');
-  const [genMonth,  setGenMonth]  = useState(now.getMonth() + 1);
-  const [genYear,   setGenYear]   = useState(now.getFullYear());
-
-  const years = Array.from({ length: 3 }, (_, i) => now.getFullYear() - i);
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [year,  setYear]  = useState(now.getFullYear());
+  const [employees, setEmployees] = useState([]);
+  const [payslips,  setPayslips]  = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [busy,      setBusy]      = useState(null);   // id employé / bulletin en cours, ou 'all'
+  const [error,     setError]     = useState('');
+  const [success,   setSuccess]   = useState('');
 
   useEffect(() => {
-    getEmployees(token).then(setEmployees).catch(console.error);
+    getEmployees(token).then(setEmployees).catch((err) => setError(err.message));
   }, [token]);
 
-  const loadPayslips = async () => {
-    setLoading(true);
+  const loadPayslips = useCallback(async () => {
     try {
-      const filters = { year: filterYear };
-      if (filterMonth) filters.month = filterMonth;
-      const data = await getAllPayslips(filters, token);
-      setPayslips(data);
+      setPayslips(await getAllPayslips({ year, month }, token));
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [year, month, token]);
 
-  useEffect(() => { loadPayslips(); }, [filterYear, filterMonth, token]);
+  useEffect(() => { loadPayslips(); }, [loadPayslips]);
 
   const notify = (msg, isError = false) => {
-    if (isError) setError(msg); else setSuccess(msg);
-    setTimeout(() => { setError(''); setSuccess(''); }, 4000);
+    if (isError) { setError(msg); setSuccess(''); } else { setSuccess(msg); setError(''); }
   };
 
-  // Génération d'un bulletin individuel
-  const handleGenerate = async (e) => {
-    e.preventDefault();
-    if (!genUserId) return notify('Sélectionnez un employé.', true);
-    setGenerating(true);
+  const changeMonth = (delta) => {
+    const d = new Date(year, month - 1 + delta, 1);
+    setMonth(d.getMonth() + 1);
+    setYear(d.getFullYear());
+  };
+
+  const actifs = employees.filter((e) => e.is_active);
+  const slipFor = (userId) => payslips.find((p) => p.user_id === userId);
+  const missing = actifs.filter((e) => !slipFor(e.id));
+  const totalBrut = payslips.reduce((s, p) => s + parseFloat(p.gross_amount), 0);
+  const periodLabel = `${MONTHS[month - 1]} ${year}`;
+
+  const generateOne = async (emp) => {
+    setBusy(emp.id);
     try {
-      const blob     = await generatePayslip({ userId: genUserId, month: genMonth, year: genYear }, token);
-      const emp      = employees.find(e => e.id === genUserId);
-      const filename = `bulletin_${emp?.last_name ?? 'employe'}_${MONTHS[genMonth-1]}_${genYear}.pdf`;
-      triggerDownload(blob, filename);
-      notify(`Bulletin généré et téléchargé — ${MONTHS[genMonth-1]} ${genYear}`);
+      const blob = await generatePayslip({ userId: emp.id, month, year }, token);
+      triggerDownload(blob, `bulletin_${emp.last_name}_${MONTHS[month - 1]}_${year}.pdf`);
+      notify(`Bulletin de ${emp.first_name} ${emp.last_name} généré et téléchargé.`);
       await loadPayslips();
     } catch (err) {
       notify(err.message, true);
     } finally {
-      setGenerating(false);
+      setBusy(null);
     }
   };
 
-  // Génération groupée pour tous les employés
-  const handleGenerateAll = async () => {
-    if (!confirm(`Générer les bulletins de ${MONTHS[genMonth-1]} ${genYear} pour tous les employés ?`)) return;
-    setGenerating(true);
+  const generateMissing = async () => {
+    if (!confirm(`Générer les ${missing.length} bulletin(s) manquant(s) de ${periodLabel} ?`)) return;
+    setBusy('all');
     try {
-      const result = await generateAllPayslips({ month: genMonth, year: genYear }, token);
+      const result = await generateAllPayslips({ month, year }, token);
       notify(result.message);
       await loadPayslips();
     } catch (err) {
       notify(err.message, true);
     } finally {
-      setGenerating(false);
+      setBusy(null);
     }
   };
 
-  // Téléchargement d'un bulletin existant
-  const handleDownload = async (payslip) => {
+  const download = async (p) => {
     try {
-      const blob     = await downloadPayslip(payslip.id, token);
-      const filename = `bulletin_${payslip.last_name}_${MONTHS[payslip.period_month-1]}_${payslip.period_year}.pdf`;
-      triggerDownload(blob, filename);
+      const blob = await downloadPayslip(p.id, token);
+      triggerDownload(blob, `bulletin_${p.last_name}_${MONTHS[p.period_month - 1]}_${p.period_year}.pdf`);
     } catch (err) {
       notify(err.message, true);
     }
   };
 
-  // Suppression
-  const handleDelete = async (id) => {
-    if (!confirm('Supprimer ce bulletin ? Cette action est irréversible.')) return;
+  const remove = async (p) => {
+    if (!confirm(`Supprimer le bulletin de ${p.first_name} ${p.last_name} (${periodLabel}) ? Cette action est irréversible.`)) return;
+    setBusy(p.id);
     try {
-      await deletePayslip(id, token);
-      setPayslips(prev => prev.filter(p => p.id !== id));
+      await deletePayslip(p.id, token);
       notify('Bulletin supprimé.');
+      await loadPayslips();
     } catch (err) {
       notify(err.message, true);
+    } finally {
+      setBusy(null);
     }
   };
-
-  // Stat : masse salariale du mois filtré
-  const totalBrut = payslips.reduce((s, p) => s + parseFloat(p.gross_amount), 0);
-  const totalNet  = payslips.reduce((s, p) => s + parseFloat(p.net_amount), 0);
 
   return (
     <div className="page">
@@ -131,145 +121,86 @@ export default function AdminPayroll() {
         professionnel de la paie avant de les remettre à vos salariés.
       </div>
 
-      {/* Notifications */}
+      {/* Bandeau du mois */}
+      <section className="payroll-banner">
+        <div className="payroll-banner-period">
+          <button type="button" className="payroll-nav" onClick={() => changeMonth(-1)} aria-label="Mois précédent">←</button>
+          <div>
+            <h2>Paie {monthWithArticle(month)} {year}</h2>
+            <p>Bulletins indicatifs, non certifiés</p>
+          </div>
+          <button type="button" className="payroll-nav" onClick={() => changeMonth(1)} aria-label="Mois suivant">→</button>
+        </div>
+        <div className="payroll-banner-stat">
+          <strong>{payslips.length} / {actifs.length}</strong>
+          <span>Bulletins générés</span>
+        </div>
+        <div className="payroll-banner-stat">
+          <strong>{euros(totalBrut)}</strong>
+          <span>Masse salariale brute</span>
+        </div>
+        {missing.length > 0 ? (
+          <button type="button" className="btn-primary payroll-banner-cta" disabled={busy === 'all'} onClick={generateMissing}>
+            {busy === 'all' ? 'Génération…' : `Générer ${missing.length > 1 ? `les ${missing.length} bulletins manquants` : 'le bulletin manquant'}`}
+          </button>
+        ) : (
+          <span className="payroll-banner-done">Tous les bulletins sont générés</span>
+        )}
+      </section>
+
       {error   && <div className="notif-bar notif-bar--danger">{error}</div>}
       {success && <div className="notif-bar notif-bar--success">{success}</div>}
 
-      {/* Panneaux côte à côte */}
-      <div className="payroll-grid">
-
-        {/* Génération individuelle */}
-        <div className="section-card">
-          <h3>Générer un bulletin</h3>
-          <form onSubmit={handleGenerate}>
-            <div className="field">
-              <label>Employé *</label>
-              <select value={genUserId} onChange={e => setGenUserId(e.target.value)} required>
-                <option value="">Sélectionner…</option>
-                {employees.map(emp => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.first_name} {emp.last_name}
-                    {emp.gross_salary ? ` — ${Number(emp.gross_salary).toLocaleString('fr-FR')} € brut` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field-row">
-              <div className="field">
-                <label>Mois *</label>
-                <select value={genMonth} onChange={e => setGenMonth(Number(e.target.value))}>
-                  {MONTHS.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
-                </select>
-              </div>
-              <div className="field">
-                <label>Année *</label>
-                <select value={genYear} onChange={e => setGenYear(Number(e.target.value))}>
-                  {years.map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
-              </div>
-            </div>
-            <button type="submit" className="btn-primary" disabled={generating} style={{ width: '100%' }}>
-              {generating ? 'Génération…' : '⬇ Générer & télécharger'}
-            </button>
-          </form>
-        </div>
-
-        {/* Génération groupée + stats */}
-        <div className="section-card">
-          <h3>Génération groupée</h3>
-          <p className="hint" style={{ marginBottom: 14, lineHeight: 1.5 }}>
-            Génère les bulletins de tous les employés actifs pour une période donnée.
-            Les bulletins déjà existants sont ignorés.
-          </p>
-          <button className="btn-primary" onClick={handleGenerateAll} disabled={generating} style={{ width: '100%' }}>
-            {generating ? 'Génération…' : `Générer tous — ${MONTHS[genMonth-1]} ${genYear}`}
-          </button>
-
-          {/* Stats masse salariale */}
-          {payslips.length > 0 && (
-            <div className="timesheet-summary" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 16, marginBottom: 0 }}>
-              <div className="summary-card">
-                <div className="summary-value">
-                  {totalBrut.toLocaleString('fr-FR', { minimumFractionDigits: 0 })} €
-                </div>
-                <div className="summary-label">Masse salariale brute</div>
-              </div>
-              <div className="summary-card">
-                <div className="summary-value">
-                  {totalNet.toLocaleString('fr-FR', { minimumFractionDigits: 0 })} €
-                </div>
-                <div className="summary-label">Total net versé</div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Filtres + liste */}
-      <div className="section-header">
-        <span className="section-title">Bulletins générés</span>
-        <div className="timesheet-filters" style={{ margin: 0 }}>
-          <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)}>
-            <option value="">Tous les mois</option>
-            {MONTHS.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
-          </select>
-          <select value={filterYear} onChange={e => setFilterYear(Number(e.target.value))}>
-            {years.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-      </div>
-
       {loading ? (
         <p className="tab-loading">Chargement…</p>
-      ) : payslips.length === 0 ? (
-        <p className="empty-state">Aucun bulletin pour cette période.</p>
+      ) : actifs.length === 0 ? (
+        <p className="empty-state">Aucun employé actif.</p>
       ) : (
         <div className="table-wrap">
           <table className="rh-table">
             <thead>
               <tr>
                 <th>Employé</th>
-                <th>Période</th>
                 <th>Brut</th>
                 <th>Net</th>
-                <th>Cotisations</th>
+                <th>Bulletin</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {payslips.map(p => {
-                const cotis = parseFloat(p.gross_amount) - parseFloat(p.net_amount);
+              {actifs.map((emp) => {
+                const p = slipFor(emp.id);
                 return (
-                  <tr key={p.id}>
+                  <tr key={emp.id}>
                     <td>
-                      <div className="cell-emp">
-                        <div className="avatar-xs">{p.first_name?.[0]}{p.last_name?.[0]}</div>
-                        <div>
-                          <div className="emp-name">{p.first_name} {p.last_name}</div>
-                          <div className="emp-email">{p.job_title}</div>
-                        </div>
-                      </div>
+                      <div className="emp-name">{emp.first_name} {emp.last_name}</div>
+                      {emp.job_title && <div className="emp-email">{emp.job_title}</div>}
                     </td>
-                    <td>{MONTHS[p.period_month - 1]} {p.period_year}</td>
-                    <td><strong>{Number(p.gross_amount).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</strong></td>
-                    <td style={{ color: 'var(--primary)', fontWeight: 500 }}>
-                      {Number(p.net_amount).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €
+                    <td>{p ? euros(p.gross_amount) : (emp.gross_salary ? euros(emp.gross_salary) : '—')}</td>
+                    <td>{p ? <strong>{euros(p.net_amount)}</strong> : '—'}</td>
+                    <td>
+                      {p
+                        ? <span className="badge badge-info">Généré</span>
+                        : <span className="badge badge-pending">À générer</span>}
                     </td>
                     <td>
-                      <span className="text-muted">{cotis.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button className="btn-primary btn-sm" onClick={() => handleDownload(p)}>
-                          ⬇ PDF
-                        </button>
-                        <button
-                          className="btn-ghost btn-sm"
-                          style={{ color: 'var(--danger)' }}
-                          onClick={() => handleDelete(p.id)}
-                        >
-                          Supprimer
-                        </button>
+                      <div className="payroll-row-actions">
+                        {p ? (
+                          <>
+                            <button type="button" className="btn-secondary btn-sm" onClick={() => download(p)}>PDF</button>
+                            <button type="button" className="btn-ghost btn-sm" style={{ color: 'var(--danger)' }} disabled={busy === p.id} onClick={() => remove(p)}>Supprimer</button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn-primary btn-sm"
+                            disabled={busy === emp.id || !emp.gross_salary}
+                            title={emp.gross_salary ? undefined : 'Renseignez le salaire brut dans la fiche employé'}
+                            onClick={() => generateOne(emp)}
+                          >
+                            {busy === emp.id ? 'Génération…' : 'Générer'}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

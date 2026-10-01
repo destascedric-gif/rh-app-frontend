@@ -508,6 +508,82 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   .dash-grid { grid-template-columns: 1fr; }
 }
 
+/* ── Page Équipe : une carte par personne (maquette) ── */
+.team-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; }
+.team-filters .search-input { flex: 1 1 240px; margin-bottom: 0; }
+.team-filters select {
+  padding: 9px 12px;
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+}
+.team-inactive-toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+.team-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.team-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow);
+}
+.team-card--inactive { opacity: 0.7; }
+.team-card-main {
+  display: flex; align-items: center; gap: 12px;
+  background: none; border: none; padding: 0;
+  font-family: inherit; text-align: left; color: var(--text);
+}
+.team-card-main:hover .team-card-name { color: var(--primary); }
+.team-card .avatar-initials, .team-card .avatar-img { width: 42px; height: 42px; font-size: 14px; flex-shrink: 0; }
+.team-card-id { display: flex; flex-direction: column; min-width: 0; }
+.team-card-name { font-size: 14.5px; font-weight: 600; }
+.team-card-job { font-size: 12.5px; color: var(--text-light); }
+.team-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.team-tag { font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: var(--bg-hover); color: var(--text-muted); }
+.team-tag--blue { background: var(--primary-light); color: var(--primary); }
+.team-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 10px; border-top: 1px solid #F1F0EC; }
+
+/* ── Page Paie : bandeau du mois (maquette) ─── */
+.payroll-banner {
+  background: var(--sidebar-bg);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px 40px;
+  margin-bottom: 18px;
+}
+.payroll-banner-period { display: flex; align-items: center; gap: 12px; margin-right: auto; }
+.payroll-banner-period h2 { font-size: 17px; font-weight: 700; color: #fff; }
+.payroll-banner-period p { font-size: 12.5px; color: #8891A8; margin: 2px 0 0; }
+.payroll-nav {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid #2A3358;
+  background: transparent;
+  color: #fff;
+}
+.payroll-nav:hover { background: rgba(255,255,255,0.06); }
+.payroll-banner-stat { display: flex; flex-direction: column; }
+.payroll-banner-stat strong { font-family: var(--font-display); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.payroll-banner-stat span { font-size: 12px; color: #8891A8; }
+.payroll-banner-cta { padding: 11px 18px; }
+.payroll-banner-done { font-size: 13px; color: #8891A8; }
+.payroll-row-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+
+@media (max-width: 640px) {
+  .payroll-banner { padding: 16px; gap: 14px 24px; }
+  .payroll-banner-period { flex-basis: 100%; }
+  .payroll-banner-cta { flex-basis: 100%; }
+}
+
 /* ── Page Congés et absences (maquette) ─────── */
 .leave-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F1F0EC; }
 .leave-row:last-child { border-bottom: none; }
