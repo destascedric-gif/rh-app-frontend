@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getMySchedule } from '../api/schedule';
 import { getMeetings } from '../api/meetings';
+import { getSettings } from '../api/settings';
+import { meetingExtraMinutes } from '../components/schedule/meetingUtils';
 import WeekView, { getWeekDays, toISO } from '../components/schedule/WeekView';
 import MonthView from '../components/schedule/MonthView';
 import ScheduleLegend from '../components/schedule/ScheduleLegend';
@@ -32,12 +34,14 @@ export default function MySchedule() {
   const [monthDate, setMonthDate] = useState(new Date());
   const [shifts,    setShifts]    = useState([]);
   const [meetings,  setMeetings]  = useState([]);
+  const [countMeetings, setCountMeetings] = useState(false);
   const [loading,   setLoading]   = useState(true);
   const [templates, setTemplates] = useState([]);
 
   // Horaires types de l'entreprise : uniquement pour la légende des couleurs
   useEffect(() => {
     getShiftTemplates(token).then(setTemplates).catch(() => {});
+    getSettings(token).then((s) => setCountMeetings(Boolean(s.meetings_count_as_work))).catch(() => {});
   }, [token]);
 
   // Résumé semaine
@@ -50,7 +54,15 @@ export default function MySchedule() {
   // un jour de congé/repos/absence n'est pas du temps travaillé, même si
   // le créneau s'étend sur toute la journée pour l'affichage au planning.
   const workShifts = weekShifts.filter(s => !s.type || s.type === 'travail');
-  const weekHours  = workShifts.reduce((sum, s) => sum + (s.net_hours ?? 0), 0);
+  // Réunions hors créneau, si l'entreprise les compte comme travail
+  const meetingHours = countMeetings
+    ? weekDays.reduce((sum, d) => {
+      const dateStr = toISO(d);
+      const shift = shifts.find((s) => s.date?.slice(0, 10) === dateStr);
+      return sum + meetingExtraMinutes(meetings, shift, null, dateStr) / 60;
+    }, 0)
+    : 0;
+  const weekHours  = workShifts.reduce((sum, s) => sum + (s.net_hours ?? 0), 0) + meetingHours;
 
   const getDateRange = useCallback(() => {
     if (view === 'week') {

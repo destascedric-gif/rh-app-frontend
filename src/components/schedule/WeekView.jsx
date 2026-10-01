@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import ShiftCard from './ShiftCard';
 import MeetingTag from './MeetingTag';
-import { meetingsOn } from './meetingUtils';
+import { meetingsOn, meetingExtraMinutes } from './meetingUtils';
 
 export const getWeekDays = (monday) => {
   return Array.from({ length: 7 }, (_, i) => {
@@ -29,7 +29,7 @@ const formatDayHeader = (date) => {
   return { day, num, isToday, isWeekend };
 };
 
-export default function WeekView({ days, shifts, meetings = [], employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick }) {
+export default function WeekView({ days, shifts, meetings = [], countMeetings = false, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick }) {
   const [dragOverCell, setDragOverCell] = useState(null);
 
   const getShiftForUserAndDay = (userId, dateStr) =>
@@ -44,7 +44,9 @@ export default function WeekView({ days, shifts, meetings = [], employees, isAdm
     days.reduce((sum, d) => {
       const shift = getShiftForUserAndDay(userId, toISO(d));
       const isWorkShift = shift && (!shift.type || shift.type === 'travail');
-      return sum + (isWorkShift ? (shift.net_hours ?? 0) : 0);
+      // Réunions hors créneau, si l'entreprise les compte comme travail
+      const meetingHours = countMeetings ? meetingExtraMinutes(meetings, shift, userId, toISO(d)) / 60 : 0;
+      return sum + (isWorkShift ? (shift.net_hours ?? 0) : 0) + meetingHours;
     }, 0);
 
   // Un congé/repos/absence qui se poursuit la veille/le lendemain (même

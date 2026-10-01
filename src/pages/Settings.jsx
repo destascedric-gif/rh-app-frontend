@@ -34,6 +34,8 @@ const toForm = (data) => ({
   overtimeTier2Rate:           data.overtime_tier2_rate,
   overtimeTier2ThresholdHours: data.overtime_tier2_threshold_hours,
   primaryColor:                data.primary_color || DEFAULT_PRIMARY_COLOR,
+  managerInSchedule:           Boolean(data.manager_in_schedule),
+  meetingsCountAsWork:         Boolean(data.meetings_count_as_work),
 });
 
 const icon = {
@@ -66,6 +68,16 @@ const SECTIONS = {
       <svg {...icon}>
         <circle cx="12" cy="12" r="8.5" />
         <path d="M12 7.5V12l3 2" />
+      </svg>
+    ),
+  },
+  planning: {
+    title: 'Planning',
+    icon: (
+      <svg {...icon}>
+        <rect x="3.5" y="4.5" width="17" height="16" rx="2" />
+        <path d="M8 3v3M16 3v3M3.5 9.5h17" />
+        <circle cx="12" cy="15" r="2.2" />
       </svg>
     ),
   },
@@ -309,6 +321,13 @@ export default function Settings() {
           </span>
         ))}
       </span>
+    ),
+    planning: (
+      <>
+        {saved.managerInSchedule ? 'Le gérant figure dans le planning' : 'Le gérant n\'est pas dans le planning'}
+        <br />
+        {saved.meetingsCountAsWork ? 'Réunions comptées dans les heures' : 'Réunions non comptées dans les heures'}
+      </>
     ),
     security: 'Mot de passe de connexion',
   };
@@ -584,6 +603,47 @@ export default function Settings() {
             </form>
           )}
           {!editingTplId && tplError && <p className="error-msg">{tplError}</p>}
+        </SettingsWindow>
+      )}
+
+      {openSection === 'planning' && (
+        <SettingsWindow id="planning" onClose={closeWindow}>
+          <form onSubmit={handleSubmit}>
+            <label className="settings-switch">
+              <input
+                type="checkbox"
+                checked={form.managerInSchedule}
+                onChange={(e) => handleChange('managerInSchedule', e.target.checked)}
+              />
+              <span className="settings-switch-text">
+                <strong>Le gérant apparaît dans le planning</strong>
+                <span className="hint">
+                  Pour les toutes petites équipes où le gérant travaille aussi en boutique : vous
+                  avez votre propre ligne dans le planning, avec vos créneaux et vos réunions.
+                  Décochez quand l'équipe est assez grande : vos créneaux passés restent enregistrés.
+                  Vous n'êtes jamais compté dans l'équipe, la paie ni l'abonnement.
+                </span>
+              </span>
+            </label>
+
+            <label className="settings-switch">
+              <input
+                type="checkbox"
+                checked={form.meetingsCountAsWork}
+                onChange={(e) => handleChange('meetingsCountAsWork', e.target.checked)}
+              />
+              <span className="settings-switch-text">
+                <strong>Compter les réunions dans les heures de travail</strong>
+                <span className="hint">
+                  Le temps de réunion en dehors du créneau (un jour de repos, avant ou après les
+                  horaires, pendant une pause) s'ajoute aux heures de la semaine et à la paie
+                  indicative. Une réunion pendant le créneau est déjà comptée : elle ne s'ajoute pas
+                  une deuxième fois.
+                </span>
+              </span>
+            </label>
+            {formFeedback}
+          </form>
         </SettingsWindow>
       )}
 

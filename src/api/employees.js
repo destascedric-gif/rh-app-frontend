@@ -17,6 +17,8 @@ const request = async (method, url, token, body = null) => {
 };
 
 export const getEmployees       = (token)           => request('GET',  '/employees', token);
+// Personnes du planning : les employés, plus le gérant s'il l'a choisi (Paramètres)
+export const getPlanningPeople  = (token)           => request('GET',  '/employees?planning=1', token);
 export const getEmployee        = (id, token)       => request('GET',  `/employees/${id}`, token);
 export const updateEmployee     = (id, data, token) => request('PUT',  `/employees/${id}`, token, data);
 export const deactivateEmployee = (id, token)       => request('DELETE', `/employees/${id}`, token);

@@ -8,7 +8,7 @@ const hhmm = (t) => t?.slice(0, 5) ?? '';
 // Création / modification d'une réunion avec plusieurs participants.
 // shifts + range : créneaux déjà chargés, pour signaler les participants
 // dont la réunion tombe en dehors du créneau de travail.
-export default function MeetingModal({ meeting, date, employees, shifts, range, onClose, onSaved, onDeleted }) {
+export default function MeetingModal({ meeting, date, employees, shifts, range, countMeetings = false, onClose, onSaved, onDeleted }) {
   const { token } = useAuth();
   const isEdit = !!meeting;
 
@@ -115,7 +115,9 @@ export default function MeetingModal({ meeting, date, employees, shifts, range, 
           {outside.length > 0 && (
             <p className="settings-warning">
               En dehors du créneau de travail de : {outside.map((e) => `${e.first_name} ${e.last_name}`).join(', ')}.
-              Ces heures ne sont pas comptées dans leur temps de travail : ajustez leur créneau si elles doivent l'être.
+              {countMeetings
+                ? ' Le temps de réunion hors créneau sera ajouté à leurs heures de travail.'
+                : ' Ces heures ne sont pas comptées dans leur temps de travail (voir Paramètres → Planning).'}
             </p>
           )}
 

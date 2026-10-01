@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAdminSchedule, createShift, deleteShift } from '../api/schedule';
 import { getMeetings } from '../api/meetings';
-import { getEmployees } from '../api/employees';
+import { getPlanningPeople } from '../api/employees';
+import { getSettings } from '../api/settings';
 import { getShiftTemplates } from '../api/shiftTemplates';
 import WeekView, { getWeekDays, toISO } from '../components/schedule/WeekView';
 import MonthView from '../components/schedule/MonthView';
@@ -43,9 +44,12 @@ export default function AdminSchedule() {
   const [loading,     setLoading]     = useState(true);
   const [modal,       setModal]       = useState(null);
   const [meetingModal, setMeetingModal] = useState(null);
+  // Réglage de l'entreprise : temps de réunion hors créneau compté comme travail
+  const [countMeetings, setCountMeetings] = useState(false);
 
   useEffect(() => {
-    getEmployees(token).then(setEmployees).catch(console.error);
+    getPlanningPeople(token).then(setEmployees).catch(console.error);
+    getSettings(token).then((s) => setCountMeetings(Boolean(s.meetings_count_as_work))).catch(console.error);
     getShiftTemplates(token).then(setTemplates).catch(console.error);
   }, [token]);
 
@@ -222,6 +226,7 @@ export default function AdminSchedule() {
           days={weekDays}
           shifts={shifts}
           meetings={meetings}
+          countMeetings={countMeetings}
           employees={displayedEmployees}
           isAdmin={true}
           onShiftClick={(shift) => setModal({ shift })}
@@ -261,6 +266,7 @@ export default function AdminSchedule() {
           employees={employees.filter(e => e.is_active)}
           shifts={shifts}
           range={range}
+          countMeetings={countMeetings}
           onClose={() => setMeetingModal(null)}
           onSaved={handleMeetingSaved}
           onDeleted={handleMeetingDeleted}

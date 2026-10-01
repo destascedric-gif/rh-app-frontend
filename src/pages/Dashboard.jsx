@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getEmployees, getPendingTimesheets, reviewTimesheet } from '../api/employees';
+import { getPlanningPeople, getPendingTimesheets, reviewTimesheet } from '../api/employees';
 import { getAllRequests, reviewRequest } from '../api/leaves';
 import { getAdminSchedule } from '../api/schedule';
 import { getWeekDays, toISO } from '../components/schedule/WeekView';
@@ -55,7 +55,7 @@ export default function Dashboard() {
     try {
       const days = getWeekDays(getMonday());
       const [emps, lvs, ts, shifts] = await Promise.all([
-        getEmployees(token),
+        getPlanningPeople(token),
         getAllRequests('en_attente', token),
         getPendingTimesheets(token),
         getAdminSchedule(toISO(days[0]), toISO(days[6]), null, token),
@@ -106,8 +106,11 @@ export default function Dashboard() {
 
   if (loading) return <div className="page-loading">Chargement…</div>;
 
+  // Planning du jour : le gérant y figure s'il l'a choisi ; les chiffres
+  // de l'équipe, eux, ne comptent que les employés.
   const actifs   = employees.filter((e) => e.is_active);
-  const invites  = actifs.filter((e) => !e.invite_accepted).length;
+  const team     = actifs.filter((e) => e.role !== 'admin');
+  const invites  = team.filter((e) => !e.invite_accepted).length;
   const weekHours = weekShifts
     .filter((s) => (s.type || 'travail') === 'travail')
     .reduce((sum, s) => sum + (s.net_hours ?? 0), 0);
@@ -142,7 +145,7 @@ export default function Dashboard() {
       <PageHeader title="Tableau de bord" />
 
       <div className="metrics">
-        <Metric tone="blue" value={actifs.length} label="Employés actifs"
+        <Metric tone="blue" value={team.length} label="Employés actifs"
           sub={invites > 0 ? `dont ${invites} invitation${invites > 1 ? 's' : ''} en attente` : null}
           icon={svg(<><circle cx="9" cy="8" r="3.2" /><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" /><circle cx="18" cy="9" r="2.6" /><path d="M15.3 14.1c2.7.4 4.7 2.8 4.7 5.9" /></>)} />
         <Metric tone="amber" value={leaves.length} label="Congés en attente"
