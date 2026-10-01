@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getSettings, updateSettings } from '../api/settings';
 import { changePassword } from '../api/auth';
@@ -10,6 +10,9 @@ const EMPTY_PASSWORD_FORM = { currentPassword: '', newPassword: '', confirmPassw
 // color vide = couleur libre attribuée automatiquement par le serveur
 const EMPTY_TEMPLATE_FORM = { name: '', startTime: '', endTime: '', breakStart: '', breakEnd: '', color: '' };
 const formatTime = (t) => t ? t.slice(0, 5) : '';
+// Couleur principale d'origine d'Orgaly (valeur par défaut en base)
+const DEFAULT_PRIMARY_COLOR = '#1C4ED8';
+const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
 
 export default function Settings() {
   const { token } = useAuth();
@@ -19,6 +22,8 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  // Dernière couleur principale enregistrée, rétablie si on quitte sans enregistrer
+  const savedColorRef = useRef(DEFAULT_PRIMARY_COLOR);
 
   const [pwForm, setPwForm] = useState(EMPTY_PASSWORD_FORM);
   const [pwSaving, setPwSaving] = useState(false);
@@ -33,13 +38,14 @@ export default function Settings() {
 
   useEffect(() => {
     getSettings(token).then((data) => {
+      savedColorRef.current = data.primary_color || DEFAULT_PRIMARY_COLOR;
       setForm({
         defaultWeeklyHours:          data.default_weekly_hours,
         leaveAccrualPerMonth:        data.leave_accrual_per_month,
         overtimeTier1Rate:           data.overtime_tier1_rate,
         overtimeTier2Rate:           data.overtime_tier2_rate,
         overtimeTier2ThresholdHours: data.overtime_tier2_threshold_hours,
-        primaryColor:                data.primary_color,
+        primaryColor:                data.primary_color || DEFAULT_PRIMARY_COLOR,
       });
     }).catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -100,10 +106,19 @@ export default function Settings() {
 
   const handleChange = (field, value) => setForm((f) => ({ ...f, [field]: value }));
 
-  const handleColorPreview = (value) => {
-    handleChange('primaryColor', value);
-    document.documentElement.style.setProperty('--primary', value);
-  };
+  // Aperçu en direct de la couleur principale : appliquée au site pendant le
+  // choix, mais annulée en quittant la page si elle n'a pas été enregistrée.
+  const previewColor = form?.primaryColor;
+  useEffect(() => {
+    if (!HEX_COLOR.test(previewColor ?? '')) return;
+    document.documentElement.style.setProperty('--primary', previewColor);
+  }, [previewColor]);
+
+  useEffect(() => () => {
+    document.documentElement.style.setProperty('--primary', savedColorRef.current);
+  }, []);
+
+  const handleColorPreview = (value) => handleChange('primaryColor', value);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -112,6 +127,7 @@ export default function Settings() {
     setSuccess('');
     try {
       await updateSettings(form, token);
+      if (HEX_COLOR.test(form.primaryColor)) savedColorRef.current = form.primaryColor;
       setSuccess('Paramètres enregistrés.');
     } catch (err) {
       setError(err.message);
@@ -224,8 +240,16 @@ export default function Settings() {
                   onChange={(e) => handleColorPreview(e.target.value)}
                   style={{ width: 100 }}
                 />
+                {form.primaryColor?.toUpperCase() !== DEFAULT_PRIMARY_COLOR && (
+                  <button type="button" className="btn-ghost btn-sm" onClick={() => handleColorPreview(DEFAULT_PRIMARY_COLOR)}>
+                    Couleur d'origine
+                  </button>
+                )}
               </div>
-              <span className="hint">Utilisée pour les boutons, le menu et les accents du site.</span>
+              <span className="hint">
+                Utilisée pour les boutons, le menu et les accents du site. Pensez à enregistrer :
+                sinon la couleur précédente revient en quittant la page.
+              </span>
             </div>
           </div>
         </div>
