@@ -2547,7 +2547,9 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .ems-list { list-style: none; margin: 0; padding: 4px 0; max-height: 260px; overflow-y: auto; }
 .ems-option { display: flex; align-items: center; gap: 9px; padding: 7px 12px; font-size: 13.5px; cursor: pointer; }
 .ems-option:hover { background: var(--bg-hover); }
-.ems-option input { width: 16px; height: 16px; margin: 0; accent-color: var(--primary); cursor: pointer; }
+.ems-option input { width: 16px; height: 16px; margin: 0; flex-shrink: 0; accent-color: var(--primary); cursor: pointer; }
+.ems-option-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.ems-option-job { font-size: 11.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ems-option--all { color: var(--primary); font-weight: 500; border-bottom: 1px solid var(--border); margin-bottom: 2px; }
 .ems-none { padding: 8px 12px; font-size: 13px; color: var(--text-muted); }
 .schedule-filter { min-width: 220px; }

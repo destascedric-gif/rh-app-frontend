@@ -30,8 +30,9 @@ export default function EmployeeMultiSelect({
   const toggleAll = () => onChange(allSelected ? [] : employees.map((e) => e.id));
 
   const q = query.trim().toLowerCase();
+  // Recherche sur le nom ou le poste (« prépa » trouve les préparateurs)
   const shown = q
-    ? employees.filter((e) => `${e.first_name} ${e.last_name}`.toLowerCase().includes(q))
+    ? employees.filter((e) => `${e.first_name} ${e.last_name} ${e.job_title ?? ''}`.toLowerCase().includes(q))
     : employees;
 
   const chosen = employees.filter((e) => selected.has(e.id));
@@ -68,7 +69,7 @@ export default function EmployeeMultiSelect({
 
       {open && (
         <div className="ems-panel">
-          {employees.length > 6 && (
+          {employees.length > 5 && (
             <input
               type="search"
               className="ems-search"
@@ -92,7 +93,10 @@ export default function EmployeeMultiSelect({
               <li key={e.id}>
                 <label className="ems-option">
                   <input type="checkbox" checked={selected.has(e.id)} onChange={() => toggle(e.id)} />
-                  {e.first_name} {e.last_name}
+                  <span className="ems-option-text">
+                    <span>{e.first_name} {e.last_name}</span>
+                    {e.job_title && <span className="ems-option-job">{e.job_title}</span>}
+                  </span>
                 </label>
               </li>
             ))}
