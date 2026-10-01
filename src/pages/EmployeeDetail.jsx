@@ -121,7 +121,7 @@ export default function EmployeeDetail() {
             </span>
           </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+        <div className="employee-header-actions">
           <button className="btn-secondary" onClick={() => navigate(`/employees/${id}/edit`)}>
             Modifier la fiche
           </button>

@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from './context/AuthContext'
 import { getSettings } from './api/settings'
 import {
@@ -8,12 +8,15 @@ import {
 } from './components/NavIcons'
 import { LegalLinks } from './pages/legal/LegalLayout'
 import { EDITOR } from './legal/legalInfo'
+import useTableCellLabels from './utils/useTableCellLabels'
 
 export default function Layout({ children }) {
   const navigate  = useNavigate()
   const location  = useLocation()
   const { user, token, logout, isAdmin } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const mainRef = useRef(null)
+  useTableCellLabels(mainRef)
 
   // Applique la couleur principale personnalisée par l'entreprise
   useEffect(() => {
@@ -106,7 +109,7 @@ export default function Layout({ children }) {
         </div>
       </div>
 
-      <div className="main-content">
+      <div className="main-content" ref={mainRef}>
         {children}
       </div>
     </div>

@@ -207,6 +207,9 @@ body {
 .main-content {
   margin-left: var(--sidebar-w);
   flex: 1;
+  /* Sans ça, un élément large (tableau, planning) élargit toute la page au
+     lieu de défiler dans son propre cadre : la page déborde sur téléphone. */
+  min-width: 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -575,7 +578,8 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   box-shadow: var(--shadow);
 }
 
-.employee-header-info { flex: 1; }
+.employee-header-info { flex: 1; min-width: 0; }
+.employee-header-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
 .employee-header-info h1 { font-size: 20px; font-weight: 600; }
 .emp-meta { font-size: 12.5px; color: var(--text-muted); margin: 4px 0 8px; display: flex; gap: 8px; flex-wrap: wrap; }
 .emp-tags { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -1601,6 +1605,8 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   margin-bottom: 10px;
 }
 .info-grid { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+.info-grid .info-row { padding-left: 16px; padding-right: 16px; gap: 12px; }
+.info-grid .info-value { text-align: right; overflow-wrap: anywhere; }
 
 /* ── États ─────────────────────────────────── */
 .empty-state, .tab-loading, .page-loading {
@@ -1935,4 +1941,88 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   .legal-dl { grid-template-columns: 1fr; gap: 2px; }
   .legal-dl dd { margin-bottom: 8px; }
   .legal-content { padding-top: 28px; }
+}
+
+/* ── Téléphone : l'application connectée ──────────────────────
+   Tableaux en cartes, barres d'outils qui passent à la ligne,
+   planning employé en liste, colonne des noms fixe au planning. */
+.week-list { display: none; }
+.week-list-day {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+}
+.week-list-day.today { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+.week-list-date { width: 72px; flex-shrink: 0; display: flex; flex-direction: column; }
+.week-list-name { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+.week-list-num { font-family: var(--font-display); font-size: 22px; font-weight: 600; line-height: 1.1; }
+.week-list-shift { flex: 1; min-width: 0; }
+
+@media (max-width: 768px) {
+  /* Planning gérant : les noms restent visibles quand on fait défiler les jours */
+  .week-th-emp, .week-td-emp { position: sticky; left: 0; z-index: 2; width: 112px; }
+  .week-td-emp { background: var(--bg-card); }
+  .col-emp { width: 112px; }
+  .week-td-emp .emp-email { display: none; }
+  .week-table { min-width: 640px; }
+}
+
+@media (max-width: 640px) {
+  .page-header, .section-header { flex-wrap: wrap; gap: 12px; }
+  .timesheet-filters { flex-wrap: wrap; }
+  .schedule-nav { flex: 1 1 100%; flex-wrap: wrap; }
+  .schedule-period { min-width: 0; flex: 1; }
+
+  .metric-card { padding: 12px 14px; }
+  .metric-label { font-size: 10.5px; }
+  .metric-value { font-size: 22px; }
+
+  .employee-header { flex-wrap: wrap; }
+  .employee-header-actions { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .emp-meta { overflow-wrap: anywhere; }
+  .tabs, .tabs-nav { overflow-x: auto; }
+
+  /* Planning employé : une ligne par jour au lieu de la grille */
+  .week-list { display: flex; flex-direction: column; gap: 8px; list-style: none; margin: 0; padding: 0; }
+  .week-grid--employee { display: none; }
+
+  /* Tableaux : une carte par ligne, chaque valeur précédée du titre de sa
+     colonne (data-label posé par useTableCellLabels) */
+  .table-wrap, .table-wrapper { background: none; border: none; border-radius: 0; box-shadow: none; overflow: visible; }
+  .rh-table { min-width: 0; }
+  .rh-table thead { display: none; }
+  .rh-table, .rh-table tbody, .rh-table tr { display: block; width: 100%; }
+  .rh-table tr {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 4px 14px;
+    margin-bottom: 10px;
+  }
+  .rh-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 0;
+    text-align: right;
+  }
+  /* Trait entre les valeurs d'une carte (la règle bureau l'enlève sur la
+     dernière ligne du tableau, d'où ce rétablissement) */
+  .rh-table tr td,
+  .rh-table tr:last-child td { border-bottom: 1px solid var(--border); }
+  .rh-table tr td:last-child,
+  .rh-table tr:last-child td:last-child { border-bottom: none; }
+  .rh-table td::before { content: attr(data-label); flex-shrink: 0; font-size: 12px; color: var(--text-muted); text-align: left; }
+  .rh-table td:first-child { justify-content: flex-start; text-align: left; }
+  .rh-table td:first-child::before,
+  .rh-table td[data-label=""]::before { content: none; }
+  .rh-table td[data-label=""] { justify-content: flex-end; flex-wrap: wrap; }
+  .rh-table td[colspan] { justify-content: center; text-align: center; }
+  .rh-table tr:hover td { background: none; }
 }
