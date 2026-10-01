@@ -13,7 +13,9 @@ export default function ShiftCard({
   const end   = formatTime(shift.end_time);
   const type  = shift.type || 'travail';
   const isWorkShift = type === 'travail';
-  const showLabel = !continuesPrev;
+  // Repos : simple texte gris, répété chaque jour (pas de bandeau relié)
+  const isRest = type === 'repos';
+  const showLabel = isRest || !continuesPrev;
 
   // Première pause uniquement (la plus courante)
   const firstBreak = shift.breaks?.[0];
@@ -27,10 +29,10 @@ export default function ShiftCard({
   const timeType = isWorkShift ? getShiftTimeType(shift, templates) : null;
   const empColor      = getEmployeeColor(shift.user_id);
   const empColorLight = getEmployeeColorLight(shift.user_id);
-  const style = isWorkShift ? undefined : { borderLeftColor: empColor, background: empColorLight };
+  const style = isWorkShift || isRest ? undefined : { borderLeftColor: empColor, background: empColorLight };
 
-  const runClass = `${continuesPrev ? ' continues-prev' : ''}${continuesNext ? ' continues-next' : ''}`;
-  const nonWorkClass = !isWorkShift ? ' shift-non-work' : '';
+  const runClass = isRest ? '' : `${continuesPrev ? ' continues-prev' : ''}${continuesNext ? ' continues-next' : ''}`;
+  const nonWorkClass = isRest ? ' shift-rest' : (!isWorkShift ? ' shift-non-work' : '');
 
   if (compact) {
     const timeTypeClass = isWorkShift ? ` week-shift-badge--${timeType}` : '';

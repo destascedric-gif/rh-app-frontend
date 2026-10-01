@@ -1538,6 +1538,24 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
    d'un créneau de travail. ── */
 .shift-non-work { font-style: italic; }
 
+/* Repos : simple texte gris, sans case colorée (semaine, mois, téléphone) */
+.week-shift-badge.shift-rest,
+.month-shift-badge.shift-rest,
+.shift-card.shift-rest {
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  font-style: normal;
+}
+.week-shift-badge.shift-rest { align-items: center; justify-content: center; min-height: 100%; }
+.shift-rest .badge-type-label,
+.shift-rest .shift-type-tag,
+.shift-rest .badge-hours { color: var(--text-light); font-weight: 500; }
+
+/* Vue Mois : créneaux en pastille sur une seule ligne */
+.month-shift-badge { border-left: none; border-radius: 6px; white-space: nowrap; }
+.month-shift-badge .badge-hours { font-weight: 600; font-variant-numeric: tabular-nums; }
+
 .badge-type-label {
   font-size: 11.5px;
   font-weight: 600;

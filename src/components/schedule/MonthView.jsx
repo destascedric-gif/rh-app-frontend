@@ -5,6 +5,12 @@ import { getShiftTimeType } from './shiftTimeType';
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence' };
 
+// "09:30:00" → "9h30", "19:00" → "19h" (créneau du mois sur une seule ligne)
+const shortTime = (t) => {
+  const [h, m] = (t ?? '').slice(0, 5).split(':');
+  return `${Number(h)}h${m === '00' ? '' : m}`;
+};
+
 const getMonthCells = (year, month) => {
   const firstDay = new Date(year, month, 1);
   const lastDay  = new Date(year, month + 1, 0);
@@ -105,14 +111,15 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
                           ? `${shift.first_name?.[0] ?? ''}${shift.last_name?.[0] ?? ''}`.toUpperCase()
                           : null;
                         const hours = type === 'travail'
-                          ? `${shift.start_time?.slice(0, 5)} → ${shift.end_time?.slice(0, 5)}`
+                          ? `${shortTime(shift.start_time)} – ${shortTime(shift.end_time)}`
                           : TYPE_LABELS[type];
 
                         const sameRun = (other) =>
                           other && other.user_id === shift.user_id && (other.type || 'travail') === type;
-                        const continuesPrev = type !== 'travail' && di > 0
+                        const isRest = type === 'repos';
+                        const continuesPrev = type !== 'travail' && !isRest && di > 0
                           && rowDayShifts[di - 1].some(sameRun);
-                        const continuesNext = type !== 'travail' && di < 6
+                        const continuesNext = type !== 'travail' && !isRest && di < 6
                           && rowDayShifts[di + 1].some(sameRun);
                         const showLabel = !continuesPrev;
 
@@ -122,14 +129,14 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
                         const empColorLight = getEmployeeColorLight(shift.user_id);
                         // Un créneau de travail est coloré par ouverture/fermeture ;
                         // un congé/repos/absence garde la couleur de l'employé.
-                        const style = isWorkShift ? undefined : { borderLeftColor: empColor, background: empColorLight };
+                        const style = isWorkShift || isRest ? undefined : { borderLeftColor: empColor, background: empColorLight };
                         const runClass = `${continuesPrev ? ' continues-prev' : ''}${continuesNext ? ' continues-next' : ''}`;
                         const timeTypeClass = isWorkShift ? ` month-shift-badge--${timeType}` : '';
 
                         return (
                           <div
                             key={j}
-                            className={`month-shift-badge${!isWorkShift ? ' shift-non-work' : ''}${timeTypeClass}${runClass}`}
+                            className={`month-shift-badge${isRest ? ' shift-rest' : (!isWorkShift ? ' shift-non-work' : '')}${timeTypeClass}${runClass}`}
                             style={style}
                             onClick={(e) => { e.stopPropagation(); isAdmin && onShiftClick?.(shift); }}
                             data-tooltip={fullName ? `${fullName} · ${hours}` : hours}
