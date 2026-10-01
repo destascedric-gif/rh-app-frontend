@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getBilling, startCheckout, openPortal } from '../api/billing';
 import { EDITOR } from '../legal/legalInfo';
+import PageHeader from '../components/PageHeader';
 
 const euros = (n) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
 const date  = (d) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -86,12 +87,7 @@ export default function Billing() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Abonnement</h1>
-          <p className="page-subtitle">Votre offre, votre facturation et vos factures</p>
-        </div>
-      </div>
+      <PageHeader title="Abonnement" />
 
       {notice && <div className="notif-bar notif-bar--success">{notice}</div>}
       {error  && <div className="notif-bar notif-bar--danger">{error}</div>}

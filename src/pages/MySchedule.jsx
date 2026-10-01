@@ -7,6 +7,7 @@ import ScheduleLegend from '../components/schedule/ScheduleLegend';
 import PhoneCalendar from '../components/schedule/PhoneCalendar';
 import PhoneWeekList from '../components/schedule/PhoneWeekList';
 import useMediaQuery, { PHONE_QUERY } from '../utils/useMediaQuery';
+import PageHeader from '../components/PageHeader';
 
 const getMondayOfWeek = (date = new Date()) => {
   const d   = new Date(date);
@@ -67,12 +68,7 @@ export default function MySchedule() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Mon planning</h1>
-          <p className="page-subtitle">Vos horaires de travail</p>
-        </div>
-      </div>
+      <PageHeader title="Mon planning" />
 
       {/* Résumé semaine */}
       {/* Téléphone : résumé de la semaine en une ligne */}

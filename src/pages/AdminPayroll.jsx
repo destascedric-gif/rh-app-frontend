@@ -5,6 +5,7 @@ import {
   getAllPayslips, generatePayslip, downloadPayslip,
   generateAllPayslips, deletePayslip, triggerDownload,
 } from '../api/payroll';
+import PageHeader from '../components/PageHeader';
 
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin',
                  'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
@@ -120,12 +121,7 @@ export default function AdminPayroll() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Gestion de la paie</h1>
-          <p className="page-subtitle">Générez et téléchargez les bulletins de vos employés</p>
-        </div>
-      </div>
+      <PageHeader title="Paie" />
 
       {/* Avertissement permanent : les bulletins ne remplacent pas une paie déclarative */}
       <div className="payroll-disclaimer" role="note">

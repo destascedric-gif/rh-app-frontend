@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { inviteEmployee } from '../api/auth';
+import PageHeader from '../components/PageHeader';
 
 export default function InviteEmployee() {
   const { token } = useAuth();
@@ -33,7 +34,7 @@ export default function InviteEmployee() {
 
   return (
     <div className="page">
-      <h1>Ajouter un employé</h1>
+      <PageHeader title="Ajouter un employé" />
       <form onSubmit={handleSubmit}>
         <div className="field"><label>Prénom *</label>
           <input value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} required /></div>

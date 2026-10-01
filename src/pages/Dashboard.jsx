@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getEmployees, getPendingTimesheets, reviewTimesheet } from '../api/employees';
 import { getAllRequests } from '../api/leaves';
+import PageHeader from '../components/PageHeader';
 
 export default function Dashboard() {
   const { token } = useAuth();
@@ -50,12 +51,7 @@ export default function Dashboard() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Tableau de bord</h1>
-          <p className="page-subtitle">Vue d'ensemble de votre entreprise</p>
-        </div>
-      </div>
+      <PageHeader title="Tableau de bord" />
 
       {/* Métriques */}
       <div className="metrics">

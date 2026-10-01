@@ -8,6 +8,7 @@ import PayslipsTab  from '../components/tabs/PayslipsTab';
 import DocumentsTab from '../components/tabs/DocumentsTab';
 import TimesheetTab from '../components/tabs/TimesheetTab';
 import MonthlySummaryTab from '../components/tabs/MonthlySummaryTab';
+import PageHeader from '../components/PageHeader';
 
 const TABS = [
   { key: 'resume',    label: 'Résumé général' },
@@ -89,6 +90,7 @@ export default function EmployeeDetail() {
 
   return (
     <div className="page">
+      <PageHeader title="Fiche employé" />
       {/* Retour */}
       <button className="btn-ghost back-btn" onClick={() => navigate('/employees')}>
         ← Retour à la liste

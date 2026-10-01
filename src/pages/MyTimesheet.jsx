@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getMyTimesheets, addMyTimesheet, updateMyTimesheet, deleteMyTimesheet } from '../api/employees';
+import PageHeader from '../components/PageHeader';
 
 const MONTHS = [
   'Janvier','Février','Mars','Avril','Mai','Juin',
@@ -88,12 +89,7 @@ export default function MyTimesheet() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Mon pointage</h1>
-          <p className="page-subtitle">Saisissez vos heures travaillées jour par jour — chaque saisie doit être validée par un administrateur.</p>
-        </div>
-      </div>
+      <PageHeader title="Mon pointage" />
 
       <div className="timesheet-tab">
         <div className="timesheet-filters" style={{ justifyContent: 'space-between', display: 'flex' }}>

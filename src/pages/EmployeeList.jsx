@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getEmployees, deactivateEmployee, reactivateEmployee } from '../api/employees';
 import { resendInvite } from '../api/auth';
+import PageHeader from '../components/PageHeader';
 
 const Avatar = ({ firstName, lastName, photoUrl }) => {
   if (photoUrl) {
@@ -94,15 +95,10 @@ export default function EmployeeList() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Équipe</h1>
-          <p className="page-subtitle">{employees.length} membre{employees.length > 1 ? 's' : ''}</p>
-        </div>
-        <button className="btn-primary" onClick={() => navigate('/invite')}>
-          + Ajouter un employé
-        </button>
-      </div>
+      <PageHeader
+        title="Équipe"
+        actions={<button className="btn-primary" onClick={() => navigate('/invite')}>+ Ajouter un employé</button>}
+      />
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
         <input

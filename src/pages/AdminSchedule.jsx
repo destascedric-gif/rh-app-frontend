@@ -10,6 +10,7 @@ import ScheduleLegend from '../components/schedule/ScheduleLegend';
 import TemplatePalette from '../components/schedule/TemplatePalette';
 import PhoneCalendar from '../components/schedule/PhoneCalendar';
 import useMediaQuery, { PHONE_QUERY } from '../utils/useMediaQuery';
+import PageHeader from '../components/PageHeader';
 
 const getMondayOfWeek = (date = new Date()) => {
   const d   = new Date(date);
@@ -129,15 +130,10 @@ export default function AdminSchedule() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Planning</h1>
-          <p className="page-subtitle">Gérez les horaires de votre équipe</p>
-        </div>
-        <button className="btn-primary" onClick={() => setModal({})}>
-          + Nouveau créneau
-        </button>
-      </div>
+      <PageHeader
+        title="Planning"
+        actions={<button className="btn-primary" onClick={() => setModal({})}>+ Nouveau créneau</button>}
+      />
 
       <div className="schedule-toolbar">
         {/* Select employé stylisé */}

@@ -9,6 +9,8 @@ import {
 import { LegalLinks } from './pages/legal/LegalLayout'
 import { EDITOR } from './legal/legalInfo'
 import useTableCellLabels from './utils/useTableCellLabels'
+import TopbarContext from './context/TopbarContext'
+import NotificationBell from './components/NotificationBell'
 
 export default function Layout({ children }) {
   const navigate  = useNavigate()
@@ -16,6 +18,9 @@ export default function Layout({ children }) {
   const { user, token, logout, isAdmin } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const mainRef = useRef(null)
+  // Emplacements de la barre du haut, remplis par les pages (PageHeader)
+  const [titleSlot, setTitleSlot] = useState(null)
+  const [actionSlot, setActionSlot] = useState(null)
   useTableCellLabels(mainRef)
 
   // Applique la couleur principale personnalisée par l'entreprise
@@ -38,19 +43,8 @@ export default function Layout({ children }) {
   const go = (path) => navigate(path)
 
   return (
+    <TopbarContext.Provider value={{ titleSlot, actionSlot }}>
     <div className="app-layout">
-      {/* Barre du haut visible uniquement sur mobile — seul point d'accès au menu quand la barre latérale est masquée */}
-      <div className="mobile-topbar">
-        <button
-          className="mobile-menu-btn"
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-          aria-expanded={menuOpen}
-        >
-          <span /><span /><span />
-        </button>
-        <span className="mobile-topbar-title">Orgaly</span>
-      </div>
 
       {menuOpen && <div className="sidebar-backdrop" onClick={() => setMenuOpen(false)} />}
 
@@ -110,8 +104,27 @@ export default function Layout({ children }) {
       </div>
 
       <div className="main-content" ref={mainRef}>
+        {/* Barre du haut commune : titre et boutons fournis par chaque page
+            (PageHeader), cloche des demandes en attente. Sur téléphone, elle
+            porte aussi le bouton du menu. */}
+        <header className="topbar">
+          <button
+            className="mobile-menu-btn"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-expanded={menuOpen}
+          >
+            <span /><span /><span />
+          </button>
+          <div className="topbar-title-slot" ref={setTitleSlot} />
+          <div className="topbar-right">
+            <NotificationBell />
+            <div className="topbar-actions" ref={setActionSlot} />
+          </div>
+        </header>
         {children}
       </div>
     </div>
+    </TopbarContext.Provider>
   )
 }

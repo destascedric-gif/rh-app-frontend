@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { getSettings, updateSettings } from '../api/settings';
 import { changePassword } from '../api/auth';
 import { getShiftTemplates, createShiftTemplate, updateShiftTemplate, deleteShiftTemplate } from '../api/shiftTemplates';
+import PageHeader from '../components/PageHeader';
 
 const EMPTY_PASSWORD_FORM = { currentPassword: '', newPassword: '', confirmPassword: '' };
 const EMPTY_TEMPLATE_FORM = { name: '', startTime: '', endTime: '', breakStart: '', breakEnd: '' };
@@ -145,12 +146,7 @@ export default function Settings() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Paramètres</h1>
-          <p className="page-subtitle">Politique RH et personnalisation de l'espace.</p>
-        </div>
-      </div>
+      <PageHeader title="Paramètres" />
 
       <form onSubmit={handleSubmit}>
         <div className="section-card">

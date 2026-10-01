@@ -4,6 +4,7 @@ import { getMyBalance, getMyRequests, markAllRead, getNotifications } from '../a
 import LeaveBalanceCard  from '../components/leaves/LeaveBalanceCard';
 import LeaveRequestForm  from '../components/leaves/LeaveRequestForm';
 import LeaveStatusBadge  from '../components/leaves/LeaveStatusBadge';
+import PageHeader from '../components/PageHeader';
 
 const formatDate = (d) => new Date(d).toLocaleDateString('fr-FR');
 
@@ -54,15 +55,10 @@ export default function MyLeaves() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Mes congés</h1>
-          <p className="page-subtitle">Suivez vos soldes et gérez vos demandes</p>
-        </div>
-        <button className="btn-primary" onClick={() => setShowForm(true)}>
-          + Nouvelle demande
-        </button>
-      </div>
+      <PageHeader
+        title="Mes congés"
+        actions={<button className="btn-primary" onClick={() => setShowForm(true)}>+ Nouvelle demande</button>}
+      />
 
       {/* Formulaire de demande */}
       {showForm && (

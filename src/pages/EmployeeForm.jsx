@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getEmployee, updateEmployee } from '../api/employees';
+import PageHeader from '../components/PageHeader';
 
 const CONTRACT_TYPES = ['CDI', 'CDD', 'Alternance', 'Stage', 'Freelance'];
 const WORK_TIMES = ['Temps plein', 'Temps partiel'];
@@ -75,12 +76,7 @@ export default function EmployeeForm() {
         ← Retour à la fiche
       </button>
 
-      <div className="page-header">
-        <div>
-          <h1>Modifier la fiche</h1>
-          <p className="page-subtitle">{form.firstName} {form.lastName}</p>
-        </div>
-      </div>
+      <PageHeader title={form.firstName ? `Modifier la fiche de ${form.firstName} ${form.lastName}` : 'Modifier la fiche'} />
 
       <form onSubmit={handleSubmit}>
         {/* Informations personnelles */}

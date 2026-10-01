@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { getAllRequests, reviewRequest, getEmployeeBalance } from '../api/leaves';
 import LeaveStatusBadge from '../components/leaves/LeaveStatusBadge';
 import LeaveBalanceCard from '../components/leaves/LeaveBalanceCard';
+import PageHeader from '../components/PageHeader';
 
 const formatDate = (d) => new Date(d).toLocaleDateString('fr-FR');
 
@@ -77,20 +78,9 @@ export default function AdminLeaves() {
     }
   };
 
-  const pendingCount = requests.filter((r) => r.status === 'en_attente').length;
-
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Congés et absences</h1>
-          <p className="page-subtitle">
-            {filter === 'en_attente' && pendingCount > 0
-              ? `${pendingCount} demande(s) en attente de décision`
-              : `${requests.length} demande(s)`}
-          </p>
-        </div>
-      </div>
+      <PageHeader title="Congés et absences" />
 
       {emailWarning && <p className="notif-bar">{emailWarning}</p>}
 
