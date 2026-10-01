@@ -13,8 +13,8 @@ const MONTH_NAMES = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'jui
 const TYPE_LABELS = { conge: 'Congé', repos: 'Repos', absence: 'Absence' };
 const MAX_CHIPS = 3;
 
-// Heure de début : "08:30:00" → "8h30", "09:00" → "9h00" (minutes toujours
-// écrites, pour ne pas confondre "9h" avec une durée de 9 heures)
+// "08:30:00" → "8h30", "09:00" → "9h00" (minutes toujours écrites, pour ne
+// pas confondre "9h" avec une durée de 9 heures)
 const shortTime = (t) => {
   if (!t) return '';
   const [h, m] = t.slice(0, 5).split(':');
@@ -102,9 +102,19 @@ export default function PhoneCalendar({
               <span className={`pcal-num${dateStr === todayStr ? ' pcal-num--today' : ''}`}>{day.getDate()}</span>
               {dayShifts.slice(0, MAX_CHIPS).map((s) => {
                 const kind = chipKind(s, templates);
+                // Employé (un seul créneau par jour) : début et fin l'un sous
+                // l'autre. Gérant : initiales de chaque employé.
+                if (!isAdmin && kind !== 'off') {
+                  return (
+                    <span key={s.id} className={`pcal-chip pcal-chip--${kind} pcal-chip--times`}>
+                      <span>{shortTime(s.start_time)}</span>
+                      <span>{shortTime(s.end_time)}</span>
+                    </span>
+                  );
+                }
                 const text = isAdmin
                   ? `${s.first_name?.[0] ?? ''}${s.last_name?.[0] ?? ''}`.toUpperCase()
-                  : (kind === 'off' ? TYPE_LABELS[s.type] : shortTime(s.start_time));
+                  : TYPE_LABELS[s.type];
                 return <span key={s.id} className={`pcal-chip pcal-chip--${kind}`}>{text}</span>;
               })}
               {dayShifts.length > MAX_CHIPS && (

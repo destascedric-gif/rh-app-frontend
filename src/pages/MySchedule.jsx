@@ -5,6 +5,7 @@ import WeekView, { getWeekDays, toISO } from '../components/schedule/WeekView';
 import MonthView from '../components/schedule/MonthView';
 import ScheduleLegend from '../components/schedule/ScheduleLegend';
 import PhoneCalendar from '../components/schedule/PhoneCalendar';
+import PhoneWeekList from '../components/schedule/PhoneWeekList';
 import useMediaQuery, { PHONE_QUERY } from '../utils/useMediaQuery';
 
 const getMondayOfWeek = (date = new Date()) => {
@@ -20,10 +21,10 @@ const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet',
 export default function MySchedule() {
   const { token, user } = useAuth();
 
-  const [view,      setView]      = useState('week');
-  // Sur téléphone, toujours le calendrier du mois (façon agenda)
-  const isPhone   = useMediaQuery(PHONE_QUERY);
-  const shownView = isPhone ? 'month' : view;
+  // Sur téléphone, le calendrier du mois (façon agenda) s'ouvre par défaut ;
+  // la semaine reste disponible, en cartes détaillées.
+  const isPhone = useMediaQuery(PHONE_QUERY);
+  const [view,      setView]      = useState(() => (window.matchMedia(PHONE_QUERY).matches ? 'month' : 'week'));
   const [monday,    setMonday]    = useState(getMondayOfWeek());
   const [monthDate, setMonthDate] = useState(new Date());
   const [shifts,    setShifts]    = useState([]);
@@ -42,13 +43,13 @@ export default function MySchedule() {
   const weekHours  = workShifts.reduce((sum, s) => sum + (s.net_hours ?? 0), 0);
 
   const getDateRange = useCallback(() => {
-    if (shownView === 'week') {
+    if (view === 'week') {
       const days = getWeekDays(monday);
       return { start: toISO(days[0]), end: toISO(days[6]) };
     }
     const y = monthDate.getFullYear(), m = monthDate.getMonth();
     return { start: toISO(new Date(y, m, 1)), end: toISO(new Date(y, m + 1, 0)) };
-  }, [shownView, monday, monthDate]);
+  }, [view, monday, monthDate]);
 
   useEffect(() => {
     setLoading(true);
@@ -74,7 +75,7 @@ export default function MySchedule() {
       </div>
 
       {/* Résumé semaine */}
-      {shownView === 'week' && (
+      {view === 'week' && (
         <div className="metrics" style={{ gridTemplateColumns: 'repeat(3, minmax(0,1fr))', marginBottom: '1rem' }}>
           <div className="metric-card">
             <div className="metric-label">Jours planifiés cette semaine</div>
@@ -94,29 +95,31 @@ export default function MySchedule() {
       {/* Barre de navigation */}
       <div className="schedule-toolbar">
         <div className="schedule-nav">
-          <button className="btn-ghost" onClick={shownView === 'week' ? prevWeek : prevMonth}>←</button>
+          <button className="btn-ghost" onClick={view === 'week' ? prevWeek : prevMonth}>←</button>
           <span className="schedule-period">
-            {shownView === 'week'
+            {view === 'week'
               ? `${weekDays[0].getDate()} ${MONTH_NAMES[weekDays[0].getMonth()]} → ${weekDays[6].getDate()} ${MONTH_NAMES[weekDays[6].getMonth()]} ${weekDays[6].getFullYear()}`
               : `${MONTH_NAMES[monthDate.getMonth()]} ${monthDate.getFullYear()}`
             }
           </span>
-          <button className="btn-ghost" onClick={shownView === 'week' ? nextWeek : nextMonth}>→</button>
+          <button className="btn-ghost" onClick={view === 'week' ? nextWeek : nextMonth}>→</button>
           <button className="btn-ghost" onClick={() => { setMonday(getMondayOfWeek()); setMonthDate(new Date()); }}>
             Aujourd'hui
           </button>
         </div>
 
-        {!isPhone && <div className="role-toggle">
+        <div className="role-toggle">
           <button className={`role-btn ${view==='week'?'active':''}`} onClick={() => setView('week')}>Semaine</button>
           <button className={`role-btn ${view==='month'?'active':''}`} onClick={() => setView('month')}>Mois</button>
-        </div>}
+        </div>
       </div>
 
       <ScheduleLegend />
 
       {loading ? (
         <p className="tab-loading">Chargement…</p>
+      ) : isPhone && view === 'week' ? (
+        <PhoneWeekList days={weekDays} shifts={shifts} />
       ) : isPhone ? (
         <PhoneCalendar
           key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
