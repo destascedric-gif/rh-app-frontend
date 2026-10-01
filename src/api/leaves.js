@@ -24,4 +24,5 @@ export const markAllRead       = (token)              => req('PATCH', '/leaves/n
 // Admin
 export const getAllRequests     = (status, token)     => req('GET',   `/leaves/admin/requests${status ? `?status=${status}` : ''}`, token);
 export const reviewRequest     = (id, data, token)   => req('PATCH', `/leaves/admin/requests/${id}`, token, data);
+export const getAllBalances    = (token)             => req('GET',   '/leaves/admin/balances', token);
 export const getEmployeeBalance = (userId, token)    => req('GET',   `/leaves/admin/balances/${userId}`, token);

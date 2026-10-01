@@ -1,257 +1,194 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getAllRequests, reviewRequest, getEmployeeBalance } from '../api/leaves';
+import { getAllRequests, reviewRequest, getAllBalances } from '../api/leaves';
 import LeaveStatusBadge from '../components/leaves/LeaveStatusBadge';
-import LeaveBalanceCard from '../components/leaves/LeaveBalanceCard';
 import PageHeader from '../components/PageHeader';
 import { notifyRequestsChanged } from '../utils/notifications';
 
+const shortDate = (d) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 const formatDate = (d) => new Date(d).toLocaleDateString('fr-FR');
+const days = (n) => `${Number(n)} j`;
+const period = (r) => (r.start_date === r.end_date
+  ? shortDate(r.start_date)
+  : `${shortDate(r.start_date)} → ${shortDate(r.end_date)}`);
 
-// Seuls les congés payés s'accumulent en un vrai solde (voir LeaveBalanceCard).
-const BALANCE_TYPES = new Set(['Congés payés']);
+// Sous ce nombre de jours restants, la barre de solde passe en orange
+const LOW_BALANCE_DAYS = 5;
 
-// Mini avatar initiales
-const Avatar = ({ name, photoUrl }) => {
-  if (photoUrl) return <img src={photoUrl} alt="" className="avatar-sm" />;
-  const initials = name?.split(' ').map((p) => p[0]).join('').toUpperCase().slice(0, 2);
-  return <div className="avatar-sm avatar-initials">{initials}</div>;
-};
+const Avatar = ({ name }) => (
+  <span className="dash-avatar dash-avatar--small">
+    {name?.split(' ').map((p) => p[0]).join('').toUpperCase().slice(0, 2)}
+  </span>
+);
 
 export default function AdminLeaves() {
   const { token } = useAuth();
 
-  const [filter,   setFilter]   = useState('en_attente'); // filtre actif
-  const [requests, setRequests] = useState([]);
-  const [loading,  setLoading]  = useState(true);
+  const [showHistory, setShowHistory] = useState(false);
+  const [requests,    setRequests]    = useState([]);
+  const [balances,    setBalances]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [busyId,      setBusyId]      = useState(null);
+  const [error,       setError]       = useState('');
+  const [notice,      setNotice]      = useState('');
 
-  // Modal de décision
-  const [selected,   setSelected]   = useState(null);
-  const [decision,   setDecision]   = useState('');  // 'approuvé' | 'refusé'
-  const [adminNote,  setAdminNote]  = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error,      setError]      = useState('');
-  const [emailWarning, setEmailWarning] = useState('');
+  // Refus : petite fenêtre pour un motif facultatif
+  const [refusing,   setRefusing]   = useState(null);
+  const [refuseNote, setRefuseNote] = useState('');
 
-  // Solde employé
-  const [balanceFor, setBalanceFor] = useState(null); // { id, name }
-  const [balances,   setBalances]   = useState([]);
-  const [balanceLoading, setBalanceLoading] = useState(false);
-
-  const load = async (status) => {
-    setLoading(true);
+  const load = useCallback(async () => {
     try {
-      const data = await getAllRequests(status || '', token);
-      setRequests(data);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(filter); }, [filter, token]);
-
-  const handleReview = async () => {
-    if (!decision) return;
-    setSubmitting(true);
-    setError('');
-    try {
-      const result = await reviewRequest(selected.id, { status: decision, adminNote }, token);
-      notifyRequestsChanged();
-      setEmailWarning(result.emailSent === false ? "L'email de notification n'a pas pu être envoyé à l'employé." : '');
-      setSelected(null);
-      setAdminNote('');
-      setDecision('');
-      await load(filter);
+      const [reqs, bal] = await Promise.all([
+        getAllRequests('', token),
+        getAllBalances(token).catch(() => ({ balances: [] })),
+      ]);
+      setRequests(reqs);
+      setBalances(bal.balances);
     } catch (err) {
       setError(err.message);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const decide = async (request, status, adminNote = '') => {
+    setBusyId(request.id);
+    setError('');
+    setNotice('');
+    try {
+      const result = await reviewRequest(request.id, { status, adminNote }, token);
+      notifyRequestsChanged();
+      if (result.emailSent === false) setNotice("L'e-mail de notification n'a pas pu être envoyé à l'employé.");
+      setRefusing(null);
+      setRefuseNote('');
+      await load(); // soldes et historique à jour
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyId(null);
     }
   };
 
-  const openBalance = async (r) => {
-    setBalanceFor({ id: r.employee_id, name: r.employee_name });
-    setBalanceLoading(true);
-    try {
-      const data = await getEmployeeBalance(r.employee_id, token);
-      setBalances(data);
-    } finally {
-      setBalanceLoading(false);
-    }
-  };
+  if (loading) return <div className="page-loading">Chargement…</div>;
+
+  const pending   = requests.filter((r) => r.status === 'en_attente');
+  const processed = requests.filter((r) => r.status !== 'en_attente');
 
   return (
     <div className="page">
       <PageHeader title="Congés et absences" />
 
-      {emailWarning && <p className="notif-bar">{emailWarning}</p>}
+      {notice && <div className="notif-bar">{notice}</div>}
+      {error  && <div className="notif-bar notif-bar--danger">{error}</div>}
 
-      {/* Filtres */}
-      <div className="filter-tabs">
-        {[
-          { key: 'en_attente', label: '🕐 En attente' },
-          { key: 'approuvé',   label: '✅ Approuvées' },
-          { key: 'refusé',     label: '❌ Refusées'   },
-          { key: '',           label: '📋 Tout'        },
-        ].map(({ key, label }) => (
-          <button
-            key={key}
-            className={`tab-btn ${filter === key ? 'active' : ''}`}
-            onClick={() => setFilter(key)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <div className="dash-grid">
+        {/* ── Demandes ─────────────────────────────── */}
+        <section className="dash-card">
+          <div className="dash-card-head">
+            <h2>{showHistory ? `Demandes traitées (${processed.length})` : `Demandes en attente (${pending.length})`}</h2>
+          </div>
 
-      {/* Tableau */}
-      {loading ? (
-        <p className="tab-loading">Chargement…</p>
-      ) : requests.length === 0 ? (
-        <p className="empty-state">Aucune demande dans cette catégorie.</p>
-      ) : (
-        <table className="rh-table">
-          <thead>
-            <tr>
-              <th>Employé</th>
-              <th>Type</th>
-              <th>Du</th>
-              <th>Au</th>
-              <th>Jours</th>
-              <th>Motif</th>
-              <th>Statut</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map((r) => (
-              <tr key={r.id}>
-                <td>
-                  <div className="cell-employee">
-                    <Avatar name={r.employee_name} photoUrl={r.photo_url} />
-                    <div>
-                      <div className="emp-name">{r.employee_name}</div>
-                      <div className="emp-email">{r.job_title}</div>
+          {!showHistory && (pending.length === 0 ? (
+            <p className="dash-empty">Aucune demande en attente.</p>
+          ) : (
+            <ul className="dash-list">
+              {pending.map((r) => (
+                <li key={r.id} className="leave-row">
+                  <Avatar name={r.employee_name} />
+                  <div className="leave-row-main">
+                    <div className="dash-row-name">{r.employee_name}</div>
+                    <div className="dash-row-sub">
+                      {r.leave_type} · {period(r)} · {days(r.working_days)}
+                      {r.reason && <> · « {r.reason} »</>}
                     </div>
                   </div>
-                </td>
-                <td>{r.leave_type}</td>
-                <td>{formatDate(r.start_date)}</td>
-                <td>{formatDate(r.end_date)}</td>
-                <td><strong>{r.working_days} j</strong></td>
-                <td className="text-muted">{r.reason || '—'}</td>
-                <td><LeaveStatusBadge status={r.status} /></td>
-                <td>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end' }}>
-                    <button className="btn-ghost" style={{ padding: '3px 10px', fontSize: 12 }} onClick={() => openBalance(r)}>
-                      Solde
-                    </button>
-                    {r.status === 'en_attente' ? (
-                      <button
-                        className="btn-primary small"
-                        onClick={() => { setSelected(r); setDecision(''); setAdminNote(''); }}
-                      >
-                        Traiter
-                      </button>
-                    ) : (
-                      <span className="text-muted">
-                        {r.reviewed_at ? formatDate(r.reviewed_at) : '—'}
-                      </span>
-                    )}
+                  <div className="leave-row-actions">
+                    <button type="button" className="btn-primary btn-sm" disabled={busyId === r.id} onClick={() => decide(r, 'approuvé')}>Valider</button>
+                    <button type="button" className="btn-secondary btn-sm" disabled={busyId === r.id} onClick={() => { setRefusing(r); setRefuseNote(''); }}>Refuser</button>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+                </li>
+              ))}
+            </ul>
+          ))}
 
-      {/* Modal de décision */}
-      {selected && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Traiter la demande</h3>
-            <p>
-              <strong>{selected.employee_name}</strong> — {selected.leave_type}<br />
-              Du <strong>{formatDate(selected.start_date)}</strong> au <strong>{formatDate(selected.end_date)}</strong>
-              {' '}({selected.working_days} jour(s) ouvré(s))
-            </p>
-            {selected.reason && (
-              <p className="text-muted">Motif employé : {selected.reason}</p>
-            )}
+          {showHistory && (processed.length === 0 ? (
+            <p className="dash-empty">Aucune demande traitée pour le moment.</p>
+          ) : (
+            <ul className="dash-list">
+              {processed.map((r) => (
+                <li key={r.id} className="leave-row">
+                  <Avatar name={r.employee_name} />
+                  <div className="leave-row-main">
+                    <div className="dash-row-name">{r.employee_name}</div>
+                    <div className="dash-row-sub">
+                      {r.leave_type} · {period(r)} · {days(r.working_days)}
+                      {r.reviewed_at && <> · traitée le {formatDate(r.reviewed_at)}</>}
+                    </div>
+                    {r.admin_note && <div className="dash-row-sub">Motif : {r.admin_note}</div>}
+                  </div>
+                  <LeaveStatusBadge status={r.status} />
+                </li>
+              ))}
+            </ul>
+          ))}
 
-            {/* Choix de la décision */}
-            <div className="decision-btns">
-              <button
-                className={`btn-decision ${decision === 'approuvé' ? 'selected-approve' : ''}`}
-                onClick={() => setDecision('approuvé')}
-              >
-                ✅ Approuver
-              </button>
-              <button
-                className={`btn-decision ${decision === 'refusé' ? 'selected-refuse' : ''}`}
-                onClick={() => setDecision('refusé')}
-              >
-                ❌ Refuser
-              </button>
-            </div>
+          <button type="button" className="btn-ghost btn-sm dash-link" onClick={() => setShowHistory((v) => !v)}>
+            {showHistory ? 'Revenir aux demandes en attente' : "Voir l'historique (approuvées, refusées)"}
+          </button>
+        </section>
 
-            <div className="field" style={{ marginTop: '1rem' }}>
-              <label>Note pour l'employé <span className="hint">(optionnel)</span></label>
-              <textarea
-                value={adminNote}
-                onChange={(e) => setAdminNote(e.target.value)}
-                rows={3}
-                placeholder={decision === 'refusé' ? 'Expliquer le motif du refus…' : 'Message optionnel…'}
-              />
-            </div>
-
-            {error && <p className="error-msg">{error}</p>}
-
-            <div className="form-actions">
-              <button
-                className="btn-ghost"
-                onClick={() => setSelected(null)}
-                disabled={submitting}
-              >
-                Annuler
-              </button>
-              <button
-                className="btn-primary"
-                onClick={handleReview}
-                disabled={!decision || submitting}
-              >
-                {submitting ? 'Enregistrement…' : 'Confirmer'}
-              </button>
-            </div>
+        {/* ── Soldes ───────────────────────────────── */}
+        <section className="dash-card">
+          <div className="dash-card-head">
+            <h2>Soldes de congés payés</h2>
           </div>
-        </div>
-      )}
+          {balances.length === 0 ? (
+            <p className="dash-empty">Aucun employé actif.</p>
+          ) : (
+            <ul className="dash-list">
+              {balances.map((b) => {
+                const remaining = Math.max(0, b.balance_days - b.used_days);
+                const pct = b.balance_days > 0 ? Math.min(100, (remaining / b.balance_days) * 100) : 0;
+                return (
+                  <li key={b.employee_id} className="balance-row">
+                    <div className="balance-row-head">
+                      <span className="dash-row-name">{b.employee_name}</span>
+                      <span className="dash-row-sub">
+                        {b.has_hire_date
+                          ? `${remaining.toLocaleString('fr-FR')} j restants sur ${Number(b.balance_days).toLocaleString('fr-FR')}`
+                          : "Date d'embauche manquante"}
+                      </span>
+                    </div>
+                    <div className="usage-meter" role="progressbar" aria-label={`Solde de ${b.employee_name}`} aria-valuemin={0} aria-valuemax={b.balance_days} aria-valuenow={remaining}>
+                      <div className={`usage-meter-fill${remaining < LOW_BALANCE_DAYS ? ' full' : ''}`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      </div>
 
-      {/* Solde de congés d'un employé */}
-      {balanceFor && (
+      {/* Refus : motif facultatif envoyé à l'employé */}
+      {refusing && (
         <div className="modal-overlay">
           <div className="modal">
-            <h3>Solde de congés — {balanceFor.name}</h3>
-            {balanceLoading ? (
-              <p className="tab-loading">Chargement…</p>
-            ) : balances.length === 0 ? (
-              <p className="empty-state">Aucun solde initialisé pour cet employé.</p>
-            ) : (
-              <div className="balance-grid">
-                {balances.map((b) => (
-                  <LeaveBalanceCard
-                    key={b.leave_type}
-                    leaveType={b.leave_type}
-                    balanceDays={parseFloat(b.balance_days)}
-                    usedDays={parseFloat(b.used_days)}
-                    hasBalance={BALANCE_TYPES.has(b.leave_type)}
-                  />
-                ))}
-              </div>
-            )}
+            <h3>Refuser la demande</h3>
+            <p>
+              <strong>{refusing.employee_name}</strong> — {refusing.leave_type}, {period(refusing)} ({days(refusing.working_days)})
+            </p>
+            <div className="field">
+              <label htmlFor="refuse-note">Motif pour l'employé <span className="hint">(facultatif)</span></label>
+              <textarea id="refuse-note" rows={3} value={refuseNote} onChange={(e) => setRefuseNote(e.target.value)} placeholder="Ex. : période déjà très demandée" />
+            </div>
             <div className="form-actions">
-              <button className="btn-ghost" onClick={() => setBalanceFor(null)}>Fermer</button>
+              <button type="button" className="btn-ghost" onClick={() => setRefusing(null)} disabled={busyId === refusing.id}>Annuler</button>
+              <button type="button" className="btn-primary" onClick={() => decide(refusing, 'refusé', refuseNote)} disabled={busyId === refusing.id}>
+                {busyId === refusing.id ? 'Enregistrement…' : 'Refuser la demande'}
+              </button>
             </div>
           </div>
         </div>

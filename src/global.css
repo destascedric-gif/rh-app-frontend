@@ -508,6 +508,21 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   .dash-grid { grid-template-columns: 1fr; }
 }
 
+/* ── Page Congés et absences (maquette) ─────── */
+.leave-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F1F0EC; }
+.leave-row:last-child { border-bottom: none; }
+.leave-row-main { flex: 1; min-width: 0; }
+.leave-row-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.balance-row { padding: 8px 0 12px; }
+.balance-row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+.balance-row .usage-meter { margin-bottom: 0; }
+
+@media (max-width: 640px) {
+  .leave-row { flex-wrap: wrap; }
+  .leave-row-actions { flex-basis: 100%; padding-left: 42px; }
+  .leave-row-actions button { flex: 1; }
+}
+
 /* ── Tableaux ──────────────────────────────── */
 .table-wrap, .table-wrapper {
   background: var(--bg-card);
