@@ -18,8 +18,12 @@
   --text-light:  #8B8F99;
 
   --primary:     #3457D5;
-  --primary-hover: #2A46B8;
-  --primary-light: #EAF0FF;
+  /* Teintes dérivées de --primary : elles suivent la couleur principale
+     choisie par l'entreprise (Paramètres), appliquée sur <html>. */
+  --primary-hover:  color-mix(in srgb, var(--primary) 82%, #000);
+  --primary-light:  color-mix(in srgb, var(--primary) 9%, #fff);
+  --primary-border: color-mix(in srgb, var(--primary) 30%, #fff);
+  --primary-ring:   color-mix(in srgb, var(--primary) 10%, transparent);
 
   --success:     #15803D;
   --success-bg:  #F0FDF4;
@@ -725,7 +729,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .field select:focus,
 .field textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(28, 78, 216, 0.08);
+  box-shadow: 0 0 0 3px var(--primary-ring);
 }
 
 .field-row {
@@ -892,7 +896,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 /* ── Notifications ─────────────────────────── */
 .notif-bar {
   background: var(--primary-light);
-  border: 1px solid #BFDBFE;
+  border: 1px solid var(--primary-border);
   border-radius: var(--radius);
   padding: 10px 14px;
   margin-bottom: 16px;
@@ -1089,7 +1093,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 }
 .search-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(28, 78, 216, 0.08);
+  box-shadow: 0 0 0 3px var(--primary-ring);
 }
 
 /* ── Modales ───────────────────────────────── */
@@ -1383,7 +1387,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 /* ── Carte créneau ─────────────────────────────── */
 .shift-card {
   background: var(--primary-light);
-  border: 1px solid #BFDBFE;
+  border: 1px solid var(--primary-border);
   border-radius: 6px;
   padding: 5px 7px;
   font-size: 11.5px;
@@ -1398,7 +1402,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .shift-break-tag {
   display: inline-block;
   font-size: 10px;
-  background: rgba(28,78,216,0.08);
+  background: var(--primary-ring);
   border-radius: 3px;
   padding: 1px 4px;
   margin: 1px 1px 0 0;
@@ -1689,7 +1693,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .schedule-toolbar select:focus,
 .schedule-toolbar .employee-select:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(28, 78, 216, 0.08);
+  box-shadow: 0 0 0 3px var(--primary-ring);
 }
 
 .schedule-toolbar select:hover,
@@ -1713,7 +1717,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .leave-preview {
   font-size: 13px;
   background: var(--primary-light);
-  border: 1px solid #BFDBFE;
+  border: 1px solid var(--primary-border);
   border-radius: var(--radius);
   padding: 8px 12px;
   margin-bottom: 12px;
