@@ -188,6 +188,9 @@ body {
 
 .nav-item.active svg { opacity: 1; }
 
+/* Lien d'aide : poussé en bas du menu, juste au-dessus du profil */
+.nav-item--help { margin-top: auto; text-decoration: none; font-weight: 500; }
+
 .nav-item.disabled {
   opacity: 0.3;
   cursor: default;

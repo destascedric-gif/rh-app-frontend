@@ -4,8 +4,10 @@ import { useAuth } from './context/AuthContext'
 import { getSettings } from './api/settings'
 import {
   DashboardIcon, EmployeesIcon, LeavesIcon, ScheduleIcon, PayrollIcon, TimesheetIcon, SettingsIcon, BillingIcon,
+  HelpIcon,
 } from './components/NavIcons'
 import { LegalLinks } from './pages/legal/LegalLayout'
+import { EDITOR } from './legal/legalInfo'
 
 export default function Layout({ children }) {
   const navigate  = useNavigate()
@@ -83,6 +85,11 @@ export default function Layout({ children }) {
             <button className={isActive('/mon-pointage')} onClick={() => go('/mon-pointage')}><TimesheetIcon /> Mon pointage</button>
           </>
         )}
+
+        {/* Ouvre la messagerie de l'utilisateur vers l'adresse de contact d'Orgaly */}
+        <a className="nav-item nav-item--help" href={`mailto:${EDITOR.email}?subject=${encodeURIComponent("Besoin d'aide sur Orgaly")}`}>
+          <HelpIcon /> Besoin d'aide ?
+        </a>
 
         <div className="sidebar-bottom">
           <div className="user-chip">
