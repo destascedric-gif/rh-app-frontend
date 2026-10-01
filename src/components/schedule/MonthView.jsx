@@ -1,6 +1,6 @@
 import { toISO } from './WeekView';
 import { getEmployeeColor, getEmployeeColorLight } from './employeeColor';
-import { getShiftTimeType } from './shiftTimeType';
+import { shiftColorVar } from './shiftColor';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence' };
@@ -43,7 +43,7 @@ const chunkWeeks = (cells) => {
   return weeks;
 };
 
-export default function MonthView({ year, month, shifts, isAdmin, selectedUserId, onShiftClick, onShiftDelete, templates = [] }) {
+export default function MonthView({ year, month, shifts, isAdmin, selectedUserId, onShiftClick, onShiftDelete }) {
   const cells  = getMonthCells(year, month);
   const weeks  = chunkWeeks(cells);
   const today  = toISO(new Date());
@@ -124,14 +124,14 @@ export default function MonthView({ year, month, shifts, isAdmin, selectedUserId
                         const showLabel = !continuesPrev;
 
                         const isWorkShift = type === 'travail';
-                        const timeType = isWorkShift ? getShiftTimeType(shift, templates) : null;
                         const empColor      = getEmployeeColor(shift.user_id);
                         const empColorLight = getEmployeeColorLight(shift.user_id);
-                        // Un créneau de travail est coloré par ouverture/fermeture ;
-                        // un congé/repos/absence garde la couleur de l'employé.
-                        const style = isWorkShift || isRest ? undefined : { borderLeftColor: empColor, background: empColorLight };
+                        // Un créneau de travail prend la couleur de son horaire type ;
+                        // un congé/absence garde la couleur de l'employé.
+                        const style = isWorkShift ? shiftColorVar(shift)
+                          : isRest ? undefined : { borderLeftColor: empColor, background: empColorLight };
                         const runClass = `${continuesPrev ? ' continues-prev' : ''}${continuesNext ? ' continues-next' : ''}`;
-                        const timeTypeClass = isWorkShift ? ` month-shift-badge--${timeType}` : '';
+                        const timeTypeClass = isWorkShift ? ' shift-colored' : '';
 
                         return (
                           <div

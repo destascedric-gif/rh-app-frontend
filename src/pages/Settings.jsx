@@ -4,9 +4,11 @@ import { getSettings, updateSettings } from '../api/settings';
 import { changePassword } from '../api/auth';
 import { getShiftTemplates, createShiftTemplate, updateShiftTemplate, deleteShiftTemplate } from '../api/shiftTemplates';
 import PageHeader from '../components/PageHeader';
+import { SHIFT_PALETTE, NEUTRAL_SHIFT_COLOR } from '../components/schedule/shiftColor';
 
 const EMPTY_PASSWORD_FORM = { currentPassword: '', newPassword: '', confirmPassword: '' };
-const EMPTY_TEMPLATE_FORM = { name: '', startTime: '', endTime: '', breakStart: '', breakEnd: '' };
+// color vide = couleur libre attribuée automatiquement par le serveur
+const EMPTY_TEMPLATE_FORM = { name: '', startTime: '', endTime: '', breakStart: '', breakEnd: '', color: '' };
 const formatTime = (t) => t ? t.slice(0, 5) : '';
 
 export default function Settings() {
@@ -56,6 +58,7 @@ export default function Settings() {
       endTime: formatTime(t.end_time),
       breakStart: formatTime(t.break_start),
       breakEnd: formatTime(t.break_end),
+      color: t.color ?? '',
     });
     setEditingTplId(t.id);
     setTplError('');
@@ -72,6 +75,7 @@ export default function Settings() {
         endTime: templateForm.endTime,
         breakStart: templateForm.breakStart || null,
         breakEnd: templateForm.breakEnd || null,
+        color: templateForm.color || null,
       };
       if (editingTplId === 'new') await createShiftTemplate(payload, token);
       else await updateShiftTemplate(editingTplId, payload, token);
@@ -262,7 +266,12 @@ export default function Settings() {
               <tbody>
                 {templates.map((t) => (
                   <tr key={t.id}>
-                    <td><strong>{t.name}</strong></td>
+                    <td>
+                      <span className="tpl-name">
+                        <span className="tpl-swatch" style={{ background: t.color || NEUTRAL_SHIFT_COLOR }} aria-hidden="true" />
+                        <strong>{t.name}</strong>
+                      </span>
+                    </td>
                     <td>{formatTime(t.start_time)} → {formatTime(t.end_time)}</td>
                     <td className="text-muted">
                       {t.break_start ? `${formatTime(t.break_start)}–${formatTime(t.break_end)}` : '—'}
@@ -331,6 +340,25 @@ export default function Settings() {
                 />
               </div>
             </div>
+            <fieldset className="field color-field">
+              <legend>Couleur dans le planning</legend>
+              <div className="color-swatches">
+                {SHIFT_PALETTE.map((c) => (
+                  <label key={c.value} className="color-swatch" title={c.label}>
+                    <input
+                      type="radio" name="tpl-color" value={c.value}
+                      checked={templateForm.color === c.value}
+                      onChange={() => setTemplateForm((f) => ({ ...f, color: c.value }))}
+                    />
+                    <span style={{ background: c.value }} />
+                    <span className="sr-only">{c.label}</span>
+                  </label>
+                ))}
+              </div>
+              {editingTplId === 'new' && !templateForm.color && (
+                <span className="hint">Sans choix, une couleur pas encore utilisée est attribuée.</span>
+              )}
+            </fieldset>
             {tplError && <p className="error-msg">{tplError}</p>}
             <div className="form-actions">
               <button type="button" className="btn-ghost" onClick={() => setEditingTplId(null)} disabled={tplSaving}>Annuler</button>

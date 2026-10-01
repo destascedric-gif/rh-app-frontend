@@ -167,7 +167,7 @@ export default function AdminSchedule() {
         </div>}
       </div>
 
-      <ScheduleLegend />
+      <ScheduleLegend templates={templates} />
       {shownView === 'week' && <TemplatePalette templates={templates} />}
 
       {loading ? (
@@ -178,7 +178,6 @@ export default function AdminSchedule() {
           year={monthDate.getFullYear()}
           month={monthDate.getMonth()}
           shifts={shifts}
-          templates={templates}
           isAdmin
           selectedUserId={filteredEmp}
           onShiftClick={(shift) => setModal({ shift })}
@@ -194,7 +193,6 @@ export default function AdminSchedule() {
           onShiftClick={(shift) => setModal({ shift })}
           onShiftDelete={handleDelete}
           onTemplateDrop={handleTemplateDrop}
-          templates={templates}
         />
       ) : (
         <MonthView
@@ -205,7 +203,6 @@ export default function AdminSchedule() {
           selectedUserId={filteredEmp}
           onShiftClick={(shift) => setModal({ shift })}
           onShiftDelete={handleDelete}
-          templates={templates}
         />
       )}
 

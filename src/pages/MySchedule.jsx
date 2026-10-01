@@ -4,6 +4,7 @@ import { getMySchedule } from '../api/schedule';
 import WeekView, { getWeekDays, toISO } from '../components/schedule/WeekView';
 import MonthView from '../components/schedule/MonthView';
 import ScheduleLegend from '../components/schedule/ScheduleLegend';
+import { getShiftTemplates } from '../api/shiftTemplates';
 import PhoneCalendar from '../components/schedule/PhoneCalendar';
 import PhoneWeekList from '../components/schedule/PhoneWeekList';
 import useMediaQuery, { PHONE_QUERY } from '../utils/useMediaQuery';
@@ -30,6 +31,12 @@ export default function MySchedule() {
   const [monthDate, setMonthDate] = useState(new Date());
   const [shifts,    setShifts]    = useState([]);
   const [loading,   setLoading]   = useState(true);
+  const [templates, setTemplates] = useState([]);
+
+  // Horaires types de l'entreprise : uniquement pour la légende des couleurs
+  useEffect(() => {
+    getShiftTemplates(token).then(setTemplates).catch(() => {});
+  }, [token]);
 
   // Résumé semaine
   const weekDays   = getWeekDays(monday);
@@ -118,7 +125,7 @@ export default function MySchedule() {
         </div>
       </div>
 
-      <ScheduleLegend />
+      <ScheduleLegend templates={templates} />
 
       {loading ? (
         <p className="tab-loading">Chargement…</p>

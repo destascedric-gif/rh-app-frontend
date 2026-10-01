@@ -1,5 +1,5 @@
 import { getEmployeeColor, getEmployeeColorLight } from './employeeColor';
-import { getShiftTimeType } from './shiftTimeType';
+import { shiftColorVar } from './shiftColor';
 
 const formatTime = (t) => t?.slice(0, 5) ?? '';
 
@@ -7,7 +7,7 @@ const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absen
 
 export default function ShiftCard({
   shift, isAdmin, onClick, onDelete, compact = false,
-  continuesPrev = false, continuesNext = false, templates = [],
+  continuesPrev = false, continuesNext = false,
 }) {
   const start = formatTime(shift.start_time);
   const end   = formatTime(shift.end_time);
@@ -23,19 +23,18 @@ export default function ShiftCard({
     ? `${formatTime(firstBreak.start_time)}-${formatTime(firstBreak.end_time)}`
     : null;
 
-  // Un créneau de travail est coloré par ouverture/fermeture (voir
-  // shiftTimeType.js) ; un congé/repos/absence garde la couleur de
-  // l'employé, seul repère utile puisqu'il n'a pas d'horaire à distinguer.
-  const timeType = isWorkShift ? getShiftTimeType(shift, templates) : null;
+  // Un créneau de travail prend la couleur de son horaire type (voir
+  // shiftColor.js) ; un congé/absence garde la couleur de l'employé.
   const empColor      = getEmployeeColor(shift.user_id);
   const empColorLight = getEmployeeColorLight(shift.user_id);
-  const style = isWorkShift || isRest ? undefined : { borderLeftColor: empColor, background: empColorLight };
+  const style = isWorkShift ? shiftColorVar(shift)
+    : isRest ? undefined : { borderLeftColor: empColor, background: empColorLight };
 
   const runClass = isRest ? '' : `${continuesPrev ? ' continues-prev' : ''}${continuesNext ? ' continues-next' : ''}`;
   const nonWorkClass = isRest ? ' shift-rest' : (!isWorkShift ? ' shift-non-work' : '');
 
   if (compact) {
-    const timeTypeClass = isWorkShift ? ` week-shift-badge--${timeType}` : '';
+    const timeTypeClass = isWorkShift ? ' shift-colored' : '';
     return (
       <div
         className={`week-shift-badge${nonWorkClass}${timeTypeClass}${runClass}`}
@@ -65,7 +64,7 @@ export default function ShiftCard({
     );
   }
 
-  const timeTypeClass = isWorkShift ? ` shift-card--${timeType}` : '';
+  const timeTypeClass = isWorkShift ? ' shift-colored' : '';
   return (
     <div className={`shift-card${nonWorkClass}${timeTypeClass}${runClass}`} style={style} onClick={onClick}>
       {!isWorkShift && showLabel && <div className="shift-type-tag">{TYPE_LABELS[type]}</div>}

@@ -7,7 +7,7 @@ import { toISO } from './WeekView';
 
 const DAY_NAMES = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
-export default function PhoneWeekList({ days, shifts, templates = [] }) {
+export default function PhoneWeekList({ days, shifts }) {
   const todayStr = toISO(new Date());
 
   return (
@@ -23,7 +23,7 @@ export default function PhoneWeekList({ days, shifts, templates = [] }) {
             </div>
             <div className="pweek-shift">
               {shift
-                ? <ShiftCard shift={shift} isAdmin={false} templates={templates} />
+                ? <ShiftCard shift={shift} isAdmin={false} />
                 : <span className="pweek-empty">Pas de créneau</span>}
             </div>
           </li>

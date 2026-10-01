@@ -4,9 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { getEmployees, getPendingTimesheets, reviewTimesheet } from '../api/employees';
 import { getAllRequests, reviewRequest } from '../api/leaves';
 import { getAdminSchedule } from '../api/schedule';
-import { getShiftTemplates } from '../api/shiftTemplates';
 import { getWeekDays, toISO } from '../components/schedule/WeekView';
-import { getShiftTimeType } from '../components/schedule/shiftTimeType';
+import { shiftColorVar } from '../components/schedule/shiftColor';
 import PageHeader from '../components/PageHeader';
 import { notifyRequestsChanged } from '../utils/notifications';
 
@@ -48,7 +47,6 @@ export default function Dashboard() {
   const [leaves,     setLeaves]     = useState([]);
   const [timesheets, setTimesheets] = useState([]);
   const [weekShifts, setWeekShifts] = useState([]);
-  const [templates,  setTemplates]  = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [busyId,     setBusyId]     = useState(null);
   const [error,      setError]      = useState('');
@@ -56,18 +54,16 @@ export default function Dashboard() {
   const load = useCallback(async () => {
     try {
       const days = getWeekDays(getMonday());
-      const [emps, lvs, ts, shifts, tpls] = await Promise.all([
+      const [emps, lvs, ts, shifts] = await Promise.all([
         getEmployees(token),
         getAllRequests('en_attente', token),
         getPendingTimesheets(token),
         getAdminSchedule(toISO(days[0]), toISO(days[6]), null, token),
-        getShiftTemplates(token).catch(() => []),
       ]);
       setEmployees(emps);
       setLeaves(lvs);
       setTimesheets(ts);
       setWeekShifts(shifts);
-      setTemplates(tpls);
     } catch (err) {
       console.error(err);
     } finally {
@@ -171,10 +167,9 @@ export default function Dashboard() {
             <ul className="dash-list">
               {todayRows.map(({ emp, shift }) => {
                 const type = shift ? (shift.type || 'travail') : null;
-                const kind = type === 'travail' ? getShiftTimeType(shift, templates) : null;
                 return (
                   <li key={emp.id} className="dash-row">
-                    <span className={`dash-avatar${kind === 'fermeture' ? ' dash-avatar--close' : ''}`}>
+                    <span className="dash-avatar">
                       {emp.first_name?.[0]}{emp.last_name?.[0]}
                     </span>
                     <span className="dash-row-main">
@@ -182,7 +177,7 @@ export default function Dashboard() {
                       {emp.job_title && <span className="dash-row-sub">{emp.job_title}</span>}
                     </span>
                     {type === 'travail' ? (
-                      <span className={`dash-chip dash-chip--${kind}`}>
+                      <span className="dash-chip shift-colored" style={shiftColorVar(shift)}>
                         {shortTime(shift.start_time)} – {shortTime(shift.end_time)}
                       </span>
                     ) : (

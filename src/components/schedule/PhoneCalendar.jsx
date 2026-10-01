@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toISO } from './WeekView';
-import { getShiftTimeType } from './shiftTimeType';
+import { shiftColorVar } from './shiftColor';
 
 // Calendrier du mois pour téléphone, façon Google Agenda : la grille tient
 // dans la largeur de l'écran, chaque jour porte de petites étiquettes, et
@@ -40,15 +40,11 @@ const getMonthWeeks = (year, month) => {
   return weeks;
 };
 
-// Classe de couleur d'une étiquette : ouverture / fermeture / hors travail
-const chipKind = (shift, templates) => {
-  const type = shift.type || 'travail';
-  if (type !== 'travail') return 'off';
-  return getShiftTimeType(shift, templates) === 'fermeture' ? 'close' : 'open';
-};
+// Étiquette d'un créneau de travail (couleur de son horaire type) ou hors travail
+const chipKind = (shift) => ((shift.type || 'travail') === 'travail' ? 'work' : 'off');
 
 export default function PhoneCalendar({
-  year, month, shifts, templates = [], isAdmin = false, selectedUserId,
+  year, month, shifts, isAdmin = false, selectedUserId,
   onShiftClick, onShiftDelete, onAddShift,
 }) {
   const todayStr = toISO(new Date());
@@ -65,9 +61,15 @@ export default function PhoneCalendar({
   const visibleShifts = selectedUserId
     ? shifts.filter((s) => s.user_id === selectedUserId)
     : shifts;
+  // Créneaux travaillés d'abord (par heure de début), puis repos / congés :
+  // les cases n'affichent que 3 étiquettes, elles doivent montrer qui travaille.
   const shiftsOn = (dateStr) => visibleShifts
     .filter((s) => s.date?.slice(0, 10) === dateStr)
-    .sort((a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? ''));
+    .sort((a, b) => {
+      const offA = chipKind(a) === 'off' ? 1 : 0;
+      const offB = chipKind(b) === 'off' ? 1 : 0;
+      return offA - offB || (a.start_time ?? '').localeCompare(b.start_time ?? '');
+    });
 
   const weeks = getMonthWeeks(year, month);
   const selectedDate = new Date(`${selected}T12:00:00`);
@@ -100,12 +102,12 @@ export default function PhoneCalendar({
             >
               <span className={`pcal-num${dateStr === todayStr ? ' pcal-num--today' : ''}`}>{day.getDate()}</span>
               {dayShifts.slice(0, MAX_CHIPS).map((s) => {
-                const kind = chipKind(s, templates);
+                const kind = chipKind(s);
                 // Employé (un seul créneau par jour) : début et fin l'un sous
                 // l'autre. Gérant : initiales de chaque employé.
                 if (!isAdmin && kind !== 'off') {
                   return (
-                    <span key={s.id} className={`pcal-chip pcal-chip--${kind} pcal-chip--times`}>
+                    <span key={s.id} className={`pcal-chip pcal-chip--${kind} pcal-chip--times`} style={shiftColorVar(s)}>
                       <span>{shortTime(s.start_time)}</span>
                       <span>{shortTime(s.end_time)}</span>
                     </span>
@@ -114,7 +116,7 @@ export default function PhoneCalendar({
                 const text = isAdmin
                   ? `${s.first_name?.[0] ?? ''}${s.last_name?.[0] ?? ''}`.toUpperCase()
                   : TYPE_LABELS[s.type];
-                return <span key={s.id} className={`pcal-chip pcal-chip--${kind}`}>{text}</span>;
+                return <span key={s.id} className={`pcal-chip pcal-chip--${kind}`} style={kind === 'work' ? shiftColorVar(s) : undefined}>{text}</span>;
               })}
               {dayShifts.length > MAX_CHIPS && (
                 <span className="pcal-more">+{dayShifts.length - MAX_CHIPS}</span>
@@ -138,11 +140,11 @@ export default function PhoneCalendar({
         ) : (
           <ul className="pcal-list">
             {selectedShifts.map((s) => {
-              const kind = chipKind(s, templates);
+              const kind = chipKind(s);
               const isWork = kind !== 'off';
               const content = (
                 <>
-                  <span className={`pcal-bar pcal-bar--${kind}`} />
+                  <span className={`pcal-bar pcal-bar--${kind}`} style={isWork ? shiftColorVar(s) : undefined} />
                   <span className="pcal-item-main">
                     {isAdmin && (
                       <span className="pcal-item-name">

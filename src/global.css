@@ -487,14 +487,12 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   font-size: 12px; font-weight: 600;
   flex-shrink: 0;
 }
-.dash-avatar--close { background: var(--warning-bg); color: #9A5B12; }
 .dash-avatar--small { width: 30px; height: 30px; font-size: 11px; }
 .dash-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .dash-row-name { font-size: 13.5px; font-weight: 600; color: var(--text); }
 .dash-row-sub { font-size: 12px; color: var(--text-light); }
 .dash-chip { font-size: 12.5px; font-weight: 600; padding: 5px 10px; border-radius: 7px; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.dash-chip--ouverture { background: var(--shift-open-bg); color: #2A46B8; }
-.dash-chip--fermeture { background: var(--shift-close-bg); color: #7A4E0F; }
+
 .dash-off { font-size: 12.5px; color: var(--text-light); white-space: nowrap; }
 .dash-link { margin-top: 12px; }
 .dash-request { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F1F0EC; }
@@ -1244,6 +1242,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .template-chip:active { cursor: grabbing; }
 .template-chip strong { font-size: 12.5px; font-weight: 600; color: var(--text); }
 .template-chip span { color: var(--text-muted); font-size: 11px; }
+.template-chip--colored { border-left: 4px solid var(--shift-color); }
 .template-chip--rest { border-style: dashed; background: var(--bg); }
 .template-chip--rest strong { font-style: italic; }
 
@@ -1450,28 +1449,23 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 .week-shift-badge:hover .shift-delete-btn-inline { opacity: 1; }
 
-/* ── Créneaux de travail : couleur par ouverture / fermeture ──
-   (indépendant de l'employé, qui reste identifié par le point de couleur
-   dans la ligne — voir .emp-color-dot) ── */
-.shift-card--ouverture,
-.week-shift-badge--ouverture,
-.month-shift-badge--ouverture {
-  background: var(--shift-open-bg);
-  border-left-color: var(--shift-open);
-  color: var(--shift-open);
-}
-.shift-card--fermeture,
-.week-shift-badge--fermeture,
-.month-shift-badge--fermeture {
-  background: var(--shift-close-bg);
-  border-left-color: var(--shift-close);
-  color: var(--shift-close);
+/* ── Couleur des créneaux de travail ───────────
+   Chaque créneau porte --shift-color (couleur de son horaire type, voir
+   shiftColor.js) : fond très clair, liseré et texte en sont dérivés.
+   Sélecteurs doublés pour passer devant les fonds par défaut des badges. ── */
+.shift-colored,
+.week-shift-badge.shift-colored,
+.month-shift-badge.shift-colored,
+.dash-chip.shift-colored {
+  --shift-color-bg: color-mix(in srgb, var(--shift-color) 12%, #fff);
+  --shift-color-text: color-mix(in srgb, var(--shift-color) 82%, #000);
+  background: var(--shift-color-bg);
+  border-left-color: var(--shift-color);
+  color: var(--shift-color-text);
 }
 /* .shift-card a une bordure pleine (pas un liseré à gauche comme les
-   badges compacts) — on la recolore entièrement plutôt que juste le bord
-   gauche, qui jurerait avec les 3 autres côtés restés bleu clair. */
-.shift-card--ouverture  { border-color: var(--shift-open); }
-.shift-card--fermeture  { border-color: var(--shift-close); }
+   badges compacts) : on la recolore entièrement. */
+.shift-card.shift-colored { border-color: var(--shift-color); }
 
 /* ── Grille mois ───────────────────────────── */
 .month-grid {
@@ -1562,10 +1556,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   line-height: 1;
 }
 
-.month-shift-badge--ouverture .badge-hours,
-.month-shift-badge--fermeture .badge-hours {
-  color: inherit;
-}
+.month-shift-badge.shift-colored .badge-hours { color: inherit; }
 
 .badge-hours {
   color: var(--text-muted);
@@ -2237,8 +2228,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.pcal-chip--open  { background: var(--shift-open);  color: #fff; }
-.pcal-chip--close { background: #9A5B12; color: #fff; }
+.pcal-chip--work  { background: var(--shift-color); color: #fff; }
 .pcal-chip--off   { background: var(--bg-hover); color: var(--text-muted); font-style: italic; font-weight: 500; }
 .pcal-more { font-size: 10px; color: var(--text-muted); }
 .pcal-chip--times { display: flex; flex-direction: column; padding: 2px; line-height: 1.25; font-variant-numeric: tabular-nums; }
@@ -2283,8 +2273,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   min-height: 48px;
 }
 .pcal-bar { width: 4px; align-self: stretch; border-radius: 2px; flex-shrink: 0; }
-.pcal-bar--open  { background: var(--shift-open); }
-.pcal-bar--close { background: var(--shift-close); }
+.pcal-bar--work  { background: var(--shift-color); }
 .pcal-bar--off   { background: var(--border-dark); }
 .pcal-item-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .pcal-item-name { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; }
@@ -2371,3 +2360,24 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   .rh-table td[colspan] { justify-content: center; text-align: center; }
   .rh-table tr:hover td { background: none; }
 }
+
+/* ── Paramètres : couleur des horaires types ── */
+.tpl-name { display: inline-flex; align-items: center; gap: 8px; }
+.tpl-swatch { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+.color-field { border: none; padding: 0; margin: 4px 0 14px; }
+.color-field legend { font-size: 12.5px; font-weight: 500; color: var(--text-muted); margin-bottom: 8px; padding: 0; }
+.color-swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.color-swatch { position: relative; cursor: pointer; }
+.color-swatch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.color-swatch span:not(.sr-only) {
+  display: block;
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 2px #fff;
+}
+.color-swatch input:checked + span { border-color: var(--text); }
+.color-swatch input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* Texte réservé aux lecteurs d’écran (invisible à l’écran) */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }

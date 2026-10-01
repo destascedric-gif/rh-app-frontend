@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { NEUTRAL_SHIFT_COLOR } from './shiftColor';
 
 const formatTime = (t) => t?.slice(0, 5) ?? '';
 
@@ -38,7 +39,7 @@ export default function TemplatePalette({ templates }) {
     <div className="template-palette">
       <span className="template-palette-label">Glissez un horaire sur une case :</span>
       {templates.map((t) => (
-        <div key={t.id} className="template-chip" draggable onDragStart={(e) => startDrag(e, t)}>
+        <div key={t.id} className="template-chip template-chip--colored" style={{ '--shift-color': t.color || NEUTRAL_SHIFT_COLOR }} draggable onDragStart={(e) => startDrag(e, t)}>
           <strong>{t.name}</strong>
           <span>{formatTime(t.start_time)} → {formatTime(t.end_time)}</span>
         </div>
