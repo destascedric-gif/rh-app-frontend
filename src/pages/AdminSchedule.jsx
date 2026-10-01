@@ -99,6 +99,15 @@ export default function AdminSchedule() {
   // création (choix du client — la rapidité prime sur la confirmation).
   const handleTemplateDrop = async (userId, date, template) => {
     try {
+      // "Repos" glissé : jour entier non travaillé (mêmes bornes qu'un congé)
+      if (template.kind === 'repos') {
+        const saved = await createShift(
+          { userId, date, startTime: '00:00', endTime: '23:59', breaks: [], type: 'repos' },
+          token
+        );
+        handleSaved(saved);
+        return;
+      }
       const breaks = template.break_start
         ? [{ start_time: template.break_start, end_time: template.break_end, label: 'Pause' }]
         : [];

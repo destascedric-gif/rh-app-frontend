@@ -13,12 +13,6 @@ export default function ScheduleLegend() {
         </span>
         Fermeture
       </span>
-      <span className="legend-item">
-        <span className="legend-swatch">
-          <span className="legend-swatch-dot" style={{ background: 'var(--text-light)' }} />
-        </span>
-        <em>Congé / Repos / Absence</em> en italique, couleur de l'employé
-      </span>
     </div>
   );
 }

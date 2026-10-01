@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { toISO } from './WeekView';
-import { getEmployeeColor } from './employeeColor';
 import { getShiftTimeType } from './shiftTimeType';
 
 // Calendrier du mois pour téléphone, façon Google Agenda : la grille tient
@@ -147,7 +146,6 @@ export default function PhoneCalendar({
                   <span className="pcal-item-main">
                     {isAdmin && (
                       <span className="pcal-item-name">
-                        <i className="emp-color-dot" style={{ background: getEmployeeColor(s.user_id) }} />
                         {s.first_name} {s.last_name}
                       </span>
                     )}

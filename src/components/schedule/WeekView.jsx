@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import ShiftCard from './ShiftCard';
-import { getEmployeeColor } from './employeeColor';
 
 export const getWeekDays = (monday) => {
   return Array.from({ length: 7 }, (_, i) => {
@@ -87,12 +86,10 @@ export default function WeekView({ days, shifts, employees, isAdmin, onShiftClic
           </thead>
           <tbody>
             {employees.map((emp) => {
-              const empColor = getEmployeeColor(emp.id);
               return (
                 <tr key={emp.id}>
                   <td className="week-td-emp">
                     <div className="week-td-emp-inner">
-                      <span className="emp-color-dot" style={{ background: empColor }} />
                       <div>
                         <div className="emp-name">{emp.first_name} {emp.last_name}</div>
                         <div className="emp-email">{emp.job_title}</div>

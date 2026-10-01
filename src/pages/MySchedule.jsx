@@ -75,7 +75,15 @@ export default function MySchedule() {
       </div>
 
       {/* Résumé semaine */}
-      {view === 'week' && (
+      {/* Téléphone : résumé de la semaine en une ligne */}
+      {view === 'week' && isPhone && (
+        <p className="week-summary">
+          <strong>{workShifts.length}</strong> jour{workShifts.length > 1 ? 's' : ''} travaillé{workShifts.length > 1 ? 's' : ''}
+          {' · '}<strong>{weekHours.toFixed(1)} h</strong> nettes
+        </p>
+      )}
+
+      {view === 'week' && !isPhone && (
         <div className="metrics" style={{ gridTemplateColumns: 'repeat(3, minmax(0,1fr))', marginBottom: '1rem' }}>
           <div className="metric-card">
             <div className="metric-label">Jours planifiés cette semaine</div>
