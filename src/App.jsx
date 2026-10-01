@@ -11,6 +11,7 @@ import EmployeeDetail from './pages/EmployeeDetail'
 import EmployeeForm from './pages/EmployeeForm'
 import AdminLeaves from './pages/AdminLeaves'
 import MyLeaves from './pages/MyLeaves'
+import MySpace from './pages/MySpace'
 import AdminSchedule from './pages/AdminSchedule'
 import MySchedule from './pages/MySchedule'
 import AdminPayroll from './pages/AdminPayroll'
@@ -29,7 +30,7 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth()
   if (loading) return <div>Chargement…</div>
   if (!user) return <Navigate to="/login" />
-  if (adminOnly && user.role !== 'admin') return <Navigate to="/mon-planning" />
+  if (adminOnly && user.role !== 'admin') return <Navigate to="/mon-espace" />
   return <Layout>{children}</Layout>
 }
 
@@ -59,7 +60,8 @@ function App() {
           <Route path="/admin/payroll" element={<PrivateRoute adminOnly><AdminPayroll /></PrivateRoute>} />
           <Route path="/parametres" element={<PrivateRoute adminOnly><Settings /></PrivateRoute>} />
           <Route path="/abonnement" element={<PrivateRoute adminOnly><Billing /></PrivateRoute>} />
-          <Route path="/mon-espace" element={<PrivateRoute><MyLeaves /></PrivateRoute>} />
+          <Route path="/mon-espace" element={<PrivateRoute><MySpace /></PrivateRoute>} />
+          <Route path="/mes-conges" element={<PrivateRoute><MyLeaves /></PrivateRoute>} />
           <Route path="/mon-planning" element={<PrivateRoute><MySchedule /></PrivateRoute>} />
           <Route path="/mon-pointage" element={<PrivateRoute><MyTimesheet /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/" />} />

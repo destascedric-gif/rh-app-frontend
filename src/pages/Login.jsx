@@ -27,7 +27,7 @@ export default function Login() {
       // renseignée) : on renvoie terminer l'étape 2 plutôt que de bloquer.
       if (!data.user.companyId) navigate('/setup/company');
       else if (data.user.role === 'admin') navigate('/dashboard');
-      else navigate('/mon-planning');
+      else navigate('/mon-espace');
     } catch (err) {
       setError(err.message);
     } finally {

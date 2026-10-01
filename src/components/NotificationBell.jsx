@@ -45,7 +45,7 @@ export default function NotificationBell() {
           return { list, total: leaves.length + timesheets.length };
         })
       : getNotifications(token).then((notifs) => ({
-        list: notifs.slice(0, 6).map((n) => ({ key: n.id, label: n.message, to: '/mon-espace', unread: !n.is_read })),
+        list: notifs.slice(0, 6).map((n) => ({ key: n.id, label: n.message, to: '/mes-conges', unread: !n.is_read })),
         total: notifs.filter((n) => !n.is_read).length,
       }));
 

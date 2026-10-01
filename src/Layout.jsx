@@ -70,8 +70,9 @@ export default function Layout({ children }) {
           </>
         ) : (
           <>
-            <button className={isActive('/mon-espace')} onClick={() => go('/mon-espace')}><LeavesIcon /> Mon espace</button>
+            <button className={isActive('/mon-espace')} onClick={() => go('/mon-espace')}><DashboardIcon /> Mon espace</button>
             <button className={isActive('/mon-planning')} onClick={() => go('/mon-planning')}><ScheduleIcon /> Mon planning</button>
+            <button className={isActive('/mes-conges')} onClick={() => go('/mes-conges')}><LeavesIcon /> Mes congés</button>
             <button className={isActive('/mon-pointage')} onClick={() => go('/mon-pointage')}><TimesheetIcon /> Mon pointage</button>
           </>
         )}

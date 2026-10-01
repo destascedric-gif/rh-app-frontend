@@ -51,7 +51,7 @@ const LogoMark = () => (
 
 export default function Landing() {
   const { user } = useAuth();
-  const homePath = user?.role === 'admin' ? '/dashboard' : '/mon-planning';
+  const homePath = user?.role === 'admin' ? '/dashboard' : '/mon-espace';
 
   useEffect(() => { document.title = "Orgaly — la gestion d'équipe simple"; }, []);
 
