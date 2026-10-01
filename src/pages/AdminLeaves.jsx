@@ -4,6 +4,7 @@ import { getAllRequests, reviewRequest, getEmployeeBalance } from '../api/leaves
 import LeaveStatusBadge from '../components/leaves/LeaveStatusBadge';
 import LeaveBalanceCard from '../components/leaves/LeaveBalanceCard';
 import PageHeader from '../components/PageHeader';
+import { notifyRequestsChanged } from '../utils/notifications';
 
 const formatDate = (d) => new Date(d).toLocaleDateString('fr-FR');
 
@@ -55,6 +56,7 @@ export default function AdminLeaves() {
     setError('');
     try {
       const result = await reviewRequest(selected.id, { status: decision, adminNote }, token);
+      notifyRequestsChanged();
       setEmailWarning(result.emailSent === false ? "L'email de notification n'a pas pu être envoyé à l'employé." : '');
       setSelected(null);
       setAdminNote('');

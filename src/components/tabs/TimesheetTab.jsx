@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getTimesheets, addTimesheet, updateTimesheet, deleteTimesheet, reviewTimesheet } from '../../api/employees';
+import { notifyRequestsChanged } from '../../utils/notifications';
 
 const STATUS_BADGE = {
   'validé':     { label: 'Validé',      className: 'badge-active' },
@@ -98,6 +99,7 @@ export default function TimesheetTab({ employeeId }) {
     setSaving(true);
     try {
       await reviewTimesheet(employeeId, id, status, token);
+      notifyRequestsChanged();
       await load();
     } finally {
       setSaving(false);

@@ -6,6 +6,9 @@ import { getPendingTimesheets } from '../api/employees';
 
 const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
 
+// Événement émis par notifyRequestsChanged() (utils/notifications.js)
+const NOTIFICATIONS_CHANGED = 'orgaly:notifications-changed';
+
 // Cloche de la barre du haut, reliée aux vraies données :
 // - gérant : demandes de congé et pointages en attente de décision ;
 // - employé : réponses à ses demandes de congé (notifications non lues).
@@ -19,6 +22,15 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);   // { key, label, to }
   const [count, setCount] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Une page qui traite une demande (ex. le tableau de bord) le signale
+  // pour que le compteur se mette à jour sans changer de page.
+  useEffect(() => {
+    const onRefresh = () => setRefreshKey((k) => k + 1);
+    window.addEventListener(NOTIFICATIONS_CHANGED, onRefresh);
+    return () => window.removeEventListener(NOTIFICATIONS_CHANGED, onRefresh);
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -41,7 +53,7 @@ export default function NotificationBell() {
       .then(({ list, total }) => { if (!cancelled) { setItems(list); setCount(total); } })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [token, isAdmin, location.pathname]);
+  }, [token, isAdmin, location.pathname, refreshKey]);
 
   // Fermeture au clic à l'extérieur ou avec Échap
   useEffect(() => {
