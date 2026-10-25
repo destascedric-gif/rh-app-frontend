@@ -3,7 +3,7 @@ import { shiftColorVar } from './shiftColor';
 
 const formatTime = (t) => t?.slice(0, 5) ?? '';
 
-const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence' };
+const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence', absent: 'Absent' };
 
 export default function ShiftCard({
   shift, isAdmin, onClick, onDelete, compact = false,

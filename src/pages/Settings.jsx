@@ -36,6 +36,7 @@ const toForm = (data) => ({
   primaryColor:                data.primary_color || DEFAULT_PRIMARY_COLOR,
   managerInSchedule:           Boolean(data.manager_in_schedule),
   meetingsCountAsWork:         Boolean(data.meetings_count_as_work),
+  teamScheduleVisible:         Boolean(data.team_schedule_visible),
 });
 
 const icon = {
@@ -327,6 +328,8 @@ export default function Settings() {
         {saved.managerInSchedule ? 'Le gérant figure dans le planning' : 'Le gérant n\'est pas dans le planning'}
         <br />
         {saved.meetingsCountAsWork ? 'Réunions comptées dans les heures' : 'Réunions non comptées dans les heures'}
+        <br />
+        {saved.teamScheduleVisible ? 'Les employés voient le planning de l\'équipe' : 'Chaque employé ne voit que son planning'}
       </>
     ),
     security: 'Mot de passe de connexion',
@@ -639,6 +642,21 @@ export default function Settings() {
                   horaires, pendant une pause) s'ajoute aux heures de la semaine et à la paie
                   indicative. Une réunion pendant le créneau est déjà comptée : elle ne s'ajoute pas
                   une deuxième fois.
+                </span>
+              </span>
+            </label>
+            <label className="settings-switch">
+              <input
+                type="checkbox"
+                checked={form.teamScheduleVisible}
+                onChange={(e) => handleChange('teamScheduleVisible', e.target.checked)}
+              />
+              <span className="settings-switch-text">
+                <strong>Les employés voient le planning de toute l'équipe</strong>
+                <span className="hint">
+                  Ajoute un onglet « Toute l'équipe » dans leur planning, en lecture seule : ils voient
+                  qui travaille et à quelle heure. Restent privés : le motif des absences (affiché
+                  « Absent »), les notes, les pauses et le total d'heures de chacun.
                 </span>
               </span>
             </label>

@@ -11,7 +11,7 @@ import { meetingsOn } from './meetingUtils';
 const DAY_HEADERS = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
 const DAY_NAMES   = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 const MONTH_NAMES = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-const TYPE_LABELS = { conge: 'Congé', repos: 'Repos', absence: 'Absence' };
+const TYPE_LABELS = { conge: 'Congé', repos: 'Repos', absence: 'Absence', absent: 'Absent' };
 const MAX_CHIPS = 3;
 
 // "08:30:00" → "8h30", "09:00" → "9h00" (minutes toujours écrites, pour ne
@@ -48,7 +48,13 @@ const chipKind = (shift) => ((shift.type || 'travail') === 'travail' ? 'work' : 
 export default function PhoneCalendar({
   year, month, shifts, meetings = [], isAdmin = false, selectedUserIds = [],
   onShiftClick, onShiftDelete, onAddShift, onMeetingClick,
+  team = false, currentUserId = null,
 }) {
+  // team : planning de l'équipe vu par un employé, en lecture seule —
+  // initiales comme pour le gérant, sa propre ligne en premier (« Vous »),
+  // seules les personnes qui travaillent occupent les cases.
+  const showNames = isAdmin || team;
+  const isMe = (s) => team && s.user_id === currentUserId;
   const todayStr = toISO(new Date());
   const inMonth  = (d) => d.getMonth() === month;
 
@@ -73,7 +79,9 @@ export default function PhoneCalendar({
     .sort((a, b) => {
       const offA = chipKind(a) === 'off' ? 1 : 0;
       const offB = chipKind(b) === 'off' ? 1 : 0;
-      return offA - offB || (a.start_time ?? '').localeCompare(b.start_time ?? '');
+      return (isMe(b) ? 1 : 0) - (isMe(a) ? 1 : 0)
+        || offA - offB
+        || (a.start_time ?? '').localeCompare(b.start_time ?? '');
     });
 
   const weeks = getMonthWeeks(year, month);
@@ -90,7 +98,7 @@ export default function PhoneCalendar({
       <div className="pcal-grid">
         {weeks.flat().map((day) => {
           const dateStr = toISO(day);
-          const dayShifts = shiftsOn(dateStr);
+          const dayShifts = shiftsOn(dateStr).filter((s) => !team || chipKind(s) === 'work');
           const hasMeeting = meetingsOnDay(dateStr).length > 0;
           const label = `${DAY_NAMES[day.getDay()]} ${day.getDate()} ${MONTH_NAMES[day.getMonth()]}`
             + (dayShifts.length ? `, ${dayShifts.length} créneau${dayShifts.length > 1 ? 'x' : ''}` : '')
@@ -116,7 +124,7 @@ export default function PhoneCalendar({
                 const kind = chipKind(s);
                 // Employé (un seul créneau par jour) : début et fin l'un sous
                 // l'autre. Gérant : initiales de chaque employé.
-                if (!isAdmin && kind !== 'off') {
+                if (!showNames && kind !== 'off') {
                   return (
                     <span key={s.id} className={`pcal-chip pcal-chip--${kind} pcal-chip--times`} style={shiftColorVar(s)}>
                       <span>{shortTime(s.start_time)}</span>
@@ -124,7 +132,7 @@ export default function PhoneCalendar({
                     </span>
                   );
                 }
-                const text = isAdmin
+                const text = showNames
                   ? `${s.first_name?.[0] ?? ''}${s.last_name?.[0] ?? ''}`.toUpperCase()
                   : TYPE_LABELS[s.type];
                 return <span key={s.id} className={`pcal-chip pcal-chip--${kind}`} style={kind === 'work' ? shiftColorVar(s) : undefined}>{text}</span>;
@@ -164,13 +172,17 @@ export default function PhoneCalendar({
             {selectedShifts.map((s) => {
               const kind = chipKind(s);
               const isWork = kind !== 'off';
+              // Son propre planning : la pause sous les horaires
+              const breakLine = !showNames && isWork && s.breaks?.length > 0
+                ? s.breaks.map((b) => `Pause ${b.start_time.slice(0, 5)} – ${b.end_time.slice(0, 5)}`).join(' · ')
+                : null;
               const content = (
                 <>
                   <span className={`pcal-bar pcal-bar--${kind}`} style={isWork ? shiftColorVar(s) : undefined} />
                   <span className="pcal-item-main">
-                    {isAdmin && (
+                    {showNames && (
                       <span className="pcal-item-name">
-                        {s.first_name} {s.last_name}
+                        {isMe(s) ? 'Vous' : `${s.first_name} ${s.last_name}`}
                       </span>
                     )}
                     <span className="pcal-item-time">
@@ -178,12 +190,13 @@ export default function PhoneCalendar({
                         ? `${s.start_time?.slice(0, 5)} → ${s.end_time?.slice(0, 5)}`
                         : (s.note || TYPE_LABELS[s.type])}
                     </span>
+                    {breakLine && <span className="pcal-item-break">{breakLine}</span>}
                   </span>
                   {isWork && s.net_hours ? <span className="pcal-item-hours">{s.net_hours} h</span> : null}
                 </>
               );
               return (
-                <li key={s.id} className="pcal-row">
+                <li key={s.id} className={`pcal-row${isMe(s) ? ' pcal-row--me' : ''}`}>
                   {isAdmin && onShiftClick
                     ? <button type="button" className="pcal-item" onClick={() => onShiftClick(s)}>{content}</button>
                     : <div className="pcal-item">{content}</div>}

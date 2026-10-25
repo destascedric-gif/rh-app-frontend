@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getMySchedule } from '../api/schedule';
+import { getMySchedule, getTeamSchedule } from '../api/schedule';
 import { getMeetings } from '../api/meetings';
 import { getSettings } from '../api/settings';
 import { meetingExtraMinutes } from '../components/schedule/meetingUtils';
@@ -24,7 +24,7 @@ const getMondayOfWeek = (date = new Date()) => {
 const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
 export default function MySchedule() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
 
   // Sur téléphone, le calendrier du mois (façon agenda) s'ouvre par défaut ;
   // la semaine reste disponible, en cartes détaillées.
@@ -37,12 +37,24 @@ export default function MySchedule() {
   const [countMeetings, setCountMeetings] = useState(false);
   const [loading,   setLoading]   = useState(true);
   const [templates, setTemplates] = useState([]);
+  // Onglet « Toute l'équipe » : seulement si le gérant partage le planning
+  const [teamVisible, setTeamVisible] = useState(false);
+  const [tab,       setTab]       = useState('me');
+  const [team,      setTeam]      = useState({ people: [], shifts: [] });
+  const [teamNotice, setTeamNotice] = useState('');
 
-  // Horaires types de l'entreprise : uniquement pour la légende des couleurs
+  // Horaires types (légende des couleurs) et réglages de l'entreprise
   useEffect(() => {
     getShiftTemplates(token).then(setTemplates).catch(() => {});
-    getSettings(token).then((s) => setCountMeetings(Boolean(s.meetings_count_as_work))).catch(() => {});
+    getSettings(token).then((s) => {
+      setCountMeetings(Boolean(s.meetings_count_as_work));
+      setTeamVisible(Boolean(s.team_schedule_visible));
+    }).catch(() => {});
   }, [token]);
+
+  const showTeam = teamVisible && tab === 'team';
+  // L'équipe sur téléphone : toujours le calendrier du mois (avec initiales)
+  const shownView = showTeam && isPhone ? 'month' : view;
 
   // Résumé semaine
   const weekDays   = getWeekDays(monday);
@@ -65,42 +77,117 @@ export default function MySchedule() {
   const weekHours  = workShifts.reduce((sum, s) => sum + (s.net_hours ?? 0), 0) + meetingHours;
 
   const getDateRange = useCallback(() => {
-    if (view === 'week') {
+    if (shownView === 'week') {
       const days = getWeekDays(monday);
       return { start: toISO(days[0]), end: toISO(days[6]) };
     }
     const y = monthDate.getFullYear(), m = monthDate.getMonth();
     return { start: toISO(new Date(y, m, 1)), end: toISO(new Date(y, m + 1, 0)) };
-  }, [view, monday, monthDate]);
+  }, [shownView, monday, monthDate]);
 
   useEffect(() => {
     setLoading(true);
     const { start, end } = getDateRange();
-    Promise.all([getMySchedule(start, end, token), getMeetings(start, end, token)])
-      .then(([sched, meets]) => { setShifts(sched); setMeetings(meets); })
-      .catch(console.error)
+    const schedule = showTeam ? getTeamSchedule(start, end, token) : getMySchedule(start, end, token);
+    Promise.all([schedule, getMeetings(start, end, token)])
+      .then(([sched, meets]) => {
+        if (showTeam) setTeam(sched);
+        else setShifts(sched);
+        setMeetings(meets);
+      })
+      .catch((err) => {
+        // Le gérant a cessé de partager le planning entre-temps : retour à « Moi »
+        if (showTeam) {
+          setTeamNotice(err.message);
+          setTeamVisible(false);
+          setTab('me');
+        } else {
+          console.error(err);
+        }
+      })
       .finally(() => setLoading(false));
-  }, [getDateRange, token]);
+  }, [getDateRange, showTeam, token]);
 
   const prevWeek  = () => setMonday(d => { const n = new Date(d); n.setDate(n.getDate()-7); return n; });
   const nextWeek  = () => setMonday(d => { const n = new Date(d); n.setDate(n.getDate()+7); return n; });
   const prevMonth = () => setMonthDate(d => new Date(d.getFullYear(), d.getMonth()-1, 1));
   const nextMonth = () => setMonthDate(d => new Date(d.getFullYear(), d.getMonth()+1, 1));
 
+  // L'employé en premier dans le planning de l'équipe
+  const teamPeople = [
+    ...team.people.filter((p) => p.id === user?.id),
+    ...team.people.filter((p) => p.id !== user?.id),
+  ];
+
+  const renderMine = () => (
+    isPhone && view === 'week' ? (
+      <PhoneWeekList days={weekDays} shifts={shifts} meetings={meetings} />
+    ) : isPhone ? (
+      <PhoneCalendar
+        key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
+        year={monthDate.getFullYear()}
+        month={monthDate.getMonth()}
+        shifts={shifts}
+        meetings={meetings}
+      />
+    ) : view === 'week' ? (
+      <WeekView days={weekDays} shifts={shifts} meetings={meetings} isAdmin={false} />
+    ) : (
+      <MonthView year={monthDate.getFullYear()} month={monthDate.getMonth()} shifts={shifts} meetings={meetings} isAdmin={false} />
+    )
+  );
+
+  // Planning de l'équipe en lecture seule : données déjà nettoyées par le
+  // serveur (aucun motif d'absence, note, pause ni heure)
+  const renderTeam = () => (
+    isPhone ? (
+      <PhoneCalendar
+        key={`team-${monthDate.getFullYear()}-${monthDate.getMonth()}`}
+        year={monthDate.getFullYear()}
+        month={monthDate.getMonth()}
+        shifts={team.shifts}
+        meetings={meetings}
+        team
+        currentUserId={user?.id}
+      />
+    ) : view === 'week' ? (
+      <WeekView
+        days={weekDays}
+        shifts={team.shifts}
+        meetings={meetings}
+        employees={teamPeople}
+        isAdmin={false}
+        showTotals={false}
+        currentUserId={user?.id}
+      />
+    ) : (
+      <MonthView year={monthDate.getFullYear()} month={monthDate.getMonth()} shifts={team.shifts} meetings={meetings} isAdmin={false} />
+    )
+  );
+
   return (
     <div className="page">
       <PageHeader title="Mon planning" />
 
-      {/* Résumé semaine */}
+      {teamVisible && (
+        <div className="role-toggle schedule-tabs" role="tablist" aria-label="Planning affiché">
+          <button type="button" role="tab" aria-selected={tab === 'me'} className={`role-btn ${tab === 'me' ? 'active' : ''}`} onClick={() => setTab('me')}>Moi</button>
+          <button type="button" role="tab" aria-selected={tab === 'team'} className={`role-btn ${tab === 'team' ? 'active' : ''}`} onClick={() => setTab('team')}>Toute l'équipe</button>
+        </div>
+      )}
+
+      {teamNotice && <div className="notif-bar">{teamNotice}</div>}
+
+      {/* Résumé semaine (uniquement pour soi) */}
       {/* Téléphone : résumé de la semaine en une ligne */}
-      {view === 'week' && isPhone && (
+      {!showTeam && view === 'week' && isPhone && (
         <p className="week-summary">
           <strong>{workShifts.length}</strong> jour{workShifts.length > 1 ? 's' : ''} travaillé{workShifts.length > 1 ? 's' : ''}
           {' · '}<strong>{weekHours.toFixed(1)} h</strong> nettes
         </p>
       )}
 
-      {view === 'week' && !isPhone && (
+      {!showTeam && view === 'week' && !isPhone && (
         <div className="metrics" style={{ gridTemplateColumns: 'repeat(3, minmax(0,1fr))', marginBottom: '1rem' }}>
           <div className="metric-card">
             <div className="metric-label">Jours planifiés cette semaine</div>
@@ -120,55 +207,32 @@ export default function MySchedule() {
       {/* Barre de navigation */}
       <div className="schedule-toolbar">
         <div className="schedule-nav">
-          <button className="btn-ghost" onClick={view === 'week' ? prevWeek : prevMonth}>←</button>
+          <button className="btn-ghost" onClick={shownView === 'week' ? prevWeek : prevMonth}>←</button>
           <span className="schedule-period">
-            {view === 'week'
+            {shownView === 'week'
               ? `${weekDays[0].getDate()} ${MONTH_NAMES[weekDays[0].getMonth()]} → ${weekDays[6].getDate()} ${MONTH_NAMES[weekDays[6].getMonth()]} ${weekDays[6].getFullYear()}`
               : `${MONTH_NAMES[monthDate.getMonth()]} ${monthDate.getFullYear()}`
             }
           </span>
-          <button className="btn-ghost" onClick={view === 'week' ? nextWeek : nextMonth}>→</button>
+          <button className="btn-ghost" onClick={shownView === 'week' ? nextWeek : nextMonth}>→</button>
           <button className="btn-ghost" onClick={() => { setMonday(getMondayOfWeek()); setMonthDate(new Date()); }}>
             Aujourd'hui
           </button>
         </div>
 
-        <div className="role-toggle">
-          <button className={`role-btn ${view==='week'?'active':''}`} onClick={() => setView('week')}>Semaine</button>
-          <button className={`role-btn ${view==='month'?'active':''}`} onClick={() => setView('month')}>Mois</button>
-        </div>
+        {!(showTeam && isPhone) && (
+          <div className="role-toggle">
+            <button className={`role-btn ${view==='week'?'active':''}`} onClick={() => setView('week')}>Semaine</button>
+            <button className={`role-btn ${view==='month'?'active':''}`} onClick={() => setView('month')}>Mois</button>
+          </div>
+        )}
       </div>
 
       <ScheduleLegend templates={templates} />
 
       {loading ? (
         <p className="tab-loading">Chargement…</p>
-      ) : isPhone && view === 'week' ? (
-        <PhoneWeekList days={weekDays} shifts={shifts} meetings={meetings} />
-      ) : isPhone ? (
-        <PhoneCalendar
-          key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
-          year={monthDate.getFullYear()}
-          month={monthDate.getMonth()}
-          shifts={shifts}
-          meetings={meetings}
-        />
-      ) : view === 'week' ? (
-        <WeekView
-          days={weekDays}
-          shifts={shifts}
-          meetings={meetings}
-          isAdmin={false}
-        />
-      ) : (
-        <MonthView
-          year={monthDate.getFullYear()}
-          month={monthDate.getMonth()}
-          shifts={shifts}
-          meetings={meetings}
-          isAdmin={false}
-        />
-      )}
+      ) : showTeam ? renderTeam() : renderMine()}
     </div>
   );
 }

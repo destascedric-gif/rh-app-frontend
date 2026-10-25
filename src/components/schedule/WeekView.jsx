@@ -29,7 +29,9 @@ const formatDayHeader = (date) => {
   return { day, num, isToday, isWeekend };
 };
 
-export default function WeekView({ days, shifts, meetings = [], countMeetings = false, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick }) {
+// showTotals = false et currentUserId : planning de l'équipe vu par un
+// employé (pas de colonne Total, sa propre ligne mise en avant)
+export default function WeekView({ days, shifts, meetings = [], countMeetings = false, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick, showTotals = true, currentUserId = null }) {
   const [dragOverCell, setDragOverCell] = useState(null);
 
   const getShiftForUserAndDay = (userId, dateStr) =>
@@ -71,7 +73,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
           <colgroup>
             <col className="col-emp" />
             {days.map((_, i) => <col key={i} className="col-day" />)}
-            <col className="col-total" />
+            {showTotals && <col className="col-total" />}
           </colgroup>
           <thead>
             <tr>
@@ -85,18 +87,18 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                   </th>
                 );
               })}
-              <th className="week-th-total">Total</th>
+              {showTotals && <th className="week-th-total">Total</th>}
             </tr>
           </thead>
           <tbody>
             {employees.map((emp) => {
               return (
-                <tr key={emp.id}>
+                <tr key={emp.id} className={emp.id === currentUserId ? 'week-row-me' : undefined}>
                   <td className="week-td-emp">
                     <div className="week-td-emp-inner">
                       <div>
                         <div className="emp-name">{emp.first_name} {emp.last_name}</div>
-                        <div className="emp-email">{emp.job_title}</div>
+                        <div className="emp-email">{emp.id === currentUserId ? 'Vous' : emp.job_title}</div>
                       </div>
                     </div>
                   </td>
@@ -144,7 +146,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                       </td>
                     );
                   })}
-                  <td className="week-td-total">{getWeeklyTotal(emp.id).toFixed(1)} h</td>
+                  {showTotals && <td className="week-td-total">{getWeeklyTotal(emp.id).toFixed(1)} h</td>}
                 </tr>
               );
             })}

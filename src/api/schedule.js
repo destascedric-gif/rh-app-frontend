@@ -15,6 +15,10 @@ const req = async (method, url, token, body = null) => {
 export const getMySchedule    = (start, end, token) =>
   req('GET', `/schedule/my?start=${start}&end=${end}`, token);
 
+// Planning de l'équipe (lecture seule, données nettoyées), si le gérant le partage
+export const getTeamSchedule  = (start, end, token) =>
+  req('GET', `/schedule/team?start=${start}&end=${end}`, token);
+
 // Admin
 export const getAdminSchedule = (start, end, userId, token) =>
   req('GET', `/schedule/admin?start=${start}&end=${end}${userId ? `&userId=${userId}` : ''}`, token);

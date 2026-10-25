@@ -5,7 +5,7 @@ import MeetingTag from './MeetingTag';
 import { meetingsOn } from './meetingUtils';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence' };
+const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence', absent: 'Absent' };
 
 // "09:30:00" → "9h30", "19:00" → "19h" (créneau du mois sur une seule ligne)
 const shortTime = (t) => {
