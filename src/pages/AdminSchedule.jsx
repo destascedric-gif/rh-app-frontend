@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAdminSchedule, createShift, deleteShift } from '../api/schedule';
 import { getMeetings } from '../api/meetings';
-import { getPlanningPeople } from '../api/employees';
+import { getPlanningPeople, updateEmployeeOrder } from '../api/employees';
 import { getSettings } from '../api/settings';
 import { getShiftTemplates } from '../api/shiftTemplates';
 import WeekView, { getWeekDays, toISO } from '../components/schedule/WeekView';
@@ -119,6 +119,29 @@ export default function AdminSchedule() {
     setMeetings(prev => prev.filter(m => m.id !== id));
   };
 
+  // Glisser-déposer une ligne employé pour la remonter/descendre dans le
+  // planning : déplace l'id glissé juste à la position de l'id cible dans
+  // la liste complète (indépendamment du filtre affiché), affiche aussitôt
+  // le nouvel ordre, puis l'enregistre ; annule l'affichage si ça échoue.
+  const handleReorder = async (draggedId, targetId) => {
+    const from = employees.findIndex(e => e.id === draggedId);
+    const to   = employees.findIndex(e => e.id === targetId);
+    if (from === -1 || to === -1) return;
+
+    const previous = employees;
+    const next = [...employees];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setEmployees(next);
+
+    try {
+      await updateEmployeeOrder(next.map(e => e.id), token);
+    } catch (err) {
+      setEmployees(previous);
+      alert(err.message);
+    }
+  };
+
   // Dépose d'un horaire type sur une case du planning : crée le créneau
   // directement avec les horaires du modèle, sans passer par la fenêtre de
   // création (choix du client — la rapidité prime sur la confirmation).
@@ -233,6 +256,7 @@ export default function AdminSchedule() {
           onShiftDelete={handleDelete}
           onTemplateDrop={handleTemplateDrop}
           onMeetingClick={(meeting) => setMeetingModal({ meeting })}
+          onReorder={handleReorder}
         />
       ) : (
         <MonthView

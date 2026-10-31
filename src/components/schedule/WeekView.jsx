@@ -29,10 +29,27 @@ const formatDayHeader = (date) => {
   return { day, num, isToday, isWeekend };
 };
 
+// Poignée de réorganisation des employés (glisser-déposer une ligne) : six
+// points façon « grip », reconnaissable comme prise en main sans texte.
+const DragHandleIcon = () => (
+  <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true">
+    <circle cx="2.5" cy="2.5" r="1.5" />
+    <circle cx="7.5" cy="2.5" r="1.5" />
+    <circle cx="2.5" cy="8"   r="1.5" />
+    <circle cx="7.5" cy="8"   r="1.5" />
+    <circle cx="2.5" cy="13.5" r="1.5" />
+    <circle cx="7.5" cy="13.5" r="1.5" />
+  </svg>
+);
+
 // showTotals = false et currentUserId : planning de l'équipe vu par un
 // employé (pas de colonne Total, sa propre ligne mise en avant)
-export default function WeekView({ days, shifts, meetings = [], countMeetings = false, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick, showTotals = true, currentUserId = null }) {
+// onReorder(draggedEmpId, targetEmpId) : fourni uniquement côté gérant,
+// permet de glisser une ligne employé pour la remonter ou la descendre.
+export default function WeekView({ days, shifts, meetings = [], countMeetings = false, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick, showTotals = true, currentUserId = null, onReorder }) {
   const [dragOverCell, setDragOverCell] = useState(null);
+  const [draggedEmpId, setDraggedEmpId] = useState(null);
+  const [dragOverEmpId, setDragOverEmpId] = useState(null);
 
   const getShiftForUserAndDay = (userId, dateStr) =>
     shifts.find(s => s.user_id === userId && s.date?.slice(0, 10) === dateStr);
@@ -92,10 +109,40 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
           </thead>
           <tbody>
             {employees.map((emp) => {
+              const isDraggedRow = draggedEmpId === emp.id;
+              const isDropTarget = dragOverEmpId === emp.id && draggedEmpId && draggedEmpId !== emp.id;
               return (
-                <tr key={emp.id} className={emp.id === currentUserId ? 'week-row-me' : undefined}>
+                <tr
+                  key={emp.id}
+                  className={[
+                    emp.id === currentUserId ? 'week-row-me' : '',
+                    isDraggedRow ? 'week-row-dragging' : '',
+                    isDropTarget ? 'week-row-drag-over' : '',
+                  ].filter(Boolean).join(' ') || undefined}
+                  onDragOver={(e) => { if (onReorder && draggedEmpId) { e.preventDefault(); setDragOverEmpId(emp.id); } }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (onReorder && draggedEmpId && draggedEmpId !== emp.id) onReorder(draggedEmpId, emp.id);
+                    setDraggedEmpId(null);
+                    setDragOverEmpId(null);
+                  }}
+                >
                   <td className="week-td-emp">
                     <div className="week-td-emp-inner">
+                      {onReorder && (
+                        <span
+                          className="week-drag-handle"
+                          draggable
+                          onDragStart={(e) => { setDraggedEmpId(emp.id); e.dataTransfer.effectAllowed = 'move'; }}
+                          onDragEnd={() => { setDraggedEmpId(null); setDragOverEmpId(null); }}
+                          role="button"
+                          tabIndex={-1}
+                          aria-label={`Réorganiser ${emp.first_name} ${emp.last_name}`}
+                          title="Glisser pour réorganiser"
+                        >
+                          <DragHandleIcon />
+                        </span>
+                      )}
                       <div>
                         <div className="emp-name">{emp.first_name} {emp.last_name}</div>
                         <div className="emp-email">{emp.id === currentUserId ? 'Vous' : emp.job_title}</div>
