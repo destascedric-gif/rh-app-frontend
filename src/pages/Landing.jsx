@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LEGAL_PAGES, PRICING } from '../legal/legalInfo';
 import { DEFAULT_TITLE } from '../seo';
+import BrandMark from '../components/BrandMark';
 import './Landing.css';
 
 // Exemple de semaine affiché dans l'aperçu (ouverture 8h30–14h, fermeture 14h–20h)
@@ -42,11 +43,7 @@ const AUDIENCE = [
 
 const LogoMark = () => (
   <span className="landing-logo-mark">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 17V7l8-4 8 4v10l-8 4-8-4Z" />
-      <path d="M4 7l8 4 8-4" />
-      <path d="M12 11v10" />
-    </svg>
+    <BrandMark size={22} />
   </span>
 );
 

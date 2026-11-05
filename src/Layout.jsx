@@ -11,6 +11,7 @@ import { EDITOR } from './legal/legalInfo'
 import useTableCellLabels from './utils/useTableCellLabels'
 import TopbarContext from './context/TopbarContext'
 import NotificationBell from './components/NotificationBell'
+import BrandMark from './components/BrandMark'
 
 export default function Layout({ children }) {
   const navigate  = useNavigate()
@@ -51,11 +52,7 @@ export default function Layout({ children }) {
       <div className={`sidebar${menuOpen ? ' open' : ''}`}>
         <div className="sidebar-logo sidebar-logo-row">
           <div className="sidebar-logo-mark">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 17V7l8-4 8 4v10l-8 4-8-4Z" />
-              <path d="M4 7l8 4 8-4" />
-              <path d="M12 11v10" />
-            </svg>
+            <BrandMark size={20} color="#FFFFFF" />
           </div>
           <div className="logo-name">Orgaly</div>
         </div>

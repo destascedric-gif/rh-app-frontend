@@ -6,7 +6,7 @@
 
 .landing-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 22px; padding-bottom: 22px; }
 .landing-brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 600; font-size: 19px; color: var(--text); text-decoration: none; }
-.landing-logo-mark { width: 34px; height: 34px; border-radius: 9px; background: var(--sidebar-bg); display: flex; align-items: center; justify-content: center; }
+.landing-logo-mark { width: 34px; height: 34px; border-radius: 9px; background: #FFFFFF; border: 1px solid var(--border); color: var(--primary); display: flex; align-items: center; justify-content: center; }
 .landing-nav { display: flex; align-items: center; gap: 8px; }
 .landing-nav-link { padding: 10px 12px; font-size: 15px; color: var(--text-muted); text-decoration: none; }
 .landing-nav-link:hover { color: var(--text); }
