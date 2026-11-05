@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LEGAL_PAGES, PRICING } from '../legal/legalInfo';
+import { DEFAULT_TITLE } from '../seo';
 import './Landing.css';
 
 // Exemple de semaine affiché dans l'aperçu (ouverture 8h30–14h, fermeture 14h–20h)
@@ -53,7 +54,7 @@ export default function Landing() {
   const { user } = useAuth();
   const homePath = user?.role === 'admin' ? '/dashboard' : '/mon-espace';
 
-  useEffect(() => { document.title = "Orgaly — la gestion d'équipe simple"; }, []);
+  useEffect(() => { document.title = DEFAULT_TITLE; }, []);
 
   return (
     <div className="landing">

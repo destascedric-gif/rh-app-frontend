@@ -3,9 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="google" content="notranslate" />
-    <title>Orgaly — Gestion RH</title>
+    <meta name="theme-color" content="#1C4ED8" />
+    <!-- Référencement : titre, description et adresse officielle de la page
+         (remplacés page par page par scripts/prerender.mjs, voir src/seo.js) -->
+    <title>Orgaly — Planning, congés et pointage pour petites équipes</title>
+    <meta name="description" content="Orgaly simplifie la gestion d'équipe des petits commerces : planning, congés, pointage et calcul des heures au même endroit. Gratuit jusqu'à 5 salariés, sans carte bancaire." />
+    <link rel="canonical" href="https://www.myorgaly.fr/" />
+    <!-- Aperçu du lien partagé (WhatsApp, Instagram, SMS, Facebook…) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="Orgaly" />
+    <meta property="og:title" content="Orgaly — Planning, congés et pointage pour petites équipes" />
+    <meta property="og:description" content="Orgaly simplifie la gestion d'équipe des petits commerces : planning, congés, pointage et calcul des heures au même endroit. Gratuit jusqu'à 5 salariés, sans carte bancaire." />
+    <meta property="og:url" content="https://www.myorgaly.fr/" />
+    <meta property="og:image" content="https://www.myorgaly.fr/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Orgaly — la gestion d'équipe simple, même sans service RH" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Fiche d'identité pour Google (nom, logo, prix) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.myorgaly.fr/#organization",
+            "name": "Orgaly",
+            "url": "https://www.myorgaly.fr/",
+            "logo": "https://www.myorgaly.fr/apple-touch-icon.png",
+            "email": "contact@myorgaly.fr"
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "Orgaly",
+            "url": "https://www.myorgaly.fr/",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web, Android, iOS",
+            "inLanguage": "fr",
+            "description": "Logiciel de gestion d'équipe pour petits commerces : planning, congés, pointage et calcul des heures.",
+            "publisher": { "@id": "https://www.myorgaly.fr/#organization" },
+            "offers": [
+              { "@type": "Offer", "name": "Gratuit", "price": "0", "priceCurrency": "EUR", "description": "Jusqu'à 5 salariés" },
+              { "@type": "Offer", "name": "Pro", "price": "3.90", "priceCurrency": "EUR", "description": "Par salarié actif et par mois, hors taxes" }
+            ]
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

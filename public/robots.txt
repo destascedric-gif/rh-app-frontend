@@ -1,0 +1,20 @@
+# Orgaly - consignes pour les moteurs de recherche
+# Pages publiques : accueil et documents legaux. L'espace connecte (planning,
+# conges, paie...) est prive : inutile de le visiter.
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /setup/
+Disallow: /accept-invite
+Disallow: /dashboard
+Disallow: /employees
+Disallow: /invite
+Disallow: /admin/
+Disallow: /parametres
+Disallow: /abonnement
+Disallow: /mon-espace
+Disallow: /mes-conges
+Disallow: /mon-planning
+Disallow: /mon-pointage
+
+Sitemap: https://www.myorgaly.fr/sitemap.xml
