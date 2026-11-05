@@ -25,13 +25,26 @@ import Cgu from './pages/legal/Cgu'
 import Cgv from './pages/legal/Cgv'
 import Confidentialite from './pages/legal/Confidentialite'
 import Dpa from './pages/legal/Dpa'
+import Pilotage from './pages/pilotage/Pilotage'
+import OwnerSetup from './pages/pilotage/OwnerSetup'
 
 const PrivateRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth()
   if (loading) return <div>Chargement…</div>
   if (!user) return <Navigate to="/login" />
+  // Le propriétaire d'Orgaly n'a pas d'entreprise : seul le pilotage le concerne
+  if (user.role === 'owner') return <Navigate to="/pilotage" />
   if (adminOnly && user.role !== 'admin') return <Navigate to="/mon-espace" />
   return <Layout>{children}</Layout>
+}
+
+// Page de pilotage : propriétaire d'Orgaly uniquement (vérifié aussi par le serveur)
+const OwnerRoute = ({ children }) => {
+  const { user, loading } = useAuth()
+  if (loading) return <div>Chargement…</div>
+  if (!user) return <Navigate to="/login" />
+  if (user.role !== 'owner') return <Navigate to="/" />
+  return children
 }
 
 function App() {
@@ -50,6 +63,8 @@ function App() {
           <Route path="/cgv" element={<Cgv />} />
           <Route path="/confidentialite" element={<Confidentialite />} />
           <Route path="/dpa" element={<Dpa />} />
+          <Route path="/pilotage" element={<OwnerRoute><Pilotage /></OwnerRoute>} />
+          <Route path="/proprietaire/activer" element={<OwnerSetup />} />
           <Route path="/dashboard" element={<PrivateRoute adminOnly><Dashboard /></PrivateRoute>} />
           <Route path="/employees" element={<PrivateRoute adminOnly><EmployeeList /></PrivateRoute>} />
           <Route path="/employees/:id" element={<PrivateRoute adminOnly><EmployeeDetail /></PrivateRoute>} />

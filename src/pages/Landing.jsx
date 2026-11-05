@@ -49,7 +49,7 @@ const LogoMark = () => (
 
 export default function Landing() {
   const { user } = useAuth();
-  const homePath = user?.role === 'admin' ? '/dashboard' : '/mon-espace';
+  const homePath = user?.role === 'owner' ? '/pilotage' : user?.role === 'admin' ? '/dashboard' : '/mon-espace';
 
   useEffect(() => { document.title = DEFAULT_TITLE; }, []);
 

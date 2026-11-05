@@ -1,0 +1,98 @@
+/* ── Pilotage d'Orgaly : ambiance noir et or ───────────────────────── */
+.pil {
+  --pil-bg: #0B0B0B;
+  --pil-card: #141413;
+  --pil-line: #262522;
+  --pil-text: #F3F1EC;
+  --pil-soft: #E9E6DF;
+  --pil-mut: #9C9890;
+  --pil-faint: #6F6C66;
+  --pil-gold: #C9A75A;
+  --pil-free: #BDB8AE;
+  --pil-ok: #7FC79A;
+  --pil-warn: #E0B45C;
+  --pil-bad: #E5736B;
+  min-height: 100vh;
+  background: var(--pil-bg);
+  color: var(--pil-text);
+  font-size: 14px;
+}
+.pil-inner { max-width: 1200px; margin: 0 auto; padding: 28px 32px 40px; }
+.pil h2 { font-size: 15px; font-weight: 600; color: #FFFFFF; margin: 0 0 2px; }
+.pil-gold { color: var(--pil-gold); display: inline-flex; }
+
+.pil-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+.pil-brand { display: flex; align-items: center; gap: 12px; }
+.pil-title { font-family: var(--font-display), sans-serif; font-size: 19px; font-weight: 600; letter-spacing: .01em; }
+.pil-hello { font-size: 12.5px; color: var(--pil-mut); }
+.pil-top-actions { display: flex; align-items: center; gap: 12px; }
+.pil-seg { display: inline-flex; border: 1px solid #3A3833; border-radius: 9px; overflow: hidden; }
+.pil-seg button { border: none; background: transparent; color: var(--pil-mut); font: inherit; font-size: 13px; padding: 7px 14px; cursor: pointer; }
+.pil-seg button.on { background: #1F1D18; color: var(--pil-gold); }
+.pil-seg button:focus-visible, .pil-logout:focus-visible { outline: 2px solid var(--pil-gold); outline-offset: 2px; }
+.pil-logout { border: 1px solid #3A3833; background: transparent; color: var(--pil-soft); font: inherit; font-size: 13px; padding: 7px 14px; border-radius: 9px; cursor: pointer; }
+.pil-logout:hover { border-color: var(--pil-gold); color: var(--pil-gold); }
+
+.pil-card { background: var(--pil-card); border: 1px solid var(--pil-line); border-radius: 14px; padding: 18px 20px; margin-bottom: 14px; }
+.pil-sub { font-size: 12.5px; color: var(--pil-mut); margin: 0 0 12px; }
+.pil-sub--spaced { margin-top: 18px; margin-bottom: 6px; }
+.pil-empty { font-size: 13px; color: var(--pil-faint); margin: 0; }
+.pil-error { color: var(--pil-bad); }
+.pil-loading { color: var(--pil-mut); padding: 40px 0; text-align: center; }
+
+.pil-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+.pil-kpi { margin-bottom: 0; }
+.pil-kpi-label { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--pil-mut); }
+.pil-kpi-value { font-family: var(--font-display), sans-serif; font-size: 30px; font-weight: 600; color: #FFFFFF; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+.pil-kpi-delta { font-size: 12.5px; color: var(--pil-gold); }
+.pil-kpi-delta--muted { color: var(--pil-faint); }
+
+.pil-row { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 14px; }
+.pil-row--even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.pil-chart { position: relative; }
+.pil-tip { position: absolute; top: 34px; transform: translateX(12px); pointer-events: none; background: #1E1C18; border: 1px solid #4A3D1C; border-radius: 8px; padding: 5px 9px; font-size: 12.5px; white-space: nowrap; color: var(--pil-text); }
+
+.pil-bar { display: flex; gap: 2px; height: 14px; margin: 20px 0 12px; }
+.pil-bar > div:first-child { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
+.pil-bar > div:last-child { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
+.pil-bar-free { background: var(--pil-free); }
+.pil-bar-pro { background: var(--pil-gold); }
+.pil-legend { display: flex; justify-content: space-between; font-size: 13px; color: var(--pil-soft); }
+.pil-legend b { color: #FFFFFF; font-weight: 600; margin-left: 4px; }
+.pil-sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.pil-sw--free { background: var(--pil-free); }
+.pil-sw--pro { background: var(--pil-gold); }
+.pil-near { list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--pil-soft); line-height: 1.8; }
+.pil-near b { color: var(--pil-gold); font-weight: 600; }
+
+.pil-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.pil-table th { text-align: left; font-weight: 500; color: var(--pil-mut); padding: 8px; border-bottom: 1px solid var(--pil-line); }
+.pil-table td { padding: 10px 8px; border-bottom: 1px solid var(--pil-line); color: var(--pil-soft); }
+.pil-table tr:last-child td { border-bottom: none; }
+.pil-pill { display: inline-block; font-size: 11.5px; padding: 2px 9px; border-radius: 6px; }
+.pil-pill--pro { background: #2A2312; color: var(--pil-gold); border: 1px solid #4A3D1C; }
+.pil-pill--free { background: #1A1A19; color: var(--pil-mut); border: 1px solid #2E2D2A; }
+.pil-st { display: inline-flex; align-items: center; gap: 5px; }
+.pil-st--ok { color: var(--pil-ok); }
+.pil-st--warn { color: var(--pil-warn); }
+.pil-soon { opacity: 0.75; }
+
+@media (max-width: 900px) {
+  .pil-inner { padding: 20px 16px 32px; }
+  .pil-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pil-row, .pil-row--even { grid-template-columns: 1fr; }
+  .pil-table { display: block; overflow-x: auto; }
+}
+
+/* ── Choix du mot de passe propriétaire ─────────────────────────────── */
+.pil-setup { min-height: 100vh; background: var(--pil-bg); display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+.pil-setup-card { width: 100%; max-width: 420px; }
+.pil-setup-card form { display: grid; gap: 14px; margin-top: 16px; }
+.pil-setup-card label { display: grid; gap: 6px; font-size: 13px; color: var(--pil-mut); }
+.pil-setup-card input { background: #0F0F0E; border: 1px solid #3A3833; border-radius: 9px; padding: 10px 12px; color: var(--pil-text); font: inherit; }
+.pil-setup-card input:focus { outline: none; border-color: var(--pil-gold); }
+.pil-btn { border: none; border-radius: 9px; padding: 11px 16px; background: var(--pil-gold); color: #0B0B0B; font: inherit; font-weight: 600; cursor: pointer; }
+.pil-btn:disabled { opacity: .6; cursor: default; }
+.pil-ok-msg { color: var(--pil-ok); font-size: 13.5px; }
+.pil-setup .pil-error { margin: 0; font-size: 13px; background: none; border: none; padding: 0; }

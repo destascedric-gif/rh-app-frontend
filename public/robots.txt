@@ -16,5 +16,7 @@ Disallow: /mon-espace
 Disallow: /mes-conges
 Disallow: /mon-planning
 Disallow: /mon-pointage
+Disallow: /pilotage
+Disallow: /proprietaire/
 
 Sitemap: https://www.myorgaly.fr/sitemap.xml

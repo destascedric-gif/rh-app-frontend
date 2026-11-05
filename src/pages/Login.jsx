@@ -25,7 +25,8 @@ export default function Login() {
 
       // Inscription laissée inachevée (compte créé mais entreprise jamais
       // renseignée) : on renvoie terminer l'étape 2 plutôt que de bloquer.
-      if (!data.user.companyId) navigate('/setup/company');
+      if (data.user.role === 'owner') navigate('/pilotage');
+      else if (!data.user.companyId) navigate('/setup/company');
       else if (data.user.role === 'admin') navigate('/dashboard');
       else navigate('/mon-espace');
     } catch (err) {
