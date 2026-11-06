@@ -26,6 +26,12 @@ import Cgv from './pages/legal/Cgv'
 import Confidentialite from './pages/legal/Confidentialite'
 import Dpa from './pages/legal/Dpa'
 import Pilotage from './pages/pilotage/Pilotage'
+import PilotageLayout from './pages/pilotage/PilotageLayout'
+import PilEntreprises from './pages/pilotage/PilEntreprises'
+import PilEntreprise from './pages/pilotage/PilEntreprise'
+import PilFormules from './pages/pilotage/PilFormules'
+import PilJournal from './pages/pilotage/PilJournal'
+import PilSante from './pages/pilotage/PilSante'
 import OwnerSetup from './pages/pilotage/OwnerSetup'
 
 const PrivateRoute = ({ children, adminOnly = false }) => {
@@ -63,7 +69,15 @@ function App() {
           <Route path="/cgv" element={<Cgv />} />
           <Route path="/confidentialite" element={<Confidentialite />} />
           <Route path="/dpa" element={<Dpa />} />
-          <Route path="/pilotage" element={<OwnerRoute><Pilotage /></OwnerRoute>} />
+          {/* Pilotage : tableau de bord et pages de détail, menu commun */}
+          <Route path="/pilotage" element={<OwnerRoute><PilotageLayout /></OwnerRoute>}>
+            <Route index element={<Pilotage />} />
+            <Route path="entreprises" element={<PilEntreprises />} />
+            <Route path="entreprises/:id" element={<PilEntreprise />} />
+            <Route path="formules" element={<PilFormules />} />
+            <Route path="journal" element={<PilJournal />} />
+            <Route path="sante" element={<PilSante />} />
+          </Route>
           <Route path="/proprietaire/activer" element={<OwnerSetup />} />
           <Route path="/dashboard" element={<PrivateRoute adminOnly><Dashboard /></PrivateRoute>} />
           <Route path="/employees" element={<PrivateRoute adminOnly><EmployeeList /></PrivateRoute>} />

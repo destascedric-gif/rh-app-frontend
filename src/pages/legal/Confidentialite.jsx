@@ -59,6 +59,12 @@ export default function Confidentialite() {
               <td>90 jours au plus</td>
             </tr>
             <tr>
+              <td>Suivi du bon fonctionnement et de l'utilisation du service (journal des actions)</td>
+              <td>Type d'action effectuée (par exemple « créneau créé » ou « connexion »), date et heure, résultat (réussi, refusé, erreur), entreprise, rôle et identifiant interne de l'auteur. Jamais le contenu : ni horaires, ni motifs, ni destinataires des e-mails.</td>
+              <td>Intérêt légitime (sécurité et amélioration du service)</td>
+              <td>90 jours, puis suppression automatique</td>
+            </tr>
+            <tr>
               <td>E-mails de service</td>
               <td>Adresse e-mail, contenu du message (invitation, information sur le compte)</td>
               <td>Exécution du contrat</td>
