@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getOwnerActivity } from '../../api/owner';
+import Select from '../../components/Select';
 import {
   PERIODS, fmtDate, fmtWhen, fmtUptime, activityLabel, daysAgo, isStale, plural,
 } from './pilotageUtils';
@@ -304,10 +305,10 @@ export function JournalCard({
         {showFilters && (
           <div className="pil-journal-filters">
             {!companyId && companies.length > 0 && (
-              <select className="pil-select" value={company} onChange={(e) => setCompany(e.target.value)} aria-label="Entreprise">
+              <Select className="pil-oselect" panelClassName="pil-oselect-panel" value={company} onChange={(e) => setCompany(e.target.value)} aria-label="Entreprise">
                 <option value="">Toutes les entreprises</option>
                 {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              </Select>
             )}
             <div className="pil-seg pil-seg--small" role="group" aria-label="Résultat">
               {STATUS_FILTERS.map((f) => (

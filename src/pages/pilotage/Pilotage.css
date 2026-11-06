@@ -135,8 +135,7 @@
 .pil-load-more { display: block; margin: 12px auto 0; }
 .pil-journal-filters { display: flex; gap: 8px; align-items: center; }
 .pil-seg--small button { padding: 5px 11px; font-size: 12.5px; }
-.pil-select { background: #0F0F0E; border: 1px solid #3A3833; border-radius: 9px; color: var(--pil-soft); font: inherit; font-size: 12.5px; padding: 5px 8px; max-width: 200px; }
-.pil-select:focus-visible, .pil-link:focus-visible { outline: 2px solid var(--pil-gold); outline-offset: 2px; }
+.pil-link:focus-visible { outline: 2px solid var(--pil-gold); outline-offset: 2px; }
 .pil-journal { list-style: none; margin: 0; padding: 0; font-size: 13px; }
 .pil-journal-scroll { max-height: 560px; overflow-y: auto; padding-right: 4px; scrollbar-color: #3A3833 transparent; }
 .pil-journal li { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--pil-line); }
@@ -185,3 +184,17 @@
 .pil-btn:disabled { opacity: .6; cursor: default; }
 .pil-ok-msg { color: var(--pil-ok); font-size: 13.5px; }
 .pil-setup .pil-error { margin: 0; font-size: 13px; background: none; border: none; padding: 0; }
+
+/* Menu déroulant (components/Select.jsx) en noir et or */
+.pil .pil-oselect { min-width: 200px; }
+.pil .pil-oselect .oselect-field { min-height: 32px; padding: 5px 9px 5px 11px; background: #0F0F0E; border-color: #3A3833; border-radius: 9px; color: var(--pil-soft); font-size: 12.5px; }
+.pil .pil-oselect .oselect-field:hover:not(:disabled) { background: #191816; }
+.pil .pil-oselect .oselect-field--open, .pil .pil-oselect .oselect-field:focus-visible { border-color: var(--pil-gold); box-shadow: 0 0 0 3px rgba(201, 167, 90, 0.18); }
+.pil .pil-oselect .oselect-caret { color: #9C9890; }
+.oselect-panel.pil-oselect-panel { background: #171614; border-color: #34322D; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55); }
+.pil-oselect-panel .oselect-option { color: #E9E6DF; font-size: 13px; }
+.pil-oselect-panel .oselect-option.is-active { background: #23211C; }
+.pil-oselect-panel .oselect-option.is-selected { color: #C9A75A; background: #2A2312; }
+.pil-oselect-panel .oselect-option.is-selected.is-active { background: #33291A; }
+.pil-oselect-panel .oselect-option.is-empty { color: #9C9890; }
+.pil-oselect-panel .oselect-option.is-selected.is-empty { color: #C9A75A; }

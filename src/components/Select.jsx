@@ -27,7 +27,7 @@ const readOptions = (children) => {
 const PANEL_MAX = 280;
 
 export default function Select({
-  value, onChange, name, children, className = '', disabled = false, id,
+  value, onChange, name, children, className = '', panelClassName = '', disabled = false, id,
   'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledby, required,
 }) {
   const options = readOptions(children);
@@ -164,7 +164,7 @@ export default function Select({
           ref={panelRef}
           id={listId}
           role="listbox"
-          className="oselect-panel"
+          className={`oselect-panel ${panelClassName}`}
           style={{ left: pos.left, top: pos.top, bottom: pos.bottom, minWidth: pos.width, maxHeight: pos.maxHeight }}
         >
           {options.map((o, i) => {
