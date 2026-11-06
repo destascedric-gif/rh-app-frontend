@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { setupCompany as apiSetupCompany } from '../api/auth';
+import Select from '../components/Select';
 
 export default function SetupCompany() {
   const navigate = useNavigate();
@@ -64,10 +65,10 @@ export default function SetupCompany() {
             </div>
             <div className="field">
               <label>Secteur d'activité</label>
-              <select name="sector" value={form.sector} onChange={handleChange}>
+              <Select name="sector" value={form.sector} onChange={handleChange}>
                 <option value="">Sélectionner…</option>
                 {sectors.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+              </Select>
             </div>
           </div>
 

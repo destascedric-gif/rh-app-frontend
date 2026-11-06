@@ -2663,3 +2663,65 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   .schedule-tabs { width: 100%; }
   .schedule-tabs .role-btn { flex: 1; min-width: 0; }
 }
+
+/* ── Menu déroulant à choix unique (components/Select.jsx) ── */
+.oselect { position: relative; display: inline-flex; min-width: 150px; }
+.field .oselect { display: flex; width: 100%; }
+.oselect-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 10px 7px 12px;
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+}
+.oselect-field:hover:not(:disabled) { background: var(--bg-hover); }
+.oselect-field--open, .oselect-field:focus-visible { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-ring); outline: none; }
+.oselect-field:disabled { opacity: 0.6; cursor: default; }
+.oselect-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oselect-placeholder { flex: 1; min-width: 0; color: var(--text-light); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oselect-caret { flex-shrink: 0; color: var(--text-muted); transition: transform 0.15s; }
+.oselect-field--open .oselect-caret { transform: rotate(180deg); }
+.oselect-panel {
+  position: fixed;
+  z-index: 300;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(23, 27, 46, 0.14), 0 2px 6px rgba(23, 27, 46, 0.06);
+  font-family: 'Public Sans', sans-serif;
+  animation: oselect-in 0.12s ease-out;
+}
+@keyframes oselect-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .oselect-panel { animation: none; } }
+.oselect-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  font-size: 13.5px;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.oselect-option.is-active { background: var(--bg-hover); }
+.oselect-option.is-selected { color: var(--primary); font-weight: 600; background: var(--primary-light); }
+.oselect-option.is-selected.is-active { background: color-mix(in srgb, var(--primary) 14%, #fff); }
+.oselect-option.is-empty { color: var(--text-light); }
+.oselect-option.is-disabled { opacity: 0.5; cursor: default; }
+.oselect-option svg { flex-shrink: 0; }

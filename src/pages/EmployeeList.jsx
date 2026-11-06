@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { getEmployees, deactivateEmployee, reactivateEmployee } from '../api/employees';
 import { resendInvite } from '../api/auth';
 import PageHeader from '../components/PageHeader';
+import Select from '../components/Select';
 
 const Avatar = ({ firstName, lastName, photoUrl }) => {
   if (photoUrl) {
@@ -113,10 +114,10 @@ export default function EmployeeList() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select value={contractFilter} onChange={(e) => setContractFilter(e.target.value)} aria-label="Filtrer par contrat">
+        <Select value={contractFilter} onChange={(e) => setContractFilter(e.target.value)} aria-label="Filtrer par contrat">
           <option value="">Tous les contrats</option>
           {CONTRACTS.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
+        </Select>
         <label className="team-inactive-toggle">
           <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
           Voir les inactifs

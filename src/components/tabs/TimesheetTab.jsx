@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getTimesheets, addTimesheet, updateTimesheet, deleteTimesheet, reviewTimesheet } from '../../api/employees';
 import { notifyRequestsChanged } from '../../utils/notifications';
+import Select from '../Select';
 
 const STATUS_BADGE = {
   'validé':     { label: 'Validé',      className: 'badge-active' },
@@ -111,14 +112,14 @@ export default function TimesheetTab({ employeeId }) {
       {/* Filtres mois / année */}
       <div className="timesheet-filters" style={{ justifyContent: 'space-between', display: 'flex' }}>
         <div style={{ display: 'flex', gap: 8 }}>
-          <select value={month} onChange={(e) => setMonth(Number(e.target.value))}>
+          <Select value={month} onChange={(e) => setMonth(Number(e.target.value))}>
             {MONTHS.map((m, i) => (
               <option key={i + 1} value={i + 1}>{m}</option>
             ))}
-          </select>
-          <select value={year} onChange={(e) => setYear(Number(e.target.value))}>
+          </Select>
+          <Select value={year} onChange={(e) => setYear(Number(e.target.value))}>
             {years.map((y) => <option key={y} value={y}>{y}</option>)}
-          </select>
+          </Select>
         </div>
         <button className="btn-primary" onClick={openNew}>+ Ajouter une entrée</button>
       </div>

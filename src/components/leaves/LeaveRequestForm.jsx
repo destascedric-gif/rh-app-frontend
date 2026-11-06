@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { submitRequest } from '../../api/leaves';
+import Select from '../Select';
 
 const LEAVE_TYPES = [
   'Congés payés',
@@ -67,9 +68,9 @@ export default function LeaveRequestForm({ onSuccess, onCancel }) {
 
       <div className="field">
         <label>Type de congé *</label>
-        <select name="leaveType" value={form.leaveType} onChange={handleChange}>
+        <Select name="leaveType" value={form.leaveType} onChange={handleChange}>
           {LEAVE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
+        </Select>
       </div>
 
       <div className="field-row">

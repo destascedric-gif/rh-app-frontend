@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getMonthlySummary } from '../../api/employees';
+import Select from '../Select';
 
 const MONTHS = [
   'Janvier','Février','Mars','Avril','Mai','Juin',
@@ -28,12 +29,12 @@ export default function MonthlySummaryTab({ employeeId }) {
   return (
     <div className="timesheet-tab">
       <div className="timesheet-filters">
-        <select value={month} onChange={(e) => setMonth(Number(e.target.value))}>
+        <Select value={month} onChange={(e) => setMonth(Number(e.target.value))}>
           {MONTHS.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
-        </select>
-        <select value={year} onChange={(e) => setYear(Number(e.target.value))}>
+        </Select>
+        <Select value={year} onChange={(e) => setYear(Number(e.target.value))}>
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
-        </select>
+        </Select>
       </div>
 
       {loading || !summary ? (

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { createShift, updateShift } from '../../api/schedule';
 import EmployeeMultiSelect from '../EmployeeMultiSelect';
+import Select from '../Select';
 
 const DEFAULT_BREAK = { start_time: '12:00', end_time: '13:00', label: 'Pause déjeuner' };
 
@@ -159,14 +160,14 @@ export default function ShiftModal({ shift, date, userId, employees, onClose, on
           {/* Type de créneau */}
           <div className="field">
             <label>Type de créneau *</label>
-            <select
+            <Select
               value={form.type}
               onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
             >
               {SHIFT_TYPES.map(t => (
                 <option key={t.value} value={t.value}>{t.label}</option>
               ))}
-            </select>
+            </Select>
           </div>
 
           {/* Date */}

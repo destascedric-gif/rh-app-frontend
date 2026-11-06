@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getEmployee, updateEmployee } from '../api/employees';
 import PageHeader from '../components/PageHeader';
+import Select from '../components/Select';
 
 const CONTRACT_TYPES = ['CDI', 'CDD', 'Alternance', 'Stage', 'Freelance'];
 const WORK_TIMES = ['Temps plein', 'Temps partiel'];
@@ -126,17 +127,17 @@ export default function EmployeeForm() {
           <div className="field-row">
             <div className="field">
               <label>Type de contrat</label>
-              <select name="contractType" value={form.contractType} onChange={handleChange}>
+              <Select name="contractType" value={form.contractType} onChange={handleChange}>
                 <option value="">Sélectionner…</option>
                 {CONTRACT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
+              </Select>
             </div>
             <div className="field">
               <label>Temps de travail</label>
-              <select name="workTime" value={form.workTime} onChange={handleWorkTimeChange}>
+              <Select name="workTime" value={form.workTime} onChange={handleWorkTimeChange}>
                 <option value="">Sélectionner…</option>
                 {WORK_TIMES.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
+              </Select>
             </div>
           </div>
           <div className="field-row">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getDocuments, addDocument } from '../../api/employees';
+import Select from '../Select';
 
 const DOC_TYPES = ['contrat', 'avenant', 'autre'];
 
@@ -73,7 +74,7 @@ export default function DocumentsTab({ employeeId }) {
           <div className="field-row">
             <div className="field">
               <label>Type *</label>
-              <select
+              <Select
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
               >
@@ -82,7 +83,7 @@ export default function DocumentsTab({ employeeId }) {
                     {t.charAt(0).toUpperCase() + t.slice(1)}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div className="field">
               <label>URL du fichier *</label>
