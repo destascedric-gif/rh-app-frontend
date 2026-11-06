@@ -15,6 +15,7 @@ import PhoneCalendar from '../components/schedule/PhoneCalendar';
 import EmployeeMultiSelect from '../components/EmployeeMultiSelect';
 import useMediaQuery, { PHONE_QUERY } from '../utils/useMediaQuery';
 import PageHeader from '../components/PageHeader';
+import { weekLabel } from '../utils/weekLabel';
 
 const getMondayOfWeek = (date = new Date()) => {
   const d   = new Date(date);
@@ -209,7 +210,7 @@ export default function AdminSchedule() {
           <button className="btn-ghost" onClick={shownView === 'week' ? prevWeek : prevMonth}>←</button>
           <span className="schedule-period">
             {shownView === 'week'
-              ? `${weekDays[0].getDate()} ${MONTH_NAMES[weekDays[0].getMonth()]} → ${weekDays[6].getDate()} ${MONTH_NAMES[weekDays[6].getMonth()]} ${weekDays[6].getFullYear()}`
+              ? weekLabel(weekDays[0], weekDays[6])
               : `${MONTH_NAMES[monthDate.getMonth()]} ${monthDate.getFullYear()}`
             }
           </span>

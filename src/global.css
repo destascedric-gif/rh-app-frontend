@@ -1150,6 +1150,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   color: var(--text);
   min-width: 200px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .role-toggle {
