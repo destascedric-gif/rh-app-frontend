@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getOwnerStats } from '../../api/owner';
-import { PageHead, CardHead, Kpi, PeriodSeg, Chart, CompaniesTable, Icon } from './PilotageUi';
-import { PERIODS, STALE_DAYS, isStale, plural, signupXLabel } from './pilotageUtils';
+import { PageHead, CardHead, Kpi, CompaniesTable, Icon } from './PilotageUi';
+import { STALE_DAYS, isStale, plural } from './pilotageUtils';
 
 // Toutes les entreprises clientes : recherche, filtres, tri
 const FILTERS = [
@@ -29,7 +29,6 @@ const compare = (key) => (a, b) => {
 
 export default function PilEntreprises() {
   const { token } = useAuth();
-  const [days, setDays] = useState(30);
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
@@ -38,11 +37,11 @@ export default function PilEntreprises() {
 
   useEffect(() => {
     let cancelled = false;
-    getOwnerStats(days, token)
+    getOwnerStats(30, token)
       .then((s) => { if (!cancelled) { setStats(s); setError(''); } })
       .catch((err) => { if (!cancelled) setError(err.message); });
     return () => { cancelled = true; };
-  }, [days, token]);
+  }, [token]);
 
   const rows = useMemo(() => {
     if (!stats) return [];
@@ -56,40 +55,24 @@ export default function PilEntreprises() {
     ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' }
     : { key, dir: key === 'name' || key === 'plan' ? 'asc' : 'desc' }));
 
-  const period = PERIODS.find((p) => p.days === days);
-  const monthly = days === 365;
   const companies = stats?.companies ?? [];
   const active = companies.filter((c) => !isStale(c.last_activity)).length;
 
   return (
     <>
-      <PageHead title="Entreprises" sub="Toutes les entreprises clientes (compte démo exclu). Cliquez sur une entreprise pour sa fiche.">
-        <PeriodSeg days={days} onChange={setDays} />
-      </PageHead>
+      <PageHead title="Entreprises" sub="Toutes les entreprises clientes (compte démo exclu). Cliquez sur une entreprise pour sa fiche." />
 
       {error && <div className="pil-card pil-error">{error}</div>}
       {!stats && !error && <div className="pil-loading">Chargement…</div>}
 
       {stats && (
         <>
-          <div className="pil-kpis">
-            <Kpi icon="store" label="Entreprises inscrites" value={stats.totals.companies} delta={`+${stats.totals.new_companies} ${period.since}`} />
+          <div className="pil-kpis pil-kpis--3">
+            <Kpi icon="store" label="Entreprises inscrites" value={stats.totals.companies} delta={`+${stats.totals.new_companies} sur 30 jours`} />
             <Kpi icon="check" label="Actives" value={active} delta={`activité depuis moins de ${STALE_DAYS} jours`} />
             <Kpi icon="alert" label="À relancer" value={companies.length - active} delta={`sans activité depuis ${STALE_DAYS} jours`} muted />
-            <Kpi icon="users" label="Salariés actifs" value={stats.totals.employees} delta={`+${stats.totals.new_employees} ${period.since}`} />
           </div>
 
-          <section className="pil-card">
-            <CardHead title="Nouvelles inscriptions" sub={`Entreprises créées ${monthly ? 'par mois, 12 derniers mois' : `par jour, ${days} derniers jours`}`} />
-            <Chart
-              series={stats.series.map((s) => ({ bucket: s.bucket, value: s.count }))}
-              xLabel={signupXLabel(monthly)}
-              tip={(p) => `${signupXLabel(monthly)(p.bucket)} · ${plural(p.value, 'inscription')}`}
-              ariaLabel="Courbe des inscriptions"
-              height={200}
-              width={1100}
-            />
-          </section>
 
           <section className="pil-card">
             <CardHead title="Liste des entreprises" sub={`${plural(rows.length, 'entreprise')} affichée${rows.length > 1 ? 's' : ''} · cliquez sur un titre de colonne pour trier`}>

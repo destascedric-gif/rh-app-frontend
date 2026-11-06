@@ -57,6 +57,7 @@
 .pil-loading { color: var(--pil-mut); padding: 40px 0; text-align: center; }
 
 .pil-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+.pil-kpis--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .pil-kpi { margin-bottom: 0; }
 .pil-kpi--link { display: block; text-decoration: none; color: inherit; transition: border-color .15s, background .15s; }
 .pil-kpi--link:hover { border-color: #4A3D1C; background: #17160F; }
