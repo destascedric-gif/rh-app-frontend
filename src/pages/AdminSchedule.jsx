@@ -261,6 +261,7 @@ export default function AdminSchedule() {
         />
       ) : (
         <MonthView
+          key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
           year={monthDate.getFullYear()}
           month={monthDate.getMonth()}
           shifts={shifts}
@@ -269,6 +270,7 @@ export default function AdminSchedule() {
           selectedUserIds={filteredIds}
           onShiftClick={(shift) => setModal({ shift })}
           onShiftDelete={handleDelete}
+          onAddShift={(date) => setModal({ date })}
           onMeetingClick={(meeting) => setMeetingModal({ meeting })}
         />
       )}

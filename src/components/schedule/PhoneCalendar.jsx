@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { toISO } from './WeekView';
 import { shiftColorVar } from './shiftColor';
-import MeetingTag, { MeetingIcon } from './MeetingTag';
+import { MeetingIcon } from './MeetingTag';
 import { meetingsOn } from './meetingUtils';
+import DayDetail from './DayDetail';
+import { chipKind, sortDayShifts, defaultSelectedDay } from './dayDetailUtils';
 
 // Calendrier du mois pour téléphone, façon Google Agenda : la grille tient
 // dans la largeur de l'écran, chaque jour porte de petites étiquettes, et
@@ -42,9 +44,6 @@ const getMonthWeeks = (year, month) => {
   return weeks;
 };
 
-// Étiquette d'un créneau de travail (couleur de son horaire type) ou hors travail
-const chipKind = (shift) => ((shift.type || 'travail') === 'travail' ? 'work' : 'off');
-
 export default function PhoneCalendar({
   year, month, shifts, meetings = [], isAdmin = false, selectedUserIds = [],
   onShiftClick, onShiftDelete, onAddShift, onMeetingClick,
@@ -59,12 +58,7 @@ export default function PhoneCalendar({
   const inMonth  = (d) => d.getMonth() === month;
 
   // Jour sélectionné : aujourd'hui s'il est dans le mois affiché, sinon le 1er
-  const [selected, setSelected] = useState(() => {
-    const today = new Date();
-    return today.getFullYear() === year && today.getMonth() === month
-      ? todayStr
-      : toISO(new Date(year, month, 1));
-  });
+  const [selected, setSelected] = useState(() => defaultSelectedDay(year, month, toISO));
 
   const visibleShifts = selectedUserIds.length > 0
     ? shifts.filter((s) => selectedUserIds.includes(s.user_id))
@@ -74,18 +68,12 @@ export default function PhoneCalendar({
     .filter((m) => selectedUserIds.length === 0 || m.participants?.some((p) => selectedUserIds.includes(p.id)));
   // Créneaux travaillés d'abord (par heure de début), puis repos / congés :
   // les cases n'affichent que 3 étiquettes, elles doivent montrer qui travaille.
-  const shiftsOn = (dateStr) => visibleShifts
-    .filter((s) => s.date?.slice(0, 10) === dateStr)
-    .sort((a, b) => {
-      const offA = chipKind(a) === 'off' ? 1 : 0;
-      const offB = chipKind(b) === 'off' ? 1 : 0;
-      return (isMe(b) ? 1 : 0) - (isMe(a) ? 1 : 0)
-        || offA - offB
-        || (a.start_time ?? '').localeCompare(b.start_time ?? '');
-    });
+  const shiftsOn = (dateStr) => sortDayShifts(
+    visibleShifts.filter((s) => s.date?.slice(0, 10) === dateStr),
+    isMe
+  );
 
   const weeks = getMonthWeeks(year, month);
-  const selectedDate = new Date(`${selected}T12:00:00`);
   const selectedShifts = shiftsOn(selected);
   const selectedMeetings = meetingsOnDay(selected);
 
@@ -146,78 +134,18 @@ export default function PhoneCalendar({
       </div>
 
       {/* Détail du jour touché */}
-      <section className="pcal-detail" aria-live="polite">
-        <div className="pcal-detail-head">
-          <h2>{DAY_NAMES[selectedDate.getDay()]} {selectedDate.getDate()} {MONTH_NAMES[selectedDate.getMonth()]}</h2>
-          {isAdmin && onAddShift && (
-            <button type="button" className="btn-ghost btn-sm" onClick={() => onAddShift(selected)}>+ Ajouter</button>
-          )}
-        </div>
-
-        {selectedMeetings.length > 0 && (
-          <div className="pcal-meetings">
-            {selectedMeetings.map((m) => (
-              <div key={m.id} className="pcal-meeting-row">
-                <MeetingTag meeting={m} onClick={isAdmin ? onMeetingClick : undefined} />
-                <span className="pcal-meeting-who">{m.participants?.map((p) => p.first_name).join(', ')}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {selectedShifts.length === 0 ? (
-          <p className="pcal-empty">Aucun créneau ce jour-là.</p>
-        ) : (
-          <ul className="pcal-list">
-            {selectedShifts.map((s) => {
-              const kind = chipKind(s);
-              const isWork = kind !== 'off';
-              // Son propre planning : la pause sous les horaires
-              const breakLine = !showNames && isWork && s.breaks?.length > 0
-                ? s.breaks.map((b) => `Pause ${b.start_time.slice(0, 5)} – ${b.end_time.slice(0, 5)}`).join(' · ')
-                : null;
-              const content = (
-                <>
-                  <span className={`pcal-bar pcal-bar--${kind}`} style={isWork ? shiftColorVar(s) : undefined} />
-                  <span className="pcal-item-main">
-                    {showNames && (
-                      <span className="pcal-item-name">
-                        {isMe(s) ? 'Vous' : `${s.first_name} ${s.last_name}`}
-                      </span>
-                    )}
-                    <span className="pcal-item-time">
-                      {isWork
-                        ? `${s.start_time?.slice(0, 5)} → ${s.end_time?.slice(0, 5)}`
-                        : (s.note || TYPE_LABELS[s.type])}
-                    </span>
-                    {breakLine && <span className="pcal-item-break">{breakLine}</span>}
-                  </span>
-                  {isWork && s.net_hours ? <span className="pcal-item-hours">{s.net_hours} h</span> : null}
-                </>
-              );
-              return (
-                <li key={s.id} className={`pcal-row${isMe(s) ? ' pcal-row--me' : ''}`}>
-                  {isAdmin && onShiftClick
-                    ? <button type="button" className="pcal-item" onClick={() => onShiftClick(s)}>{content}</button>
-                    : <div className="pcal-item">{content}</div>}
-                  {isAdmin && onShiftDelete && (
-                    <button
-                      type="button"
-                      className="pcal-delete"
-                      onClick={() => onShiftDelete(s)}
-                      aria-label={`Supprimer le créneau de ${s.first_name} ${s.last_name}`}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
-                      </svg>
-                    </button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+      <DayDetail
+        dateStr={selected}
+        shifts={selectedShifts}
+        meetings={selectedMeetings}
+        showNames={showNames}
+        isMe={isMe}
+        isAdmin={isAdmin}
+        onShiftClick={onShiftClick}
+        onShiftDelete={onShiftDelete}
+        onAddShift={onAddShift}
+        onMeetingClick={onMeetingClick}
+      />
     </div>
   );
 }

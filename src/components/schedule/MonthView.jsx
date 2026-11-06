@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { toISO } from './WeekView';
+import DayDetail from './DayDetail';
+import { sortDayShifts, defaultSelectedDay, DETAIL_DAY_NAMES, DETAIL_MONTH_NAMES } from './dayDetailUtils';
 import { getEmployeeColor, getEmployeeColorLight } from './employeeColor';
 import { shiftColorVar } from './shiftColor';
 import MeetingTag from './MeetingTag';
@@ -36,6 +39,8 @@ const getMonthCells = (year, month) => {
   return cells;
 };
 
+const dayLabel = (d) => `${DETAIL_DAY_NAMES[d.getDay()].toLowerCase()} ${d.getDate()} ${DETAIL_MONTH_NAMES[d.getMonth()]}`;
+
 // Découpe les 42 cellules en 6 semaines de 7
 const chunkWeeks = (cells) => {
   const weeks = [];
@@ -45,10 +50,18 @@ const chunkWeeks = (cells) => {
   return weeks;
 };
 
-export default function MonthView({ year, month, shifts, meetings = [], isAdmin, selectedUserIds = [], onShiftClick, onShiftDelete, onMeetingClick }) {
+export default function MonthView({
+  year, month, shifts, meetings = [], isAdmin, selectedUserIds = [],
+  onShiftClick, onShiftDelete, onMeetingClick, onAddShift,
+  team = false, currentUserId = null,
+}) {
   const cells  = getMonthCells(year, month);
   const weeks  = chunkWeeks(cells);
   const today  = toISO(new Date());
+  // Jour choisi : son détail s'affiche sous le calendrier (comme sur téléphone)
+  const [selected, setSelected] = useState(() => defaultSelectedDay(year, month, toISO));
+  // Planning de l'équipe vu par un employé : sa propre ligne en premier (« Vous »)
+  const isMe = (s) => team && s.user_id === currentUserId;
 
   const filteredShifts = selectedUserIds.length > 0
     ? shifts.filter(s => selectedUserIds.includes(s.user_id))
@@ -61,6 +74,7 @@ export default function MonthView({ year, month, shifts, meetings = [], isAdmin,
     filteredShifts.filter(s => s.date?.slice(0, 10) === dateStr);
 
   return (
+    <>
     <div className="month-grid">
       <table className="month-table">
         <colgroup>
@@ -94,18 +108,31 @@ export default function MonthView({ year, month, shifts, meetings = [], isAdmin,
                   const isToday   = dateStr === today;
                   const isPast    = cell.date < new Date(new Date().setHours(0, 0, 0, 0));
 
+                  const isSelected = dateStr === selected;
+
                   return (
                     <td
                       key={di}
                       className={[
                         'month-td',
+                        'month-td--selectable',
                         !cell.currentMonth ? 'other-month' : '',
                         isToday ? 'today' : '',
                         isPast  ? 'past'  : '',
                         di >= 5 ? 'weekend' : '',
+                        isSelected ? 'selected' : '',
                       ].filter(Boolean).join(' ')}
+                      onClick={() => setSelected(dateStr)}
                     >
-                      <div className="month-cell-num">{cell.date.getDate()}</div>
+                      <button
+                        type="button"
+                        className="month-cell-num"
+                        onClick={(e) => { e.stopPropagation(); setSelected(dateStr); }}
+                        aria-pressed={isSelected}
+                        aria-label={`Voir le détail du ${dayLabel(cell.date)}`}
+                      >
+                        {cell.date.getDate()}
+                      </button>
 
                       {dayShifts.slice(0, 3).map((shift, j) => {
                         const type = shift.type || 'travail';
@@ -143,7 +170,10 @@ export default function MonthView({ year, month, shifts, meetings = [], isAdmin,
                             key={j}
                             className={`month-shift-badge${isRest ? ' shift-rest' : (!isWorkShift ? ' shift-non-work' : '')}${timeTypeClass}${runClass}`}
                             style={style}
-                            onClick={(e) => { e.stopPropagation(); isAdmin && onShiftClick?.(shift); }}
+                            onClick={(e) => {
+                              // Gérant : le créneau s'ouvre ; sinon le clic choisit le jour
+                              if (isAdmin && onShiftClick) { e.stopPropagation(); onShiftClick(shift); }
+                            }}
                             data-tooltip={fullName ? `${fullName} · ${hours}` : hours}
                           >
                             {initials && showLabel && (
@@ -178,5 +208,21 @@ export default function MonthView({ year, month, shifts, meetings = [], isAdmin,
         </tbody>
       </table>
     </div>
+
+      {/* Détail du jour choisi */}
+      <DayDetail
+        className="day-detail--desktop"
+        dateStr={selected}
+        shifts={sortDayShifts(getShiftsForDay(selected), isMe)}
+        meetings={getMeetingsForDay(selected)}
+        showNames={isAdmin || team}
+        isMe={isMe}
+        isAdmin={isAdmin}
+        onShiftClick={onShiftClick}
+        onShiftDelete={onShiftDelete}
+        onAddShift={onAddShift}
+        onMeetingClick={onMeetingClick}
+      />
+    </>
   );
 }

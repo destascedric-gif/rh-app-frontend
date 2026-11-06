@@ -134,7 +134,14 @@ export default function MySchedule() {
     ) : view === 'week' ? (
       <WeekView days={weekDays} shifts={shifts} meetings={meetings} isAdmin={false} />
     ) : (
-      <MonthView year={monthDate.getFullYear()} month={monthDate.getMonth()} shifts={shifts} meetings={meetings} isAdmin={false} />
+      <MonthView
+        key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
+        year={monthDate.getFullYear()}
+        month={monthDate.getMonth()}
+        shifts={shifts}
+        meetings={meetings}
+        isAdmin={false}
+      />
     )
   );
 
@@ -162,7 +169,16 @@ export default function MySchedule() {
         currentUserId={user?.id}
       />
     ) : (
-      <MonthView year={monthDate.getFullYear()} month={monthDate.getMonth()} shifts={team.shifts} meetings={meetings} isAdmin={false} />
+      <MonthView
+        key={`team-${monthDate.getFullYear()}-${monthDate.getMonth()}`}
+        year={monthDate.getFullYear()}
+        month={monthDate.getMonth()}
+        shifts={team.shifts}
+        meetings={meetings}
+        isAdmin={false}
+        team
+        currentUserId={user?.id}
+      />
     )
   );
 
@@ -189,18 +205,14 @@ export default function MySchedule() {
       )}
 
       {!showTeam && view === 'week' && !isPhone && (
-        <div className="metrics" style={{ gridTemplateColumns: 'repeat(3, minmax(0,1fr))', marginBottom: '1rem' }}>
+        <div className="metrics" style={{ gridTemplateColumns: 'repeat(2, minmax(0,1fr))', marginBottom: '1rem' }}>
           <div className="metric-card">
-            <div className="metric-label">Jours planifiés cette semaine</div>
-            <div className="metric-value">{weekShifts.length}</div>
+            <div className="metric-label">Jours travaillés cette semaine</div>
+            <div className="metric-value">{workShifts.length}</div>
           </div>
           <div className="metric-card">
             <div className="metric-label">Heures nettes cette semaine</div>
             <div className="metric-value">{weekHours.toFixed(1)} h</div>
-          </div>
-          <div className="metric-card">
-            <div className="metric-label">Jours sans créneau</div>
-            <div className="metric-value">{7 - weekShifts.length}</div>
           </div>
         </div>
       )}

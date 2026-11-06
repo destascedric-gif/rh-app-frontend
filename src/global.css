@@ -1537,12 +1537,33 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .month-table tbody tr:last-child td { border-bottom: none; }
 
 .month-cell-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  margin: 0 0 4px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
-  margin-bottom: 4px;
+  cursor: pointer;
 }
+.month-cell-num:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
 .month-td.today .month-cell-num { color: var(--primary); }
+
+/* Jour choisi : son détail s'affiche sous le calendrier */
+.month-td--selectable { cursor: pointer; }
+.month-td--selectable:hover { background: var(--bg-hover); }
+.month-td.selected { box-shadow: inset 0 0 0 2px var(--primary); opacity: 1; }
+.month-td.selected .month-cell-num { background: var(--primary); color: #fff; }
+.day-detail--desktop { margin: 20px 0 0; }
+.day-detail--desktop .pcal-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.day-detail--desktop .pcal-row { min-width: 0; }
 
 .month-overflow { font-size: 10.5px; color: var(--text-light); }
 
