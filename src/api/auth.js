@@ -42,3 +42,5 @@ export const inviteEmployee   = (data, token)    => post('/auth/invite', data, t
 export const resendInvite     = (id, token)      => post(`/auth/invite/${id}/resend`, {}, token);
 export const changePassword   = (data, token)    => put('/auth/change-password', data, token);
 export const acceptInvite     = (data)           => post('/auth/accept-invite', data);
+export const forgotPassword   = (data)           => post('/auth/forgot-password', data);
+export const resetPassword    = (data)           => post('/auth/reset-password', data);

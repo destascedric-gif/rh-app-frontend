@@ -75,6 +75,9 @@ export default function Login() {
         </form>
 
         <p className="auth-switch">
+          <Link to="/mot-de-passe-oublie">Mot de passe oublié ?</Link>
+        </p>
+        <p className="auth-switch">
           Pas encore de compte ? <Link to="/setup/admin">Créer mon entreprise</Link>
         </p>
         <LegalLinks />

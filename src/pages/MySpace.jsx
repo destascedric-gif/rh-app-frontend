@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { getMySchedule } from '../api/schedule';
 import { getMyBalance, getMyRequests } from '../api/leaves';
 import { getMeetings } from '../api/meetings';
+import { changePassword } from '../api/auth';
 import MeetingTag from '../components/schedule/MeetingTag';
 import { meetingsOn } from '../components/schedule/meetingUtils';
 import { toISO } from '../components/schedule/WeekView';
@@ -31,6 +32,7 @@ const hoursLabel = (h) => {
 };
 
 const isWork = (s) => (s.type || 'travail') === 'travail';
+const EMPTY_PASSWORD_FORM = { currentPassword: '', newPassword: '', confirmPassword: '' };
 
 export default function MySpace() {
   const { token, user } = useAuth();
@@ -42,6 +44,11 @@ export default function MySpace() {
   const [cpLeft,   setCpLeft]   = useState(null);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState('');
+
+  const [pwForm, setPwForm]     = useState(EMPTY_PASSWORD_FORM);
+  const [pwError, setPwError]   = useState('');
+  const [pwNotice, setPwNotice] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
 
   const today = new Date();
   const todayStr = toISO(today);
@@ -65,6 +72,32 @@ export default function MySpace() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [token]);
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setPwError('');
+    setPwNotice('');
+
+    if (pwForm.newPassword.length < 8) {
+      setPwError('Le nouveau mot de passe doit faire au moins 8 caractères.');
+      return;
+    }
+    if (pwForm.newPassword !== pwForm.confirmPassword) {
+      setPwError('La confirmation ne correspond pas au nouveau mot de passe.');
+      return;
+    }
+
+    setPwSaving(true);
+    try {
+      await changePassword({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }, token);
+      setPwForm(EMPTY_PASSWORD_FORM);
+      setPwNotice('Mot de passe modifié avec succès.');
+    } catch (err) {
+      setPwError(err.message);
+    } finally {
+      setPwSaving(false);
+    }
+  };
 
   if (loading) return <div className="page-loading">Chargement…</div>;
 
@@ -168,6 +201,52 @@ export default function MySpace() {
           <button type="button" className="btn-ghost btn-sm dash-link" onClick={() => navigate('/mes-conges')}>
             Voir mes congés
           </button>
+        </section>
+
+        <section className="dash-card">
+          <div className="dash-card-head">
+            <h2>Mon mot de passe</h2>
+          </div>
+
+          <form onSubmit={handlePasswordSubmit}>
+            <div className="field">
+              <label>Mot de passe actuel</label>
+              <input
+                type="password" autoComplete="current-password"
+                value={pwForm.currentPassword}
+                onChange={(e) => setPwForm(f => ({ ...f, currentPassword: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="field">
+              <label>Nouveau mot de passe</label>
+              <input
+                type="password" autoComplete="new-password"
+                value={pwForm.newPassword}
+                onChange={(e) => setPwForm(f => ({ ...f, newPassword: e.target.value }))}
+                required
+              />
+              <span className="hint">8 caractères minimum.</span>
+            </div>
+            <div className="field">
+              <label>Confirmer le nouveau mot de passe</label>
+              <input
+                type="password" autoComplete="new-password"
+                value={pwForm.confirmPassword}
+                onChange={(e) => setPwForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                required
+              />
+            </div>
+
+            {pwError && <p className="error-msg">{pwError}</p>}
+            {pwNotice && <p className="notif-bar notif-bar--success">{pwNotice}</p>}
+
+            <div className="form-actions">
+              <button type="submit" className="btn-primary" disabled={pwSaving}>
+                {pwSaving ? 'Enregistrement…' : 'Changer le mot de passe'}
+              </button>
+            </div>
+          </form>
         </section>
       </div>
     </div>

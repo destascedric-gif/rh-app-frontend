@@ -5,6 +5,8 @@ import Login from './pages/Login'
 import SetupAdmin from './pages/SetupAdmin'
 import SetupCompany from './pages/SetupCompany'
 import AcceptInvite from './pages/AcceptInvite'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
 import EmployeeList from './pages/EmployeeList'
 import EmployeeDetail from './pages/EmployeeDetail'
@@ -63,6 +65,8 @@ function App() {
           <Route path="/setup/admin" element={<SetupAdmin />} />
           <Route path="/setup/company" element={<SetupCompany />} />
           <Route path="/accept-invite" element={<AcceptInvite />} />
+          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+          <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
           {/* Documents légaux : publics, accessibles sans compte */}
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/cgu" element={<Cgu />} />
