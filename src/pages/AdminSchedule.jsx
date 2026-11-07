@@ -49,12 +49,15 @@ export default function AdminSchedule() {
   const [countMeetings, setCountMeetings] = useState(false);
   // Jours d'ouverture de la boutique (jours fermés grisés)
   const [openDays, setOpenDays] = useState(null);
+  // Lundi de Pentecôte travaillé (journée de solidarité) : pas affiché férié
+  const [pentecostWorked, setPentecostWorked] = useState(false);
 
   useEffect(() => {
     getPlanningPeople(token).then(setEmployees).catch(console.error);
     getSettings(token).then((s) => {
       setCountMeetings(Boolean(s.meetings_count_as_work));
       setOpenDays(s.open_days);
+      setPentecostWorked(Boolean(s.pentecost_monday_worked));
     }).catch(console.error);
     getShiftTemplates(token).then(setTemplates).catch(console.error);
   }, [token]);
@@ -237,7 +240,7 @@ export default function AdminSchedule() {
       {loading ? (
         <p className="tab-loading">Chargement…</p>
       ) : isPhone ? (
-        <PhoneCalendar openDays={openDays}
+        <PhoneCalendar openDays={openDays} pentecostWorked={pentecostWorked}
           key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
           year={monthDate.getFullYear()}
           month={monthDate.getMonth()}
@@ -251,7 +254,7 @@ export default function AdminSchedule() {
           onMeetingClick={(meeting) => setMeetingModal({ meeting })}
         />
       ) : view === 'week' ? (
-        <WeekView openDays={openDays}
+        <WeekView openDays={openDays} pentecostWorked={pentecostWorked}
           days={weekDays}
           shifts={shifts}
           meetings={meetings}
@@ -265,7 +268,7 @@ export default function AdminSchedule() {
           onReorder={handleReorder}
         />
       ) : (
-        <MonthView openDays={openDays}
+        <MonthView openDays={openDays} pentecostWorked={pentecostWorked}
           key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
           year={monthDate.getFullYear()}
           month={monthDate.getMonth()}

@@ -55,7 +55,7 @@ const chunkWeeks = (cells) => {
 export default function MonthView({
   year, month, shifts, meetings = [], isAdmin, selectedUserIds = [],
   onShiftClick, onShiftDelete, onMeetingClick, onAddShift,
-  team = false, currentUserId = null, openDays,
+  team = false, currentUserId = null, openDays, pentecostWorked = false,
 }) {
   const cells  = getMonthCells(year, month);
   const weeks  = chunkWeeks(cells);
@@ -111,7 +111,7 @@ export default function MonthView({
                   const isPast    = cell.date < new Date(new Date().setHours(0, 0, 0, 0));
 
                   const isSelected = dateStr === selected;
-                  const holiday    = holidayName(dateStr);
+                  const holiday    = holidayName(dateStr, pentecostWorked);
 
                   return (
                     <td
@@ -228,6 +228,7 @@ export default function MonthView({
         onShiftDelete={onShiftDelete}
         onAddShift={onAddShift}
         onMeetingClick={onMeetingClick}
+        pentecostWorked={pentecostWorked}
       />
     </>
   );

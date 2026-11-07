@@ -39,6 +39,7 @@ const toForm = (data) => ({
   meetingsCountAsWork:         Boolean(data.meetings_count_as_work),
   teamScheduleVisible:         Boolean(data.team_schedule_visible),
   openDays:                    data.open_days || DEFAULT_OPEN_DAYS,
+  pentecostMondayWorked:       Boolean(data.pentecost_monday_worked),
 });
 
 // "1111110" → "Lun → Sam" ; jours non consécutifs : "Lun, Mer, Sam"
@@ -315,6 +316,8 @@ export default function Settings() {
         {frNumber(saved.defaultWeeklyHours)} h par semaine · {frNumber(saved.leaveAccrualPerMonth)} j de congés par mois
         <br />
         Heures sup : {ratePercent(saved.overtimeTier1Rate)}, puis {ratePercent(saved.overtimeTier2Rate)} au-delà de {frNumber(saved.overtimeTier2ThresholdHours)} h
+        <br />
+        {saved.pentecostMondayWorked ? 'Lundi de Pentecôte travaillé (journée de solidarité)' : 'Lundi de Pentecôte férié'}
       </>
     ),
     brand: (
@@ -448,6 +451,22 @@ export default function Settings() {
               <span className="hint">Au-delà de ce seuil hebdo, la majoration passe au palier 2 (43 h par défaut).</span>
               {legalWarning('overtimeTier2ThresholdHours')}
             </div>
+            <label className="settings-switch">
+              <input
+                type="checkbox"
+                checked={form.pentecostMondayWorked}
+                onChange={(e) => handleChange('pentecostMondayWorked', e.target.checked)}
+              />
+              <span className="settings-switch-text">
+                <strong>Le lundi de Pentecôte est travaillé (journée de solidarité)</strong>
+                <span className="hint">
+                  Cochez si votre entreprise fait du lundi de Pentecôte sa journée de solidarité :
+                  c'est alors un jour travaillé normal, et un congé posé ce jour-là compte comme un
+                  jour de congé. Décoché (par défaut), le jour est férié : « Férié » dans le planning,
+                  et un congé ce jour-là ne coûte rien.
+                </span>
+              </span>
+            </label>
             {formFeedback}
           </form>
         </SettingsWindow>

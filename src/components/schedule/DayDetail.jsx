@@ -10,9 +10,10 @@ import { holidayName } from '../../utils/holidays';
 export default function DayDetail({
   dateStr, shifts, meetings = [], showNames = false, isMe = () => false,
   isAdmin = false, onShiftClick, onShiftDelete, onAddShift, onMeetingClick, className = '',
+  pentecostWorked = false,
 }) {
   const date = new Date(`${dateStr}T12:00:00`);
-  const holiday = holidayName(dateStr);
+  const holiday = holidayName(dateStr, pentecostWorked);
 
   return (
     <section className={`pcal-detail ${className}`} aria-live="polite">

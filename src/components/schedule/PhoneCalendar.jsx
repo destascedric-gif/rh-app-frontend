@@ -49,7 +49,7 @@ const getMonthWeeks = (year, month) => {
 export default function PhoneCalendar({
   year, month, shifts, meetings = [], isAdmin = false, selectedUserIds = [],
   onShiftClick, onShiftDelete, onAddShift, onMeetingClick,
-  team = false, currentUserId = null, openDays,
+  team = false, currentUserId = null, openDays, pentecostWorked = false,
 }) {
   // team : planning de l'équipe vu par un employé, en lecture seule —
   // initiales comme pour le gérant, sa propre ligne en premier (« Vous »),
@@ -90,7 +90,7 @@ export default function PhoneCalendar({
           const dateStr = toISO(day);
           const dayShifts = shiftsOn(dateStr).filter((s) => !team || chipKind(s) === 'work');
           const hasMeeting = meetingsOnDay(dateStr).length > 0;
-          const holiday = holidayName(dateStr);
+          const holiday = holidayName(dateStr, pentecostWorked);
           const label = `${DAY_NAMES[day.getDay()]} ${day.getDate()} ${MONTH_NAMES[day.getMonth()]}`
             + (holiday ? `, férié (${holiday})` : '')
             + (dayShifts.length ? `, ${dayShifts.length} créneau${dayShifts.length > 1 ? 'x' : ''}` : '')
@@ -151,6 +151,7 @@ export default function PhoneCalendar({
         onShiftDelete={onShiftDelete}
         onAddShift={onAddShift}
         onMeetingClick={onMeetingClick}
+        pentecostWorked={pentecostWorked}
       />
     </div>
   );

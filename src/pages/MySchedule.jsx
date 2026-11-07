@@ -37,6 +37,7 @@ export default function MySchedule() {
   const [meetings,  setMeetings]  = useState([]);
   const [countMeetings, setCountMeetings] = useState(false);
   const [openDays, setOpenDays] = useState(null);
+  const [pentecostWorked, setPentecostWorked] = useState(false);
   const [loading,   setLoading]   = useState(true);
   const [templates, setTemplates] = useState([]);
   // Onglet « Toute l'équipe » : seulement si le gérant partage le planning
@@ -51,6 +52,7 @@ export default function MySchedule() {
     getSettings(token).then((s) => {
       setCountMeetings(Boolean(s.meetings_count_as_work));
       setOpenDays(s.open_days);
+      setPentecostWorked(Boolean(s.pentecost_monday_worked));
       setTeamVisible(Boolean(s.team_schedule_visible));
     }).catch(() => {});
   }, [token]);
@@ -126,7 +128,7 @@ export default function MySchedule() {
     isPhone && view === 'week' ? (
       <PhoneWeekList days={weekDays} shifts={shifts} meetings={meetings} />
     ) : isPhone ? (
-      <PhoneCalendar openDays={openDays}
+      <PhoneCalendar openDays={openDays} pentecostWorked={pentecostWorked}
         key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
         year={monthDate.getFullYear()}
         month={monthDate.getMonth()}
@@ -134,9 +136,9 @@ export default function MySchedule() {
         meetings={meetings}
       />
     ) : view === 'week' ? (
-      <WeekView openDays={openDays} days={weekDays} shifts={shifts} meetings={meetings} isAdmin={false} />
+      <WeekView openDays={openDays} pentecostWorked={pentecostWorked} days={weekDays} shifts={shifts} meetings={meetings} isAdmin={false} />
     ) : (
-      <MonthView openDays={openDays}
+      <MonthView openDays={openDays} pentecostWorked={pentecostWorked}
         key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
         year={monthDate.getFullYear()}
         month={monthDate.getMonth()}
@@ -151,7 +153,7 @@ export default function MySchedule() {
   // serveur (aucun motif d'absence, note, pause ni heure)
   const renderTeam = () => (
     isPhone ? (
-      <PhoneCalendar openDays={openDays}
+      <PhoneCalendar openDays={openDays} pentecostWorked={pentecostWorked}
         key={`team-${monthDate.getFullYear()}-${monthDate.getMonth()}`}
         year={monthDate.getFullYear()}
         month={monthDate.getMonth()}
@@ -161,7 +163,7 @@ export default function MySchedule() {
         currentUserId={user?.id}
       />
     ) : view === 'week' ? (
-      <WeekView openDays={openDays}
+      <WeekView openDays={openDays} pentecostWorked={pentecostWorked}
         days={weekDays}
         shifts={team.shifts}
         meetings={meetings}
@@ -171,7 +173,7 @@ export default function MySchedule() {
         currentUserId={user?.id}
       />
     ) : (
-      <MonthView openDays={openDays}
+      <MonthView openDays={openDays} pentecostWorked={pentecostWorked}
         key={`team-${monthDate.getFullYear()}-${monthDate.getMonth()}`}
         year={monthDate.getFullYear()}
         month={monthDate.getMonth()}

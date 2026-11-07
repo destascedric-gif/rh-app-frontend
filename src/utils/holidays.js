@@ -41,6 +41,13 @@ const holidaysOf = (y) => {
   return map;
 };
 
-// Nom du jour férié pour une date "AAAA-MM-JJ", sinon null
-export const holidayName = (dateStr) =>
-  dateStr ? holidaysOf(Number(dateStr.slice(0, 4))).get(dateStr) ?? null : null;
+const PENTECOST_MONDAY = 'Lundi de Pentecôte';
+
+// Nom du jour férié pour une date "AAAA-MM-JJ", sinon null.
+// pentecostWorked : l'entreprise fait du lundi de Pentecôte sa journée de
+// solidarité (réglage Paramètres → Politique légale), jour travaillé normal.
+export const holidayName = (dateStr, pentecostWorked = false) => {
+  if (!dateStr) return null;
+  const name = holidaysOf(Number(dateStr.slice(0, 4))).get(dateStr) ?? null;
+  return pentecostWorked && name === PENTECOST_MONDAY ? null : name;
+};

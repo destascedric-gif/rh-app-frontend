@@ -21,7 +21,7 @@ export const toISO = (date) => {
 };
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-const formatDayHeader = (date, openDays) => {
+const formatDayHeader = (date, openDays, pentecostWorked) => {
   const dow      = date.getDay();
   const idx      = dow === 0 ? 6 : dow - 1;
   const day      = DAY_LABELS[idx];
@@ -29,15 +29,15 @@ const formatDayHeader = (date, openDays) => {
   const isToday  = toISO(date) === toISO(new Date());
   // Jour de fermeture de la boutique (par défaut samedi et dimanche)
   const isWeekend = isClosedDay(date, openDays);
-  const holiday   = holidayName(toISO(date));
+  const holiday   = holidayName(toISO(date), pentecostWorked);
   return { day, num, isToday, isWeekend, holiday };
 };
 
 // En-tête d'un jour : « Férié » sur la même ligne que le nom du jour, pour
 // ne pas agrandir l'en-tête ; le nom de la fête s'affiche au survol. Même
 // principe pour « Fermé » (jour de fermeture de la boutique).
-const DayHeader = ({ date, openDays }) => {
-  const { day, num, isToday, isWeekend, holiday } = formatDayHeader(date, openDays);
+const DayHeader = ({ date, openDays, pentecostWorked }) => {
+  const { day, num, isToday, isWeekend, holiday } = formatDayHeader(date, openDays, pentecostWorked);
   return (
     <th
       className={`week-th-day${isToday ? ' today' : ''}${isWeekend ? ' weekend' : ''}${holiday ? ' holiday' : ''}`}
@@ -68,7 +68,7 @@ const DragHandleIcon = () => (
 // employé (pas de colonne Total, sa propre ligne mise en avant)
 // onReorder(draggedEmpId, targetEmpId) : fourni uniquement côté gérant,
 // permet de glisser une ligne employé pour la remonter ou la descendre.
-export default function WeekView({ days, shifts, meetings = [], countMeetings = false, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick, showTotals = true, currentUserId = null, onReorder, openDays }) {
+export default function WeekView({ days, shifts, meetings = [], countMeetings = false, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick, showTotals = true, currentUserId = null, onReorder, openDays, pentecostWorked = false }) {
   const [dragOverCell, setDragOverCell] = useState(null);
   const [draggedEmpId, setDraggedEmpId] = useState(null);
   const [dragOverEmpId, setDragOverEmpId] = useState(null);
@@ -117,7 +117,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
           <thead>
             <tr>
               <th className="week-th-emp" />
-              {days.map((d, i) => <DayHeader key={i} date={d} openDays={openDays} />)}
+              {days.map((d, i) => <DayHeader key={i} date={d} openDays={openDays} pentecostWorked={pentecostWorked} />)}
               {showTotals && <th className="week-th-total">Total</th>}
             </tr>
           </thead>
@@ -167,7 +167,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                     const dateStr    = toISO(d);
                     const shift      = getShiftForUserAndDay(emp.id, dateStr);
                     const isPast     = d < new Date(new Date().setHours(0, 0, 0, 0));
-                    const { isWeekend, holiday } = formatDayHeader(d, openDays);
+                    const { isWeekend, holiday } = formatDayHeader(d, openDays, pentecostWorked);
                     const { continuesPrev, continuesNext } = getRunEdges(emp.id, i);
                     const cellKey    = `${emp.id}-${dateStr}`;
                     const isDragOver = dragOverCell === cellKey;
@@ -229,7 +229,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
         </colgroup>
         <thead>
           <tr>
-            {days.map((d, i) => <DayHeader key={i} date={d} openDays={openDays} />)}
+            {days.map((d, i) => <DayHeader key={i} date={d} openDays={openDays} pentecostWorked={pentecostWorked} />)}
           </tr>
         </thead>
         <tbody>
@@ -237,7 +237,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
             {days.map((d, i) => {
               const dateStr = toISO(d);
               const shift   = getShiftForDay(dateStr);
-              const { isWeekend, holiday } = formatDayHeader(d, openDays);
+              const { isWeekend, holiday } = formatDayHeader(d, openDays, pentecostWorked);
               const dayMeetings = meetingsOn(meetings, dateStr);
 
               const type = shift?.type || 'travail';
