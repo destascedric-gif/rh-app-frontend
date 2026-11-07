@@ -6,6 +6,7 @@ import { getEmployeeColor, getEmployeeColorLight } from './employeeColor';
 import { shiftColorVar } from './shiftColor';
 import MeetingTag from './MeetingTag';
 import { meetingsOn } from './meetingUtils';
+import { holidayName } from '../../utils/holidays';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence', absent: 'Absent' };
@@ -109,6 +110,7 @@ export default function MonthView({
                   const isPast    = cell.date < new Date(new Date().setHours(0, 0, 0, 0));
 
                   const isSelected = dateStr === selected;
+                  const holiday    = holidayName(dateStr);
 
                   return (
                     <td
@@ -120,19 +122,22 @@ export default function MonthView({
                         isToday ? 'today' : '',
                         isPast  ? 'past'  : '',
                         di >= 5 ? 'weekend' : '',
+                        holiday ? 'holiday' : '',
                         isSelected ? 'selected' : '',
                       ].filter(Boolean).join(' ')}
                       onClick={() => setSelected(dateStr)}
+                      title={holiday ? `Jour férié : ${holiday}` : undefined}
                     >
                       <button
                         type="button"
                         className="month-cell-num"
                         onClick={(e) => { e.stopPropagation(); setSelected(dateStr); }}
                         aria-pressed={isSelected}
-                        aria-label={`Voir le détail du ${dayLabel(cell.date)}`}
+                        aria-label={`Voir le détail du ${dayLabel(cell.date)}${holiday ? `, férié (${holiday})` : ''}`}
                       >
                         {cell.date.getDate()}
                       </button>
+                      {holiday && <span className="month-holiday">Férié</span>}
 
                       {dayShifts.slice(0, 3).map((shift, j) => {
                         const type = shift.type || 'travail';

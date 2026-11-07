@@ -1,6 +1,7 @@
 import { shiftColorVar } from './shiftColor';
 import MeetingTag from './MeetingTag';
 import { chipKind, DETAIL_TYPE_LABELS, DETAIL_DAY_NAMES, DETAIL_MONTH_NAMES } from './dayDetailUtils';
+import { holidayName } from '../../utils/holidays';
 
 // Détail du jour choisi dans le calendrier du mois (téléphone et ordinateur) :
 // - planning du gérant : tous les créneaux, modifiables, + Ajouter ;
@@ -11,11 +12,15 @@ export default function DayDetail({
   isAdmin = false, onShiftClick, onShiftDelete, onAddShift, onMeetingClick, className = '',
 }) {
   const date = new Date(`${dateStr}T12:00:00`);
+  const holiday = holidayName(dateStr);
 
   return (
     <section className={`pcal-detail ${className}`} aria-live="polite">
       <div className="pcal-detail-head">
-        <h2>{DETAIL_DAY_NAMES[date.getDay()]} {date.getDate()} {DETAIL_MONTH_NAMES[date.getMonth()]}</h2>
+        <h2>
+          {DETAIL_DAY_NAMES[date.getDay()]} {date.getDate()} {DETAIL_MONTH_NAMES[date.getMonth()]}
+          {holiday && <span className="pcal-detail-holiday"> · Férié ({holiday})</span>}
+        </h2>
         {isAdmin && onAddShift && (
           <button type="button" className="btn-ghost btn-sm" onClick={() => onAddShift(dateStr)}>+ Ajouter</button>
         )}

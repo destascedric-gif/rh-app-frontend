@@ -5,6 +5,7 @@ import { MeetingIcon } from './MeetingTag';
 import { meetingsOn } from './meetingUtils';
 import DayDetail from './DayDetail';
 import { chipKind, sortDayShifts, defaultSelectedDay } from './dayDetailUtils';
+import { holidayName } from '../../utils/holidays';
 
 // Calendrier du mois pour téléphone, façon Google Agenda : la grille tient
 // dans la largeur de l'écran, chaque jour porte de petites étiquettes, et
@@ -88,7 +89,9 @@ export default function PhoneCalendar({
           const dateStr = toISO(day);
           const dayShifts = shiftsOn(dateStr).filter((s) => !team || chipKind(s) === 'work');
           const hasMeeting = meetingsOnDay(dateStr).length > 0;
+          const holiday = holidayName(dateStr);
           const label = `${DAY_NAMES[day.getDay()]} ${day.getDate()} ${MONTH_NAMES[day.getMonth()]}`
+            + (holiday ? `, férié (${holiday})` : '')
             + (dayShifts.length ? `, ${dayShifts.length} créneau${dayShifts.length > 1 ? 'x' : ''}` : '')
             + (hasMeeting ? ', réunion' : '');
           return (
@@ -98,6 +101,7 @@ export default function PhoneCalendar({
               className={[
                 'pcal-day',
                 inMonth(day) ? '' : 'pcal-day--other',
+                holiday ? 'pcal-day--holiday' : '',
                 dateStr === selected ? 'pcal-day--selected' : '',
               ].filter(Boolean).join(' ')}
               onClick={() => setSelected(dateStr)}

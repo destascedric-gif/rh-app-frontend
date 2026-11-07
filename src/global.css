@@ -1296,6 +1296,10 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .week-th-day:last-child { border-right: none; }
 .week-th-day.today { background: var(--primary-light); }
 .week-th-day.weekend { background: var(--bg-hover); }
+/* Jour férié : bleu de l'entreprise très transparent, « Férié » sur la ligne du nom du jour */
+.week-th-day.holiday { background: color-mix(in srgb, var(--primary) 9%, var(--bg-card)); }
+.week-th-day.holiday .week-day-name { color: var(--primary); }
+.week-day-holiday { font-size: 10px; font-weight: 600; white-space: nowrap; }
 
 .week-th-total {
   width: 76px;
@@ -1360,6 +1364,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .week-td-cell.has-shift:hover { background: var(--bg); }
 .week-td-cell.past { opacity: 0.5; }
 .week-td-cell.weekend { background: rgba(240, 237, 232, 0.4); }
+.week-td-cell.holiday { background: color-mix(in srgb, var(--primary) 5%, transparent); }
 .week-td-cell.drag-over {
   background: var(--primary-light);
   box-shadow: inset 0 0 0 2px var(--primary);
@@ -1532,6 +1537,8 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .month-td.other-month { background: var(--bg); opacity: 0.5; }
 .month-td.weekend { background: rgba(240, 237, 232, 0.4); }
 .month-td.today { background: var(--primary-light); }
+.month-td.holiday { background: color-mix(in srgb, var(--primary) 5%, transparent); }
+.month-holiday { margin-left: 4px; font-size: 10px; font-weight: 600; color: var(--primary); vertical-align: 2px; }
 .month-td.past { opacity: 0.6; }
 
 .month-table tbody tr:last-child td { border-bottom: none; }
@@ -2256,6 +2263,9 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   text-align: center;
 }
 .pcal-day--other { background: transparent; color: var(--text-light); }
+.pcal-day--holiday { background: color-mix(in srgb, var(--primary) 7%, var(--bg-card)); }
+.pcal-day--holiday .pcal-num { color: var(--primary); }
+.pcal-day--holiday .pcal-num--today { color: #fff; }
 .pcal-day--other .pcal-chip { opacity: 0.55; }
 .pcal-day--selected { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
 .pcal-num { align-self: center; min-width: 24px; height: 24px; line-height: 24px; border-radius: 12px; font-size: 13px; font-weight: 600; margin-bottom: 1px; }
@@ -2297,6 +2307,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .pcal-detail { margin: 16px 8px 0; }
 .pcal-detail-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .pcal-detail-head h2 { font-size: 17px; font-weight: 600; }
+.pcal-detail-holiday { font-size: 13px; font-weight: 500; color: var(--primary); }
 .pcal-empty { font-size: 13.5px; color: var(--text-muted); padding: 8px 0; }
 .pcal-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .pcal-row { display: flex; align-items: stretch; gap: 6px; }
