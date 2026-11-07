@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAllRequests, getNotifications, markAllRead } from '../api/leaves';
 import { getPendingTimesheets } from '../api/employees';
+import { getMeetingNotifications, markMeetingNotificationsRead } from '../api/meetings';
 
 const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
 
@@ -11,7 +12,8 @@ const NOTIFICATIONS_CHANGED = 'orgaly:notifications-changed';
 
 // Cloche de la barre du haut, reliée aux vraies données :
 // - gérant : demandes de congé et pointages en attente de décision ;
-// - employé : réponses à ses demandes de congé (notifications non lues).
+// - employé : réponses à ses demandes de congé et réunions (invitation,
+//   modification, annulation), les plus récentes d'abord.
 // Rechargée à chaque changement de page, pour refléter les actions faites.
 export default function NotificationBell() {
   const { token, isAdmin } = useAuth();
@@ -44,10 +46,20 @@ export default function NotificationBell() {
           if (timesheets.length) list.push({ key: 'ts', label: `${plural(timesheets.length, 'pointage', 'pointages')} à valider`, to: '/dashboard' });
           return { list, total: leaves.length + timesheets.length };
         })
-      : getNotifications(token).then((notifs) => ({
-        list: notifs.slice(0, 6).map((n) => ({ key: n.id, label: n.message, to: '/mes-conges', unread: !n.is_read })),
-        total: notifs.filter((n) => !n.is_read).length,
-      }));
+      : Promise.all([
+        getNotifications(token),
+        // Une erreur sur les réunions ne doit pas vider la cloche
+        getMeetingNotifications(token).catch(() => []),
+      ]).then(([leaveNotifs, meetingNotifs]) => {
+        const notifs = [
+          ...leaveNotifs.map((n) => ({ ...n, to: '/mes-conges' })),
+          ...meetingNotifs.map((n) => ({ ...n, to: '/mon-planning' })),
+        ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        return {
+          list: notifs.slice(0, 6).map((n) => ({ key: n.id, label: n.message, to: n.to, unread: !n.is_read })),
+          total: notifs.filter((n) => !n.is_read).length,
+        };
+      });
 
     load
       .then(({ list, total }) => { if (!cancelled) { setItems(list); setCount(total); } })
@@ -73,7 +85,8 @@ export default function NotificationBell() {
     setOpen(next);
     // Employé : ouvrir la liste vaut lecture des notifications
     if (next && !isAdmin && count > 0) {
-      markAllRead(token).then(() => setCount(0)).catch(() => {});
+      Promise.all([markAllRead(token), markMeetingNotificationsRead(token)])
+        .then(() => setCount(0)).catch(() => {});
     }
   };
 

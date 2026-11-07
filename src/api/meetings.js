@@ -16,3 +16,7 @@ export const getMeetings   = (start, end, token) => req('GET', `/meetings?start=
 export const createMeeting = (data, token)       => req('POST',   '/meetings', token, data);
 export const updateMeeting = (id, data, token)   => req('PUT',    `/meetings/${id}`, token, data);
 export const deleteMeeting = (id, token)         => req('DELETE', `/meetings/${id}`, token);
+
+// Notifications de réunion de la personne connectée (cloche)
+export const getMeetingNotifications  = (token) => req('GET',   '/meetings/notifications', token);
+export const markMeetingNotificationsRead = (token) => req('PATCH', '/meetings/notifications/read-all', token);
