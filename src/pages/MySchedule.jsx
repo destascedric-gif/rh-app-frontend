@@ -36,6 +36,7 @@ export default function MySchedule() {
   const [shifts,    setShifts]    = useState([]);
   const [meetings,  setMeetings]  = useState([]);
   const [countMeetings, setCountMeetings] = useState(false);
+  const [openDays, setOpenDays] = useState(null);
   const [loading,   setLoading]   = useState(true);
   const [templates, setTemplates] = useState([]);
   // Onglet « Toute l'équipe » : seulement si le gérant partage le planning
@@ -49,6 +50,7 @@ export default function MySchedule() {
     getShiftTemplates(token).then(setTemplates).catch(() => {});
     getSettings(token).then((s) => {
       setCountMeetings(Boolean(s.meetings_count_as_work));
+      setOpenDays(s.open_days);
       setTeamVisible(Boolean(s.team_schedule_visible));
     }).catch(() => {});
   }, [token]);
@@ -124,7 +126,7 @@ export default function MySchedule() {
     isPhone && view === 'week' ? (
       <PhoneWeekList days={weekDays} shifts={shifts} meetings={meetings} />
     ) : isPhone ? (
-      <PhoneCalendar
+      <PhoneCalendar openDays={openDays}
         key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
         year={monthDate.getFullYear()}
         month={monthDate.getMonth()}
@@ -132,9 +134,9 @@ export default function MySchedule() {
         meetings={meetings}
       />
     ) : view === 'week' ? (
-      <WeekView days={weekDays} shifts={shifts} meetings={meetings} isAdmin={false} />
+      <WeekView openDays={openDays} days={weekDays} shifts={shifts} meetings={meetings} isAdmin={false} />
     ) : (
-      <MonthView
+      <MonthView openDays={openDays}
         key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
         year={monthDate.getFullYear()}
         month={monthDate.getMonth()}
@@ -149,7 +151,7 @@ export default function MySchedule() {
   // serveur (aucun motif d'absence, note, pause ni heure)
   const renderTeam = () => (
     isPhone ? (
-      <PhoneCalendar
+      <PhoneCalendar openDays={openDays}
         key={`team-${monthDate.getFullYear()}-${monthDate.getMonth()}`}
         year={monthDate.getFullYear()}
         month={monthDate.getMonth()}
@@ -159,7 +161,7 @@ export default function MySchedule() {
         currentUserId={user?.id}
       />
     ) : view === 'week' ? (
-      <WeekView
+      <WeekView openDays={openDays}
         days={weekDays}
         shifts={team.shifts}
         meetings={meetings}
@@ -169,7 +171,7 @@ export default function MySchedule() {
         currentUserId={user?.id}
       />
     ) : (
-      <MonthView
+      <MonthView openDays={openDays}
         key={`team-${monthDate.getFullYear()}-${monthDate.getMonth()}`}
         year={monthDate.getFullYear()}
         month={monthDate.getMonth()}

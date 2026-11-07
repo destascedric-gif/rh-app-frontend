@@ -3,6 +3,7 @@ import ShiftCard from './ShiftCard';
 import MeetingTag from './MeetingTag';
 import { meetingsOn, meetingExtraMinutes } from './meetingUtils';
 import { holidayName } from '../../utils/holidays';
+import { isClosedDay } from '../../utils/openDays';
 
 export const getWeekDays = (monday) => {
   return Array.from({ length: 7 }, (_, i) => {
@@ -20,27 +21,31 @@ export const toISO = (date) => {
 };
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-const formatDayHeader = (date) => {
+const formatDayHeader = (date, openDays) => {
   const dow      = date.getDay();
   const idx      = dow === 0 ? 6 : dow - 1;
   const day      = DAY_LABELS[idx];
   const num      = date.getDate();
   const isToday  = toISO(date) === toISO(new Date());
-  const isWeekend = dow === 0 || dow === 6;
+  // Jour de fermeture de la boutique (par défaut samedi et dimanche)
+  const isWeekend = isClosedDay(date, openDays);
   const holiday   = holidayName(toISO(date));
   return { day, num, isToday, isWeekend, holiday };
 };
 
 // En-tête d'un jour : « Férié » sur la même ligne que le nom du jour, pour
-// ne pas agrandir l'en-tête ; le nom de la fête s'affiche au survol.
-const DayHeader = ({ date }) => {
-  const { day, num, isToday, isWeekend, holiday } = formatDayHeader(date);
+// ne pas agrandir l'en-tête ; le nom de la fête s'affiche au survol. Même
+// principe pour « Fermé » (jour de fermeture de la boutique).
+const DayHeader = ({ date, openDays }) => {
+  const { day, num, isToday, isWeekend, holiday } = formatDayHeader(date, openDays);
   return (
     <th
       className={`week-th-day${isToday ? ' today' : ''}${isWeekend ? ' weekend' : ''}${holiday ? ' holiday' : ''}`}
       title={holiday ? `Jour férié : ${holiday}` : undefined}
     >
-      <span className="week-day-name">{day}{holiday && <span className="week-day-holiday"> · Férié</span>}</span>
+      <span className="week-day-name">{day}{holiday
+        ? <span className="week-day-holiday"> · Férié</span>
+        : isWeekend && <span className="week-day-closed"> · Fermé</span>}</span>
       <span className="week-day-num">{num}</span>
     </th>
   );
@@ -63,7 +68,7 @@ const DragHandleIcon = () => (
 // employé (pas de colonne Total, sa propre ligne mise en avant)
 // onReorder(draggedEmpId, targetEmpId) : fourni uniquement côté gérant,
 // permet de glisser une ligne employé pour la remonter ou la descendre.
-export default function WeekView({ days, shifts, meetings = [], countMeetings = false, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick, showTotals = true, currentUserId = null, onReorder }) {
+export default function WeekView({ days, shifts, meetings = [], countMeetings = false, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick, showTotals = true, currentUserId = null, onReorder, openDays }) {
   const [dragOverCell, setDragOverCell] = useState(null);
   const [draggedEmpId, setDraggedEmpId] = useState(null);
   const [dragOverEmpId, setDragOverEmpId] = useState(null);
@@ -112,7 +117,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
           <thead>
             <tr>
               <th className="week-th-emp" />
-              {days.map((d, i) => <DayHeader key={i} date={d} />)}
+              {days.map((d, i) => <DayHeader key={i} date={d} openDays={openDays} />)}
               {showTotals && <th className="week-th-total">Total</th>}
             </tr>
           </thead>
@@ -162,7 +167,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                     const dateStr    = toISO(d);
                     const shift      = getShiftForUserAndDay(emp.id, dateStr);
                     const isPast     = d < new Date(new Date().setHours(0, 0, 0, 0));
-                    const { isWeekend, holiday } = formatDayHeader(d);
+                    const { isWeekend, holiday } = formatDayHeader(d, openDays);
                     const { continuesPrev, continuesNext } = getRunEdges(emp.id, i);
                     const cellKey    = `${emp.id}-${dateStr}`;
                     const isDragOver = dragOverCell === cellKey;
@@ -196,6 +201,9 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                         ) : cellMeetings.length === 0 && (
                           <div className="cell-empty">—</div>
                         )}
+                        {isAdmin && isWeekend && shift && (shift.type || 'travail') === 'travail' && (
+                          <span className="week-closed-warn" title="Créneau placé un jour de fermeture">Jour fermé</span>
+                        )}
                         {cellMeetings.map((m) => (
                           <MeetingTag key={m.id} meeting={m} onClick={isAdmin ? onMeetingClick : undefined} />
                         ))}
@@ -221,7 +229,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
         </colgroup>
         <thead>
           <tr>
-            {days.map((d, i) => <DayHeader key={i} date={d} />)}
+            {days.map((d, i) => <DayHeader key={i} date={d} openDays={openDays} />)}
           </tr>
         </thead>
         <tbody>
@@ -229,7 +237,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
             {days.map((d, i) => {
               const dateStr = toISO(d);
               const shift   = getShiftForDay(dateStr);
-              const { isWeekend, holiday } = formatDayHeader(d);
+              const { isWeekend, holiday } = formatDayHeader(d, openDays);
               const dayMeetings = meetingsOn(meetings, dateStr);
 
               const type = shift?.type || 'travail';

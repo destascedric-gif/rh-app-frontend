@@ -47,10 +47,15 @@ export default function AdminSchedule() {
   const [meetingModal, setMeetingModal] = useState(null);
   // Réglage de l'entreprise : temps de réunion hors créneau compté comme travail
   const [countMeetings, setCountMeetings] = useState(false);
+  // Jours d'ouverture de la boutique (jours fermés grisés)
+  const [openDays, setOpenDays] = useState(null);
 
   useEffect(() => {
     getPlanningPeople(token).then(setEmployees).catch(console.error);
-    getSettings(token).then((s) => setCountMeetings(Boolean(s.meetings_count_as_work))).catch(console.error);
+    getSettings(token).then((s) => {
+      setCountMeetings(Boolean(s.meetings_count_as_work));
+      setOpenDays(s.open_days);
+    }).catch(console.error);
     getShiftTemplates(token).then(setTemplates).catch(console.error);
   }, [token]);
 
@@ -232,7 +237,7 @@ export default function AdminSchedule() {
       {loading ? (
         <p className="tab-loading">Chargement…</p>
       ) : isPhone ? (
-        <PhoneCalendar
+        <PhoneCalendar openDays={openDays}
           key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
           year={monthDate.getFullYear()}
           month={monthDate.getMonth()}
@@ -246,7 +251,7 @@ export default function AdminSchedule() {
           onMeetingClick={(meeting) => setMeetingModal({ meeting })}
         />
       ) : view === 'week' ? (
-        <WeekView
+        <WeekView openDays={openDays}
           days={weekDays}
           shifts={shifts}
           meetings={meetings}
@@ -260,7 +265,7 @@ export default function AdminSchedule() {
           onReorder={handleReorder}
         />
       ) : (
-        <MonthView
+        <MonthView openDays={openDays}
           key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
           year={monthDate.getFullYear()}
           month={monthDate.getMonth()}

@@ -7,6 +7,7 @@ import { shiftColorVar } from './shiftColor';
 import MeetingTag from './MeetingTag';
 import { meetingsOn } from './meetingUtils';
 import { holidayName } from '../../utils/holidays';
+import { isClosedDay, DEFAULT_OPEN_DAYS } from '../../utils/openDays';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence', absent: 'Absent' };
@@ -54,7 +55,7 @@ const chunkWeeks = (cells) => {
 export default function MonthView({
   year, month, shifts, meetings = [], isAdmin, selectedUserIds = [],
   onShiftClick, onShiftDelete, onMeetingClick, onAddShift,
-  team = false, currentUserId = null,
+  team = false, currentUserId = null, openDays,
 }) {
   const cells  = getMonthCells(year, month);
   const weeks  = chunkWeeks(cells);
@@ -86,7 +87,7 @@ export default function MonthView({
         <thead>
           <tr>
             {DAY_LABELS.map((d, i) => (
-              <th key={d} className={`month-th${i >= 5 ? ' weekend' : ''}`}>{d}</th>
+              <th key={d} className={`month-th${(openDays || DEFAULT_OPEN_DAYS)[i] === '0' ? ' weekend' : ''}`}>{d}</th>
             ))}
           </tr>
         </thead>
@@ -121,7 +122,7 @@ export default function MonthView({
                         !cell.currentMonth ? 'other-month' : '',
                         isToday ? 'today' : '',
                         isPast  ? 'past'  : '',
-                        di >= 5 ? 'weekend' : '',
+                        isClosedDay(cell.date, openDays) ? 'weekend' : '',
                         holiday ? 'holiday' : '',
                         isSelected ? 'selected' : '',
                       ].filter(Boolean).join(' ')}

@@ -1300,6 +1300,9 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .week-th-day.holiday { background: color-mix(in srgb, var(--primary) 9%, var(--bg-card)); }
 .week-th-day.holiday .week-day-name { color: var(--primary); }
 .week-day-holiday { font-size: 10px; font-weight: 600; white-space: nowrap; }
+.week-day-closed { font-size: 10px; font-weight: 600; white-space: nowrap; color: var(--text-light); }
+/* Créneau placé un jour de fermeture (vue du gérant) : prévenu, pas bloqué */
+.week-closed-warn { display: block; margin-top: 3px; font-size: 10px; font-weight: 600; color: var(--warning); text-align: center; }
 
 .week-th-total {
   width: 76px;
@@ -2263,6 +2266,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   text-align: center;
 }
 .pcal-day--other { background: transparent; color: var(--text-light); }
+.pcal-day--closed:not(.pcal-day--other) { background: var(--bg-hover); }
 .pcal-day--holiday { background: color-mix(in srgb, var(--primary) 7%, var(--bg-card)); }
 .pcal-day--holiday .pcal-num { color: var(--primary); }
 .pcal-day--holiday .pcal-num--today { color: #fff; }
@@ -2684,6 +2688,28 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .settings-switch-text { display: flex; flex-direction: column; gap: 3px; }
 .settings-switch-text strong { font-size: 14px; font-weight: 600; }
 .settings-switch-text .hint { font-size: 12.5px; line-height: 1.5; }
+
+/* Jours d'ouverture : les sept jours toujours sur une seule ligne */
+.settings-open-days { display: flex; flex-direction: column; gap: 8px; padding: 4px 0 14px; border-bottom: 1px solid var(--border); }
+.settings-open-days strong { font-size: 14px; font-weight: 600; }
+.settings-open-days .hint { font-size: 12.5px; line-height: 1.5; }
+.open-days-row { display: flex; flex-wrap: nowrap; gap: 6px; }
+.open-day-chip {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 7px 0;
+  border: 1px solid var(--border-dark);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.open-day-chip:hover { border-color: var(--primary); }
+.open-day-chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+.open-day-chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 /* ── Mon planning : onglets « Moi » / « Toute l'équipe » ── */
 .schedule-tabs { display: flex; width: max-content; max-width: 100%; margin-bottom: 14px; }

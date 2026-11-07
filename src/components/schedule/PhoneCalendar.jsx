@@ -6,6 +6,7 @@ import { meetingsOn } from './meetingUtils';
 import DayDetail from './DayDetail';
 import { chipKind, sortDayShifts, defaultSelectedDay } from './dayDetailUtils';
 import { holidayName } from '../../utils/holidays';
+import { isClosedDay } from '../../utils/openDays';
 
 // Calendrier du mois pour téléphone, façon Google Agenda : la grille tient
 // dans la largeur de l'écran, chaque jour porte de petites étiquettes, et
@@ -48,7 +49,7 @@ const getMonthWeeks = (year, month) => {
 export default function PhoneCalendar({
   year, month, shifts, meetings = [], isAdmin = false, selectedUserIds = [],
   onShiftClick, onShiftDelete, onAddShift, onMeetingClick,
-  team = false, currentUserId = null,
+  team = false, currentUserId = null, openDays,
 }) {
   // team : planning de l'équipe vu par un employé, en lecture seule —
   // initiales comme pour le gérant, sa propre ligne en premier (« Vous »),
@@ -102,6 +103,7 @@ export default function PhoneCalendar({
                 'pcal-day',
                 inMonth(day) ? '' : 'pcal-day--other',
                 holiday ? 'pcal-day--holiday' : '',
+                !holiday && isClosedDay(day, openDays) ? 'pcal-day--closed' : '',
                 dateStr === selected ? 'pcal-day--selected' : '',
               ].filter(Boolean).join(' ')}
               onClick={() => setSelected(dateStr)}

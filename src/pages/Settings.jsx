@@ -4,6 +4,7 @@ import { getSettings, updateSettings } from '../api/settings';
 import { changePassword } from '../api/auth';
 import { getShiftTemplates, createShiftTemplate, updateShiftTemplate, deleteShiftTemplate } from '../api/shiftTemplates';
 import PageHeader from '../components/PageHeader';
+import { DEFAULT_OPEN_DAYS, OPEN_DAY_LABELS } from '../utils/openDays';
 import { SHIFT_PALETTE, NEUTRAL_SHIFT_COLOR } from '../components/schedule/shiftColor';
 
 const EMPTY_PASSWORD_FORM = { currentPassword: '', newPassword: '', confirmPassword: '' };
@@ -37,7 +38,16 @@ const toForm = (data) => ({
   managerInSchedule:           Boolean(data.manager_in_schedule),
   meetingsCountAsWork:         Boolean(data.meetings_count_as_work),
   teamScheduleVisible:         Boolean(data.team_schedule_visible),
+  openDays:                    data.open_days || DEFAULT_OPEN_DAYS,
 });
+
+// "1111110" → "Lun → Sam" ; jours non consécutifs : "Lun, Mer, Sam"
+const openDaysSummary = (openDays) => {
+  const idx = [...openDays].map((c, i) => (c === '1' ? i : -1)).filter((i) => i >= 0);
+  const consecutive = idx.every((v, k) => k === 0 || v === idx[k - 1] + 1);
+  if (idx.length > 2 && consecutive) return `${OPEN_DAY_LABELS[idx[0]]} → ${OPEN_DAY_LABELS[idx[idx.length - 1]]}`;
+  return idx.map((i) => OPEN_DAY_LABELS[i]).join(', ');
+};
 
 const icon = {
   width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor',
@@ -325,6 +335,8 @@ export default function Settings() {
     ),
     planning: (
       <>
+        Ouvert : {openDaysSummary(saved.openDays)}
+        <br />
         {saved.managerInSchedule ? 'Le gérant figure dans le planning' : 'Le gérant n\'est pas dans le planning'}
         <br />
         {saved.meetingsCountAsWork ? 'Réunions comptées dans les heures' : 'Réunions non comptées dans les heures'}
@@ -612,6 +624,33 @@ export default function Settings() {
       {openSection === 'planning' && (
         <SettingsWindow id="planning" onClose={closeWindow}>
           <form onSubmit={handleSubmit}>
+            <div className="settings-open-days">
+              <strong>Jours d'ouverture</strong>
+              <div className="open-days-row" role="group" aria-label="Jours d'ouverture">
+                {OPEN_DAY_LABELS.map((label, i) => {
+                  const isOpen = form.openDays[i] === '1';
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      className={`open-day-chip${isOpen ? ' on' : ''}`}
+                      aria-pressed={isOpen}
+                      onClick={() => {
+                        const next = form.openDays.slice(0, i) + (isOpen ? '0' : '1') + form.openDays.slice(i + 1);
+                        if (next.includes('1')) handleChange('openDays', next);
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              <span className="hint">
+                Cliquez sur un jour pour l'ouvrir ou le fermer. Les jours fermés sont grisés dans le
+                planning. Ce réglage ne change pas le décompte des congés.
+              </span>
+            </div>
+
             <label className="settings-switch">
               <input
                 type="checkbox"
