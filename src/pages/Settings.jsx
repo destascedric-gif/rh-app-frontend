@@ -4,6 +4,10 @@ import { getSettings, updateSettings } from '../api/settings';
 import { changePassword } from '../api/auth';
 import { getShiftTemplates, createShiftTemplate, updateShiftTemplate, deleteShiftTemplate } from '../api/shiftTemplates';
 import PageHeader from '../components/PageHeader';
+import Select from '../components/Select';
+import {
+  COMMON_AGREEMENTS, NO_AGREEMENT_IDCC, agreementChoice, agreementSummary,
+} from '../utils/collectiveAgreements';
 import { DEFAULT_OPEN_DAYS, OPEN_DAY_LABELS } from '../utils/openDays';
 import { SHIFT_PALETTE, NEUTRAL_SHIFT_COLOR } from '../components/schedule/shiftColor';
 
@@ -40,6 +44,10 @@ const toForm = (data) => ({
   teamScheduleVisible:         Boolean(data.team_schedule_visible),
   openDays:                    data.open_days || DEFAULT_OPEN_DAYS,
   pentecostMondayWorked:       Boolean(data.pentecost_monday_worked),
+  idcc:                        data.idcc ?? '',
+  collectiveAgreement:         data.collective_agreement ?? '',
+  // Choix du menu : '' (non renseignée), un IDCC de la liste, 9999 (aucune) ou 'other'
+  agreementChoice:             agreementChoice(data.idcc),
 });
 
 // "1111110" → "Lun → Sam" ; jours non consécutifs : "Lun, Mer, Sam"
@@ -260,6 +268,19 @@ export default function Settings() {
 
   const handleChange = (field, value) => setForm((f) => ({ ...f, [field]: value }));
 
+  // Menu de la convention collective : remplit l'IDCC et l'intitulé
+  const handleAgreementChoice = (choice) => setForm((f) => {
+    if (choice === 'other') {
+      const keep = f.agreementChoice === 'other';
+      return { ...f, agreementChoice: 'other', idcc: keep ? f.idcc : '', collectiveAgreement: keep ? f.collectiveAgreement : '' };
+    }
+    if (choice === NO_AGREEMENT_IDCC) {
+      return { ...f, agreementChoice: choice, idcc: NO_AGREEMENT_IDCC, collectiveAgreement: '' };
+    }
+    const known = COMMON_AGREEMENTS.find((a) => a.idcc === choice);
+    return { ...f, agreementChoice: choice, idcc: known?.idcc ?? '', collectiveAgreement: known?.name ?? '' };
+  });
+
   const handleColorPreview = (value) => handleChange('primaryColor', value);
 
   const handleSubmit = async (e) => {
@@ -318,6 +339,8 @@ export default function Settings() {
         Heures sup : {ratePercent(saved.overtimeTier1Rate)}, puis {ratePercent(saved.overtimeTier2Rate)} au-delà de {frNumber(saved.overtimeTier2ThresholdHours)} h
         <br />
         {saved.pentecostMondayWorked ? 'Lundi de Pentecôte travaillé (journée de solidarité)' : 'Lundi de Pentecôte férié'}
+        <br />
+        {agreementSummary(saved.idcc, saved.collectiveAgreement)}
       </>
     ),
     brand: (
@@ -395,6 +418,48 @@ export default function Settings() {
       {openSection === 'legal' && (
         <SettingsWindow id="legal" onClose={closeWindow}>
           <form onSubmit={handleSubmit}>
+            <div className="field">
+              <label id="agreement-label">Convention collective</label>
+              <Select
+                aria-labelledby="agreement-label"
+                value={form.agreementChoice}
+                onChange={(e) => handleAgreementChoice(e.target.value)}
+              >
+                <option value="">Non renseignée</option>
+                {COMMON_AGREEMENTS.map((a) => (
+                  <option key={a.idcc} value={a.idcc}>{a.name} — IDCC {a.idcc}</option>
+                ))}
+                <option value={NO_AGREEMENT_IDCC}>Aucune convention collective (Code du travail seul)</option>
+                <option value="other">Autre convention…</option>
+              </Select>
+              <span className="hint">
+                Imprimée sur les bulletins de paie (mention obligatoire). Vous la trouverez sur un
+                bulletin de paie ou un contrat de travail existant, ou sur code.travail.gouv.fr
+                (« Trouver sa convention collective »).
+              </span>
+            </div>
+            {form.agreementChoice === 'other' && (
+              <div className="field-row">
+                <div className="field">
+                  <label>IDCC (4 chiffres)</label>
+                  <input
+                    inputMode="numeric" pattern="\d{4}" required
+                    title="Numéro à 4 chiffres, par exemple 1517"
+                    placeholder="ex. 1517"
+                    value={form.idcc}
+                    onChange={(e) => handleChange('idcc', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  />
+                </div>
+                <div className="field">
+                  <label>Intitulé de la convention</label>
+                  <input
+                    maxLength={150} required
+                    value={form.collectiveAgreement}
+                    onChange={(e) => handleChange('collectiveAgreement', e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
             <div className="field-row">
               <div className="field">
                 <label>Durée hebdomadaire par défaut (h)</label>
