@@ -67,8 +67,8 @@
   /* Survol d'une case du planning : bleu très léger (plus soutenu sur un
      férié), plutôt que le crème qui effaçait le bleu des fériés. */
   /* Planning en tuiles (8 nov. 2026) : cases blanches arrondies, séparées
-     par un mince espace gris chaud clair */
-  --grid-sand:     #ECEAE6;  /* gris chaud clair entre les cases (8 nov. 2026 ; sables #F0E9DC et #EEE8DD écartés : ils jaunissaient le blanc) */
+     par un mince espace sable */
+  --grid-sand:     #EEE8DD;  /* sable entre les cases (un peu moins jaune que le premier essai #F0E9DC) */
   --grid-line:     #E4DED4;
   --closed-bg:     #F6F4F0;  /* jours fermés à venir : tuile blanc cassé très léger, peu teinté */
   --cell-hover:    color-mix(in srgb, var(--primary) 6%, #fff);
