@@ -22,6 +22,8 @@ export const getPlanningPeople  = (token)           => request('GET',  '/employe
 // Ordre d'affichage dans le planning (glisser-déposer) : liste d'id du haut vers le bas
 export const updateEmployeeOrder = (order, token)   => request('PUT',  '/employees/order', token, { order });
 export const getEmployee        = (id, token)       => request('GET',  `/employees/${id}`, token);
+// Sa propre fiche (page « Mon compte »), lecture seule
+export const getMyProfile       = (token)           => request('GET',  '/employees/me', token);
 export const updateEmployee     = (id, data, token) => request('PUT',  `/employees/${id}`, token, data);
 export const deactivateEmployee = (id, token)       => request('DELETE', `/employees/${id}`, token);
 export const reactivateEmployee = (id, token)       => request('PUT',  `/employees/${id}/reactivate`, token);

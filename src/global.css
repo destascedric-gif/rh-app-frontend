@@ -2625,6 +2625,8 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 /* ── Mon espace (accueil employé) ── */
 .myspace-hello { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; }
+/* Page « Mon compte » : intertitre « Mon contrat » dans la carte */
+.myaccount-subtitle { margin: 18px 0 4px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
 .myspace-shifts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .myspace-shift {
   display: flex;
