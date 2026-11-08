@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { getMyTimesheets, addMyTimesheet, updateMyTimesheet, deleteMyTimesheet } from '../api/employees';
 import PageHeader from '../components/PageHeader';
 import Select from '../components/Select';
+import { frDecimal } from '../utils/formatNumber';
 
 const MONTHS = [
   'Janvier','Février','Mars','Avril','Mai','Juin',
@@ -111,11 +112,11 @@ export default function MyTimesheet() {
             <div className="summary-label">Jours travaillés</div>
           </div>
           <div className="summary-card">
-            <div className="summary-value">{totalHours.toFixed(1)} h</div>
+            <div className="summary-value">{frDecimal(totalHours)} h</div>
             <div className="summary-label">Heures totales</div>
           </div>
           <div className="summary-card">
-            <div className="summary-value">{daysWorked > 0 ? (totalHours / daysWorked).toFixed(1) : '—'} h</div>
+            <div className="summary-value">{daysWorked > 0 ? frDecimal(totalHours / daysWorked) : '—'} h</div>
             <div className="summary-label">Moyenne / jour</div>
           </div>
         </div>

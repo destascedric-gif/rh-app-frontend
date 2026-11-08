@@ -4,6 +4,7 @@ import MeetingTag from './MeetingTag';
 import { meetingsOn, meetingExtraMinutes } from './meetingUtils';
 import { holidayName } from '../../utils/holidays';
 import { isClosedDay } from '../../utils/openDays';
+import { frDecimal } from '../../utils/formatNumber';
 
 export const getWeekDays = (monday) => {
   return Array.from({ length: 7 }, (_, i) => {
@@ -210,7 +211,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                       </td>
                     );
                   })}
-                  {showTotals && <td className="week-td-total">{getWeeklyTotal(emp.id).toFixed(1)} h</td>}
+                  {showTotals && <td className="week-td-total">{frDecimal(getWeeklyTotal(emp.id))} h</td>}
                 </tr>
               );
             })}

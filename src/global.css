@@ -1635,6 +1635,12 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   box-shadow: 0 1px 2px rgba(60, 45, 25, 0.10), 0 1px 1px rgba(60, 45, 25, 0.04);
 }
 .week-td-total { background: var(--bg-subtle); }
+/* En-tête des jours : tous dans le même style sur le sable ; un jour fermé
+   se signale par « · Fermé » dans son nom et aujourd'hui par son numéro en
+   bleu, sans case claire à part (avant : case isolée, jugée incohérente) */
+.week-th-day.weekend:not(.holiday),
+.week-th-day.today:not(.holiday),
+.month-th.weekend { background: transparent; }
 /* Jours passés (semaine) : case blanche, contenu atténué comme dans le mois */
 .week-td-cell.past { opacity: 1; background: var(--bg-card); }
 .week-td-cell.past > * { opacity: 0.45; filter: grayscale(0.6); }

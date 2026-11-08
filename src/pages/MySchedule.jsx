@@ -13,6 +13,7 @@ import PhoneWeekList from '../components/schedule/PhoneWeekList';
 import useMediaQuery, { PHONE_QUERY } from '../utils/useMediaQuery';
 import PageHeader from '../components/PageHeader';
 import { weekLabel } from '../utils/weekLabel';
+import { frDecimal } from '../utils/formatNumber';
 
 const getMondayOfWeek = (date = new Date()) => {
   const d   = new Date(date);
@@ -204,7 +205,7 @@ export default function MySchedule() {
       {!showTeam && view === 'week' && isPhone && (
         <p className="week-summary">
           <strong>{workShifts.length}</strong> jour{workShifts.length > 1 ? 's' : ''} travaillé{workShifts.length > 1 ? 's' : ''}
-          {' · '}<strong>{weekHours.toFixed(1)} h</strong> nettes
+          {' · '}<strong>{frDecimal(weekHours)} h</strong> nettes
         </p>
       )}
 
@@ -216,7 +217,7 @@ export default function MySchedule() {
           </div>
           <div className="metric-card">
             <div className="metric-label">Heures nettes cette semaine</div>
-            <div className="metric-value">{weekHours.toFixed(1)} h</div>
+            <div className="metric-value">{frDecimal(weekHours)} h</div>
           </div>
         </div>
       )}

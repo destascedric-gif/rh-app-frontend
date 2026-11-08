@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getTimesheets, addTimesheet, updateTimesheet, deleteTimesheet, reviewTimesheet } from '../../api/employees';
 import { notifyRequestsChanged } from '../../utils/notifications';
 import Select from '../Select';
+import { frDecimal } from '../../utils/formatNumber';
 
 const STATUS_BADGE = {
   'validé':     { label: 'Validé',      className: 'badge-active' },
@@ -137,12 +138,12 @@ export default function TimesheetTab({ employeeId }) {
           <div className="summary-label">Jours travaillés</div>
         </div>
         <div className="summary-card">
-          <div className="summary-value">{totalHours.toFixed(1)} h</div>
+          <div className="summary-value">{frDecimal(totalHours)} h</div>
           <div className="summary-label">Heures totales</div>
         </div>
         <div className="summary-card">
           <div className="summary-value">
-            {daysWorked > 0 ? (totalHours / daysWorked).toFixed(1) : '—'} h
+            {daysWorked > 0 ? frDecimal(totalHours / daysWorked) : '—'} h
           </div>
           <div className="summary-label">Moyenne / jour</div>
         </div>

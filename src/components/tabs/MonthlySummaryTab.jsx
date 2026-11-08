@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getMonthlySummary } from '../../api/employees';
 import Select from '../Select';
+import { frDecimal } from '../../utils/formatNumber';
 
 const MONTHS = [
   'Janvier','Février','Mars','Avril','Mai','Juin',
@@ -43,7 +44,7 @@ export default function MonthlySummaryTab({ employeeId }) {
         <>
           <div className="timesheet-summary">
             <div className="summary-card">
-              <div className="summary-value">{summary.totalHours.toFixed(1)} h</div>
+              <div className="summary-value">{frDecimal(summary.totalHours)} h</div>
               <div className="summary-label">Heures travaillées</div>
             </div>
             <div className="summary-card">

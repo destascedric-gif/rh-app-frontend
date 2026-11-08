@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getDocuments, addDocument } from '../../api/employees';
 import Select from '../Select';
+import { frDecimal } from '../../utils/formatNumber';
 
 const DOC_TYPES = ['contrat', 'avenant', 'autre'];
 
 const formatSize = (bytes) => {
   if (!bytes) return '';
   if (bytes < 1024)       return `${bytes} o`;
-  if (bytes < 1048576)    return `${(bytes / 1024).toFixed(1)} Ko`;
-  return `${(bytes / 1048576).toFixed(1)} Mo`;
+  if (bytes < 1048576)    return `${frDecimal(bytes / 1024)} Ko`;
+  return `${frDecimal(bytes / 1048576)} Mo`;
 };
 
 export default function DocumentsTab({ employeeId }) {
