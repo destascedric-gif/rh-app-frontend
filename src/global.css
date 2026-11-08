@@ -9,7 +9,7 @@
 :root {
   /* Ambiance « crème et bleu nuit » (choisie le 8 nov. 2026) : fond crème
      clair, cartes blanches posées dessus avec une ombre douce, menu bleu nuit. */
-  --bg:          #F1EBE1;  /* fond des pages : crème rapproché du sable du planning (8 nov. 2026, pour moins de teintes différentes et plus de contraste avec le blanc ; avant : #FCF9F4) */
+  --bg:          #F8F7F4;  /* fond des pages : presque neutre (version « nette » du 8 nov. 2026 : le sable du planning reste la seule touche beige ; crèmes essayés avant : #E4D9C7 → #FCF9F4, #F1EBE1) */
   --bg-card:     #FFFFFF;
   --bg-subtle:   #FDFBF8;  /* zones claires à l'intérieur d'une carte (en-têtes de tableau…) */
   --bg-hover:    #F2ECE2;
@@ -69,8 +69,8 @@
   /* Planning en tuiles (8 nov. 2026) : cases blanches arrondies, séparées
      par un mince espace sable */
   --grid-sand:     #E3D9C8;  /* sable moyen entre les cases (8 nov. 2026) : assez marqué pour que le blanc des cases ressorte ; essais : #F0E9DC, #EEE8DD trop clairs, gris chaud #ECEAE6 refusé */
-  --grid-line:     #E4DED4;
-  --closed-bg:     #F6F4F0;  /* jours fermés à venir : tuile blanc cassé très léger, peu teinté */
+  --grid-line:     #D9CFBE;  /* contour fin et net des cases du planning */
+  --closed-bg:     #FFFFFF;  /* jours fermés : case blanche comme les autres, signalés par « · Fermé » (version nette) */
   --cell-hover:    color-mix(in srgb, var(--primary) 6%, #fff);
   --holiday-hover: color-mix(in srgb, var(--primary) 18%, #fff);
   --leave-hatch: repeating-linear-gradient(135deg, #F1EDE6 0 5px, #DFD8CC 5px 7px);
@@ -1630,9 +1630,9 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   border: none;
   border-radius: 8px;
   background: var(--bg-card);
-  /* Pas de contour beige (il ternissait le blanc) : une ombre douce qui
-     « pose » la case sur le sable et fait ressortir son blanc */
-  box-shadow: 0 1px 2px rgba(60, 45, 25, 0.10), 0 1px 1px rgba(60, 45, 25, 0.04);
+  /* Version « nette » : contour fin et précis plutôt qu'une ombre floue
+     (inset : n'est pas coupé par les règles :last-child des bordures) */
+  box-shadow: inset 0 0 0 1px var(--grid-line);
 }
 .week-td-total { background: var(--bg-subtle); }
 /* En-tête des jours : tous dans le même style sur le sable ; un jour fermé
