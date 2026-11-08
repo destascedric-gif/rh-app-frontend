@@ -200,7 +200,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                             onDelete={onShiftDelete}
                           />
                         ) : cellMeetings.length === 0 && (
-                          <div className="cell-empty">—</div>
+                          <div className="cell-empty">{isWeekend ? 'Fermé' : '—'}</div>
                         )}
                         {isAdmin && isWeekend && shift && (shift.type || 'travail') === 'travail' && (
                           <span className="week-closed-warn" title="Créneau placé un jour de fermeture">Jour fermé</span>
@@ -252,7 +252,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                 <td key={i} className={`week-td-cell${shift ? ' has-shift' : ''}${isWeekend ? ' weekend' : ''}${holiday ? ' holiday' : ''}`}>
                   {shift
                     ? <ShiftCard shift={shift} isAdmin={false} compact={true} continuesPrev={continuesPrev} continuesNext={continuesNext} />
-                    : dayMeetings.length === 0 && <div className="cell-empty">—</div>
+                    : dayMeetings.length === 0 && <div className="cell-empty">{isWeekend ? 'Fermé' : '—'}</div>
                   }
                   {dayMeetings.map((m) => <MeetingTag key={m.id} meeting={m} />)}
                 </td>

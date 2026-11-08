@@ -127,7 +127,7 @@ export default function MySchedule() {
 
   const renderMine = () => (
     isPhone && view === 'week' ? (
-      <PhoneWeekList days={weekDays} shifts={shifts} meetings={meetings} />
+      <PhoneWeekList openDays={openDays} days={weekDays} shifts={shifts} meetings={meetings} />
     ) : isPhone ? (
       <PhoneCalendar openDays={openDays} pentecostWorked={pentecostWorked}
         key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}

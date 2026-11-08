@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { getMySchedule } from '../api/schedule';
 import { getMyBalance, getMyRequests } from '../api/leaves';
 import { getMeetings } from '../api/meetings';
+import { getSettings } from '../api/settings';
+import { isClosedDay } from '../utils/openDays';
 import MeetingTag from '../components/schedule/MeetingTag';
 import { meetingsOn } from '../components/schedule/meetingUtils';
 import { toISO } from '../components/schedule/WeekView';
@@ -68,6 +70,12 @@ export default function MySpace() {
       .finally(() => setLoading(false));
   }, [token]);
 
+  // Jours d'ouverture : « Fermé aujourd'hui. » plutôt que « Pas de créneau »
+  const [openDays, setOpenDays] = useState(null);
+  useEffect(() => {
+    getSettings(token).then((s) => setOpenDays(s.open_days)).catch(() => {});
+  }, [token]);
+
   if (loading) return <div className="page-loading">Chargement…</div>;
 
   const byTime = (a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? '');
@@ -109,7 +117,7 @@ export default function MySpace() {
             </ul>
           ) : (
             <p className="myspace-off">
-              {todayOff ? (todayOff.note || TYPE_LABELS[todayOff.type]) : 'Pas de créneau prévu aujourd\'hui.'}
+              {todayOff ? (todayOff.note || TYPE_LABELS[todayOff.type]) : isClosedDay(today, openDays) ? 'Fermé aujourd\'hui.' : 'Pas de créneau prévu aujourd\'hui.'}
             </p>
           )}
 

@@ -2,6 +2,7 @@ import { shiftColorVar } from './shiftColor';
 import MeetingTag from './MeetingTag';
 import { chipKind, DETAIL_TYPE_LABELS, DETAIL_DAY_NAMES, DETAIL_MONTH_NAMES } from './dayDetailUtils';
 import { holidayName } from '../../utils/holidays';
+import { isClosedDay } from '../../utils/openDays';
 
 // Détail du jour choisi dans le calendrier du mois (téléphone et ordinateur) :
 // - planning du gérant : tous les créneaux, modifiables, + Ajouter ;
@@ -10,7 +11,7 @@ import { holidayName } from '../../utils/holidays';
 export default function DayDetail({
   dateStr, shifts, meetings = [], showNames = false, isMe = () => false,
   isAdmin = false, onShiftClick, onShiftDelete, onAddShift, onMeetingClick, className = '',
-  pentecostWorked = false,
+  pentecostWorked = false, openDays,
 }) {
   const date = new Date(`${dateStr}T12:00:00`);
   const holiday = holidayName(dateStr, pentecostWorked);
@@ -39,7 +40,7 @@ export default function DayDetail({
       )}
 
       {shifts.length === 0 ? (
-        <p className="pcal-empty">Aucun créneau ce jour-là.</p>
+        <p className="pcal-empty">{isClosedDay(date, openDays) ? 'Fermé ce jour-là.' : 'Aucun créneau ce jour-là.'}</p>
       ) : (
         <ul className="pcal-list">
           {shifts.map((s) => {

@@ -141,6 +141,7 @@ export default function PhoneCalendar({
 
       {/* Détail du jour touché */}
       <DayDetail
+        openDays={openDays}
         dateStr={selected}
         shifts={selectedShifts}
         meetings={selectedMeetings}

@@ -213,6 +213,7 @@ export default function MonthView({
 
       {/* Détail du jour choisi */}
       <DayDetail
+        openDays={openDays}
         className="day-detail--desktop"
         dateStr={selected}
         shifts={sortDayShifts(getShiftsForDay(selected), isMe)}

@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { getPlanningPeople, getPendingTimesheets, reviewTimesheet } from '../api/employees';
 import { getAllRequests, reviewRequest } from '../api/leaves';
 import { getAdminSchedule } from '../api/schedule';
+import { getSettings } from '../api/settings';
+import { isClosedDay } from '../utils/openDays';
 import { getWeekDays, toISO } from '../components/schedule/WeekView';
 import { shiftColorVar } from '../components/schedule/shiftColor';
 import PageHeader from '../components/PageHeader';
@@ -72,6 +74,14 @@ export default function Dashboard() {
   }, [token]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Jours d'ouverture : un jour fermé sans créneau s'affiche « Fermé »
+  // plutôt que « Pas de créneau » (qui ressemblait à un oubli)
+  const [openDays, setOpenDays] = useState(null);
+  useEffect(() => {
+    getSettings(token).then((s) => setOpenDays(s.open_days)).catch(() => {});
+  }, [token]);
+  const closedToday = isClosedDay(new Date(), openDays);
 
   // Valider / refuser directement depuis le tableau de bord
   const decideLeave = async (leave, status) => {
@@ -184,7 +194,7 @@ export default function Dashboard() {
                         {shortTime(shift.start_time)} – {shortTime(shift.end_time)}
                       </span>
                     ) : (
-                      <span className="dash-off">{type ? TYPE_LABELS[type] : 'Pas de créneau'}</span>
+                      <span className="dash-off">{type ? TYPE_LABELS[type] : (closedToday ? 'Fermé' : 'Pas de créneau')}</span>
                     )}
                   </li>
                 );

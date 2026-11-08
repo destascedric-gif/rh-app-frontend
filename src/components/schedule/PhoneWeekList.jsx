@@ -2,6 +2,7 @@ import ShiftCard from './ShiftCard';
 import { toISO } from './WeekView';
 import MeetingTag from './MeetingTag';
 import { meetingsOn } from './meetingUtils';
+import { isClosedDay } from '../../utils/openDays';
 
 // Semaine de l'employé sur téléphone : une carte par jour, avec le même
 // niveau de détail que la grille sur ordinateur (horaires, pauses, heures
@@ -9,7 +10,7 @@ import { meetingsOn } from './meetingUtils';
 
 const DAY_NAMES = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
-export default function PhoneWeekList({ days, shifts, meetings = [] }) {
+export default function PhoneWeekList({ days, shifts, meetings = [], openDays }) {
   const todayStr = toISO(new Date());
 
   return (
@@ -27,7 +28,7 @@ export default function PhoneWeekList({ days, shifts, meetings = [] }) {
             <div className="pweek-shift">
               {shift
                 ? <ShiftCard shift={shift} isAdmin={false} />
-                : dayMeetings.length === 0 && <span className="pweek-empty">Pas de créneau</span>}
+                : dayMeetings.length === 0 && <span className="pweek-empty">{isClosedDay(day, openDays) ? 'Fermé' : 'Pas de créneau'}</span>}
               {dayMeetings.map((m) => <MeetingTag key={m.id} meeting={m} />)}
             </div>
           </li>
