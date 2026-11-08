@@ -2377,7 +2377,9 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   text-align: center;
 }
 .pcal-day--other { background: transparent; color: var(--text-light); }
-.pcal-day--closed:not(.pcal-day--other) { background: var(--bg-hover); }
+/* Jours fermés : même gris bleuté que sur ordinateur (aligné à la demande
+   de Cédric, 8 nov. 2026 au soir ; avant : beige --bg-hover) */
+.pcal-day--closed:not(.pcal-day--other) { background: var(--closed-bg); }
 .pcal-day--holiday { background: var(--holiday-cell); }
 .pcal-day--holiday .pcal-num { color: var(--primary); }
 .pcal-day--holiday .pcal-num--today { color: #fff; }
