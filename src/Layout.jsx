@@ -83,6 +83,9 @@ export default function Layout({ children }) {
               <button className={isActive('/parametres')} onClick={() => go('/parametres')}><SettingsIcon /> Paramètres</button>
             </>
           )}
+          {!isAdmin && (
+            <button className={isActive('/mon-compte')} onClick={() => go('/mon-compte')}><SettingsIcon /> Mon compte</button>
+          )}
           {/* Ouvre la messagerie de l'utilisateur vers l'adresse de contact d'Orgaly */}
           <a className="nav-item nav-item--help" href={`mailto:${EDITOR.email}?subject=${encodeURIComponent("Besoin d'aide sur Orgaly")}`}>
             <HelpIcon /> Besoin d'aide ?

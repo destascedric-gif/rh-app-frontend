@@ -19,6 +19,7 @@ import MySchedule from './pages/MySchedule'
 import AdminPayroll from './pages/AdminPayroll'
 import InviteEmployee from './pages/InviteEmployee'
 import MyTimesheet from './pages/MyTimesheet'
+import MyAccount from './pages/MyAccount'
 import Settings from './pages/Settings'
 import Billing from './pages/Billing'
 import Landing from './pages/Landing'
@@ -97,6 +98,7 @@ function App() {
           <Route path="/mes-conges" element={<PrivateRoute><MyLeaves /></PrivateRoute>} />
           <Route path="/mon-planning" element={<PrivateRoute><MySchedule /></PrivateRoute>} />
           <Route path="/mon-pointage" element={<PrivateRoute><MyTimesheet /></PrivateRoute>} />
+          <Route path="/mon-compte" element={<PrivateRoute><MyAccount /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
