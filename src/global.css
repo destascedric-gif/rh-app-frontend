@@ -1644,6 +1644,17 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 /* Jours passés (semaine) : case blanche, contenu atténué comme dans le mois */
 .week-td-cell.past { opacity: 1; background: var(--bg-card); }
 .week-td-cell.past > * { opacity: 0.45; filter: grayscale(0.6); }
+/* Jours fériés plus marqués sur le fond gris bleuté (demande de Cédric,
+   8 nov. 2026 au soir) : bleu plus soutenu et contour bleu. Ordinateur
+   seulement : le téléphone garde --holiday-cell. */
+.week-th-day.holiday { background: color-mix(in srgb, var(--primary) 26%, #fff); }
+.week-td-cell.holiday,
+.month-td.holiday:not(.selected) {
+  background: color-mix(in srgb, var(--primary) 18%, #fff);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--primary) 55%, #fff);
+}
+.week-td-cell.holiday.has-shift:hover,
+.month-td--selectable.holiday:hover { background: color-mix(in srgb, var(--primary) 26%, #fff); }
 .day-detail--desktop { margin: 20px 0 0; }
 .day-detail--desktop .pcal-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
 .day-detail--desktop .pcal-row { min-width: 0; }
