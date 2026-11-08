@@ -68,8 +68,8 @@
      férié), plutôt que le crème qui effaçait le bleu des fériés. */
   /* Planning en tuiles (8 nov. 2026) : cases blanches arrondies, séparées
      par un mince espace sable */
-  --grid-sand:     #E3D9C8;  /* sable moyen entre les cases (8 nov. 2026) : assez marqué pour que le blanc des cases ressorte ; essais : #F0E9DC, #EEE8DD trop clairs, gris chaud #ECEAE6 refusé */
-  --grid-line:     #D9CFBE;  /* contour fin et net des cases du planning */
+  --grid-sand:     #DDE2EA;  /* gris pastel bleuté entre les cases (choix de Cédric, 8 nov. 2026 au soir : le sable #E3D9C8 détonnait avec le bleu nuit et le bleu) ; assez marqué pour que le blanc des cases ressorte ; essais : #F0E9DC, #EEE8DD trop clairs, gris chaud #ECEAE6 refusé */
+  --grid-line:     #D1D8E2;  /* contour fin et net des cases du planning */
   --closed-bg:     #FFFFFF;  /* jours fermés : case blanche comme les autres, signalés par « · Fermé » (version nette) */
   --cell-hover:    color-mix(in srgb, var(--primary) 6%, #fff);
   --holiday-hover: color-mix(in srgb, var(--primary) 18%, #fff);
@@ -1620,10 +1620,10 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 /* ── Planning en tuiles arrondies (semaine et mois, 8 nov. 2026) ──
    Chaque case est une tuile blanche aux coins légèrement arrondis, séparée
-   des autres par un mince espace sable (--grid-sand). Placé après les
+   des autres par un mince espace gris bleuté (--grid-sand). Placé après les
    règles des grilles pour les remplacer. Les états (fermé, férié, aujourd'hui,
    survol) gardent leurs couleurs : leurs sélecteurs sont plus précis. ── */
-.week-grid, .month-grid { background: var(--grid-sand); border-color: #D6CBB7; }
+.week-grid, .month-grid { background: var(--grid-sand); border-color: #CBD2DD; }
 .week-table, .month-table { border-collapse: separate; border-spacing: 4px; }
 .week-th-emp, .week-th-day, .week-th-total, .month-th { border: none; border-radius: 8px; background: transparent; }
 .week-td-emp, .week-td-cell, .week-td-total, .month-td {
