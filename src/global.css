@@ -66,8 +66,8 @@
   --holiday-cell: color-mix(in srgb, var(--primary) 12%, #fff);
   /* Survol d'une case du planning : bleu très léger (plus soutenu sur un
      férié), plutôt que le crème qui effaçait le bleu des fériés. */
-  /* Jours passés du planning (vue mois) : fond grisé neutre */
-  --past-bg:       #F1EFEA;
+  /* Jours passés et mois voisins (vue mois) : fond légèrement grisé */
+  --past-bg:       #F3F0EA;
   --cell-hover:    color-mix(in srgb, var(--primary) 6%, #fff);
   --holiday-hover: color-mix(in srgb, var(--primary) 18%, #fff);
   --leave-hatch: repeating-linear-gradient(135deg, #F1EDE6 0 5px, #DFD8CC 5px 7px);
@@ -1574,15 +1574,17 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   transition: background 0.1s;
 }
 .month-td:last-child { border-right: none; }
-.month-td.other-month { background: var(--bg-subtle); opacity: 0.5; }
 .month-td.weekend { background: rgba(224, 214, 196, 0.3); }
 .month-td.today { background: var(--primary-light); }
 .month-td.holiday { background: var(--holiday-cell); }
 .month-holiday { margin-left: 4px; font-size: 10px; font-weight: 600; color: var(--primary); vertical-align: 2px; }
-/* Jours passés (8 nov. 2026) : fond grisé et contenu nettement atténué,
-   pour bien les distinguer des jours à venir (avant : simple opacité 0.6) */
-.month-td.past { background: var(--past-bg); }
-.month-td.past > * { opacity: 0.45; filter: grayscale(0.6); }
+/* Jours passés et jours des mois voisins (8 nov. 2026) : un seul style,
+   fond légèrement grisé et contenu nettement atténué, pour bien les
+   distinguer des jours à venir sans multiplier les teintes. */
+.month-td.past,
+.month-td.other-month { background: var(--past-bg); }
+.month-td.past > *,
+.month-td.other-month > * { opacity: 0.45; filter: grayscale(0.6); }
 
 .month-table tbody tr:last-child td { border-bottom: none; }
 
