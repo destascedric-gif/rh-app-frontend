@@ -68,7 +68,7 @@
      férié), plutôt que le crème qui effaçait le bleu des fériés. */
   /* Planning en tuiles (8 nov. 2026) : cases blanches arrondies, séparées
      par un mince espace sable */
-  --grid-sand:     #EEE8DD;  /* sable entre les cases (un peu moins jaune que le premier essai #F0E9DC) */
+  --grid-sand:     #E3D9C8;  /* sable moyen entre les cases (8 nov. 2026) : assez marqué pour que le blanc des cases ressorte ; essais : #F0E9DC, #EEE8DD trop clairs, gris chaud #ECEAE6 refusé */
   --grid-line:     #E4DED4;
   --closed-bg:     #F6F4F0;  /* jours fermés à venir : tuile blanc cassé très léger, peu teinté */
   --cell-hover:    color-mix(in srgb, var(--primary) 6%, #fff);
@@ -1623,7 +1623,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
    des autres par un mince espace sable (--grid-sand). Placé après les
    règles des grilles pour les remplacer. Les états (fermé, férié, aujourd'hui,
    survol) gardent leurs couleurs : leurs sélecteurs sont plus précis. ── */
-.week-grid, .month-grid { background: var(--grid-sand); }
+.week-grid, .month-grid { background: var(--grid-sand); border-color: #D6CBB7; }
 .week-table, .month-table { border-collapse: separate; border-spacing: 4px; }
 .week-th-emp, .week-th-day, .week-th-total, .month-th { border: none; border-radius: 8px; background: transparent; }
 .week-td-emp, .week-td-cell, .week-td-total, .month-td {
