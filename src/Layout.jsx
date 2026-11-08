@@ -12,6 +12,7 @@ import useTableCellLabels from './utils/useTableCellLabels'
 import TopbarContext from './context/TopbarContext'
 import NotificationBell from './components/NotificationBell'
 import BrandMark from './components/BrandMark'
+import { normalizePrimaryColor } from './utils/brandColor'
 
 export default function Layout({ children }) {
   const navigate  = useNavigate()
@@ -29,7 +30,7 @@ export default function Layout({ children }) {
     if (!token) return
     getSettings(token)
       .then((s) => {
-        if (s.primary_color) document.documentElement.style.setProperty('--primary', s.primary_color)
+        document.documentElement.style.setProperty('--primary', normalizePrimaryColor(s.primary_color))
       })
       .catch(() => {})
   }, [token])

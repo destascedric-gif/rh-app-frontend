@@ -7,15 +7,19 @@
 
 /* ── Variables ─────────────────────────────── */
 :root {
-  --bg:          #F8F7F4;
+  /* Ambiance « latte et bleu nuit » (choisie le 8 nov. 2026) : fond beige
+     chaud, cartes blanches posées dessus avec une ombre douce, menu bleu nuit. */
+  --bg:          #E4D9C7;  /* fond des pages */
   --bg-card:     #FFFFFF;
-  --bg-hover:    #F0EFEA;
-  --border:      #E7E5E0;
-  --border-dark: #CFCBC2;
+  --bg-subtle:   #F7F3EC;  /* zones claires à l'intérieur d'une carte (en-têtes de tableau…) */
+  --bg-hover:    #F2ECE2;
+  --border:      #E2D9CA;
+  --border-dark: #C7BBA7;
+  --border-soft: #F0EAE0;  /* séparateurs à l'intérieur d'une carte */
 
-  --text:        #171B2E;
-  --text-muted:  #4B4F5A;
-  --text-light:  #8B8F99;
+  --text:        #1C1A17;
+  --text-muted:  #5F574C;
+  --text-light:  #8A8072;
 
   --primary:     #3457D5;
   /* Teintes dérivées de --primary : elles suivent la couleur principale
@@ -38,14 +42,25 @@
   --shift-close:    #B9791E;
   --shift-close-bg: #FCF1DE;
 
-  --sidebar-bg:  #12182B;
-  --sidebar-active: #1E2745;
-  --sidebar-text: #9AA3B8;
+  /* Menu bleu nuit, un peu éclairci (8 nov. 2026) */
+  --sidebar-bg:  #1A2238;
+  --sidebar-active: #2A3452;
+  --sidebar-text: #A9B1C6;
+  --sidebar-muted: #8F98B0;  /* textes secondaires sur fond bleu nuit */
+  --sidebar-line: rgba(255,255,255,0.09);
   --sidebar-w:   256px;
+  /* Marge autour du menu et de la barre du haut, qui « flottent » (ordinateur) */
+  --frame-gap:   12px;
   --radius:      9px;
   --radius-lg:   14px;
-  --shadow:      0 1px 3px rgba(23,27,46,0.06), 0 1px 2px rgba(23,27,46,0.04);
-  --shadow-md:   0 4px 6px rgba(23,27,46,0.05), 0 2px 4px rgba(23,27,46,0.04);
+  --radius-xl:   18px;
+  --shadow:      0 1px 2px rgba(60,45,25,0.06), 0 4px 14px rgba(60,45,25,0.06);
+  --shadow-md:   0 2px 4px rgba(60,45,25,0.07), 0 10px 24px rgba(60,45,25,0.10);
+
+  /* Créneau saisi à la main (sans horaire type) : blanc, contour foncé */
+  --shift-free-ink: #2B3245;
+  /* Congés et absences : gris à fines rayures */
+  --leave-hatch: repeating-linear-gradient(135deg, #F1EDE6 0 5px, #DFD8CC 5px 7px);
 
   --font-display: 'Space Grotesk', sans-serif;
 }
@@ -90,18 +105,22 @@ body {
   display: flex;
   flex-direction: column;
   padding: 0;
+  /* Sur ordinateur, le menu « flotte » : une marge tout autour et des
+     coins arrondis (le téléphone garde un menu collé au bord, plus bas). */
   position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  height: 100dvh;
+  top: var(--frame-gap);
+  left: var(--frame-gap);
+  height: calc(100vh - 2 * var(--frame-gap));
+  height: calc(100dvh - 2 * var(--frame-gap));
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
   overflow-y: auto;
   z-index: 100;
 }
 
 .sidebar-logo {
-  padding: 24px 20px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 22px 20px 18px;
+  border-bottom: 1px solid var(--sidebar-line);
   margin-bottom: 8px;
 }
 
@@ -203,7 +222,7 @@ body {
 .user-avatar {
   width: 34px; height: 34px;
   border-radius: 50%;
-  background: #2A3358;
+  background: #34405F;
   color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display), sans-serif;
@@ -212,13 +231,13 @@ body {
 }
 .user-chip-text { flex: 1; min-width: 0; }
 .user-chip .user-name { color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-chip .user-role { color: #8891A8; font-size: 12px; }
+.user-chip .user-role { color: var(--sidebar-muted); font-size: 12px; }
 .logout-btn {
   width: 34px; height: 34px;
   flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   background: transparent;
-  border: 1px solid #232B45;
+  border: 1px solid var(--sidebar-line);
   border-radius: 8px;
   color: var(--sidebar-text);
 }
@@ -234,12 +253,12 @@ body {
 .sidebar-bottom {
   margin-top: auto;
   padding: 16px 20px;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid var(--sidebar-line);
 }
 
 /* ── Main content ──────────────────────────── */
 .main-content {
-  margin-left: var(--sidebar-w);
+  margin-left: calc(var(--sidebar-w) + var(--frame-gap));
   flex: 1;
   /* Sans ça, un élément large (tableau, planning) élargit toute la page au
      lieu de défiler dans son propre cadre : la page déborde sur téléphone. */
@@ -249,18 +268,23 @@ body {
   flex-direction: column;
 }
 
-/* Barre du haut commune (Layout + PageHeader) : blanche sur ordinateur */
+/* Barre du haut commune (Layout + PageHeader) : sur ordinateur, une carte
+   blanche arrondie qui flotte comme le menu. L'ombre pleine couleur du fond
+   (premier box-shadow) cache le contenu qui défile dans la marge au-dessus. */
 .topbar {
   background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-  height: 72px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 calc(-1 * var(--frame-gap) - 1px) 0 calc(var(--frame-gap) / 2) var(--bg), var(--shadow);
+  margin: var(--frame-gap) var(--frame-gap) 0;
+  height: 64px;
   box-sizing: border-box;
-  padding: 0 28px;
+  padding: 0 16px 0 24px;
   display: flex;
   align-items: center;
   gap: 16px;
   position: sticky;
-  top: 0;
+  top: var(--frame-gap);
   z-index: 50;
 }
 .topbar .mobile-menu-btn { display: none; }
@@ -376,7 +400,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-secondary {
-  background: transparent;
+  background: var(--bg-card); /* blanc : reste visible sur le fond latte */
   color: var(--text);
   border: 1px solid var(--border-dark);
   padding: 8px 16px;
@@ -389,7 +413,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .btn-secondary:hover { background: var(--bg-hover); }
 
 .btn-ghost {
-  background: transparent;
+  background: var(--bg-card); /* blanc : reste visible sur le fond latte */
   color: var(--text-muted);
   border: 1px solid var(--border);
   padding: 6px 12px;
@@ -480,7 +504,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .dash-card-meta { font-size: 12px; color: var(--text-light); }
 .dash-empty { font-size: 13.5px; color: var(--text-muted); padding: 10px 0; }
 .dash-list, .dash-requests { list-style: none; margin: 0; padding: 0; }
-.dash-row { display: flex; align-items: center; gap: 12px; padding: 10px 2px; border-bottom: 1px solid #F1F0EC; }
+.dash-row { display: flex; align-items: center; gap: 12px; padding: 10px 2px; border-bottom: 1px solid var(--border-soft); }
 .dash-row:last-child { border-bottom: none; }
 .dash-avatar {
   width: 32px; height: 32px;
@@ -499,7 +523,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 .dash-off { font-size: 12.5px; color: var(--text-light); white-space: nowrap; }
 .dash-link { margin-top: 12px; }
-.dash-request { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F1F0EC; }
+.dash-request { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-soft); }
 .dash-request:first-child { padding-top: 2px; }
 .dash-request:last-child { border-bottom: none; padding-bottom: 0; }
 .dash-request-main { flex: 1; min-width: 0; }
@@ -548,7 +572,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .team-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .team-tag { font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: var(--bg-hover); color: var(--text-muted); }
 .team-tag--blue { background: var(--primary-light); color: var(--primary); }
-.team-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 10px; border-top: 1px solid #F1F0EC; }
+.team-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-soft); }
 
 /* ── Page Paie : bandeau du mois (maquette) ─── */
 .payroll-banner {
@@ -564,20 +588,20 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 }
 .payroll-banner-period { display: flex; align-items: center; gap: 12px; margin-right: auto; }
 .payroll-banner-period h2 { font-size: 17px; font-weight: 700; color: #fff; }
-.payroll-banner-period p { font-size: 12.5px; color: #8891A8; margin: 2px 0 0; }
+.payroll-banner-period p { font-size: 12.5px; color: var(--sidebar-muted); margin: 2px 0 0; }
 .payroll-nav {
   width: 32px; height: 32px;
   border-radius: 8px;
-  border: 1px solid #2A3358;
+  border: 1px solid #34405F;
   background: transparent;
   color: #fff;
 }
 .payroll-nav:hover { background: rgba(255,255,255,0.06); }
 .payroll-banner-stat { display: flex; flex-direction: column; }
 .payroll-banner-stat strong { font-family: var(--font-display); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.payroll-banner-stat span { font-size: 12px; color: #8891A8; }
+.payroll-banner-stat span { font-size: 12px; color: var(--sidebar-muted); }
 .payroll-banner-cta { padding: 11px 18px; }
-.payroll-banner-done { font-size: 13px; color: #8891A8; }
+.payroll-banner-done { font-size: 13px; color: var(--sidebar-muted); }
 .payroll-row-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
 
 @media (max-width: 640px) {
@@ -587,7 +611,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 }
 
 /* ── Page Congés et absences (maquette) ─────── */
-.leave-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F1F0EC; }
+.leave-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-soft); }
 .leave-row:last-child { border-bottom: none; }
 .leave-row-main { flex: 1; min-width: 0; }
 .leave-row-actions { display: flex; gap: 8px; flex-shrink: 0; }
@@ -617,7 +641,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 }
 
 .rh-table th {
-  background: var(--bg);
+  background: var(--bg-subtle);
   padding: 10px 14px;
   text-align: left;
   font-weight: 600;
@@ -638,7 +662,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 .rh-table tr:hover td,
 .table-row-clickable:hover td {
-  background: var(--bg);
+  background: var(--bg-subtle);
   cursor: pointer;
 }
 
@@ -691,7 +715,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 11.5px;
-  background: var(--bg);
+  background: var(--bg-subtle);
   border: 1px solid var(--border);
   color: var(--text-muted);
   font-weight: 500;
@@ -1025,7 +1049,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 .balance-bar {
   height: 5px;
-  background: var(--bg);
+  background: var(--bg-subtle);
   border-radius: 3px;
   overflow: hidden;
   margin: 10px 0 5px;
@@ -1059,7 +1083,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   font-size: 12.5px;
   font-family: 'Public Sans', sans-serif;
   cursor: pointer;
-  background: transparent;
+  background: var(--bg-card); /* blanc : reste visible sur le fond latte */
   border: 1px solid var(--border-dark);
   color: var(--text-muted);
   transition: all 0.15s;
@@ -1155,7 +1179,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 .role-toggle {
   display: flex;
-  background: var(--bg);
+  background: var(--bg-subtle);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 3px;
@@ -1248,7 +1272,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .template-chip strong { font-size: 12.5px; font-weight: 600; color: var(--text); }
 .template-chip span { color: var(--text-muted); font-size: 11px; }
 .template-chip--colored { border-left: 4px solid var(--shift-color); }
-.template-chip--rest { border-style: dashed; background: var(--bg); }
+.template-chip--rest { border-style: dashed; background: var(--bg-subtle); }
 .template-chip--rest strong { font-style: italic; }
 
 .template-palette--empty {
@@ -1281,13 +1305,13 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 .week-th-emp {
   width: 160px;
-  background: var(--bg);
+  background: var(--bg-subtle);
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
 
 .week-th-day {
-  background: var(--bg);
+  background: var(--bg-subtle);
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   padding: 10px 8px;
@@ -1306,7 +1330,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 .week-th-total {
   width: 76px;
-  background: var(--bg);
+  background: var(--bg-subtle);
   border-bottom: 1px solid var(--border);
   border-left: 1px solid var(--border);
   padding: 10px 8px;
@@ -1364,9 +1388,9 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 }
 .week-td-cell:last-child { border-right: none; }
 .week-td-cell.has-shift { cursor: pointer; }
-.week-td-cell.has-shift:hover { background: var(--bg); }
+.week-td-cell.has-shift:hover { background: var(--bg-subtle); }
 .week-td-cell.past { opacity: 0.5; }
-.week-td-cell.weekend { background: rgba(240, 237, 232, 0.4); }
+.week-td-cell.weekend { background: rgba(228, 217, 199, 0.3); }
 .week-td-cell.holiday { background: color-mix(in srgb, var(--primary) 5%, transparent); }
 .week-td-cell.drag-over {
   background: var(--primary-light);
@@ -1377,7 +1401,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   width: 76px;
   border-bottom: 1px solid var(--border);
   border-left: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--bg-subtle);
   text-align: center;
   font-size: 13px;
   font-weight: 600;
@@ -1492,6 +1516,8 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   background: var(--shift-color-bg);
   border-left-color: var(--shift-color);
   color: var(--shift-color-text);
+  /* Contour complet pour un créneau sans horaire type (voir shiftColor.js) */
+  box-shadow: inset 0 0 0 1.5px var(--shift-ring, transparent);
 }
 /* .shift-card a une bordure pleine (pas un liseré à gauche comme les
    badges compacts) : on la recolore entièrement. */
@@ -1513,7 +1539,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 }
 
 .month-th {
-  background: var(--bg);
+  background: var(--bg-subtle);
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   padding: 8px;
@@ -1537,8 +1563,8 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   transition: background 0.1s;
 }
 .month-td:last-child { border-right: none; }
-.month-td.other-month { background: var(--bg); opacity: 0.5; }
-.month-td.weekend { background: rgba(240, 237, 232, 0.4); }
+.month-td.other-month { background: var(--bg-subtle); opacity: 0.5; }
+.month-td.weekend { background: rgba(228, 217, 199, 0.3); }
 .month-td.today { background: var(--primary-light); }
 .month-td.holiday { background: color-mix(in srgb, var(--primary) 5%, transparent); }
 .month-holiday { margin-left: 4px; font-size: 10px; font-weight: 600; color: var(--primary); vertical-align: 2px; }
@@ -1602,6 +1628,8 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   width: 16px;
   height: 16px;
   border-radius: 50%;
+  /* Teinte foncée du créneau (horaire type), gris pour un congé */
+  background: var(--shift-color-text, var(--text-muted));
   color: #fff;
   font-size: 8.5px;
   font-weight: 700;
@@ -1671,7 +1699,17 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
    uniquement de la couleur de l'employé (moins de couleurs à l'écran),
    le texte en italique suffit à distinguer un congé/repos/absence
    d'un créneau de travail. ── */
+/* Congés et absences : un seul style gris à fines rayures (8 nov. 2026),
+   distinct des créneaux de travail colorés. */
 .shift-non-work { font-style: italic; }
+.week-shift-badge.shift-non-work:not(.shift-rest),
+.month-shift-badge.shift-non-work:not(.shift-rest),
+.shift-card.shift-non-work:not(.shift-rest) {
+  background: var(--leave-hatch);
+  border-color: var(--border);
+  border-left-color: var(--border-dark);
+  color: var(--text-muted);
+}
 
 /* Repos : simple texte gris, sans case colorée (semaine, mois, téléphone) */
 .week-shift-badge.shift-rest,
@@ -1885,7 +1923,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 /* ── Inline form ───────────────────────────── */
 .inline-form {
-  background: var(--bg);
+  background: var(--bg-subtle);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 16px;
@@ -1966,15 +2004,23 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 @media (max-width: 768px) {
   /* Barre du haut sombre : menu, titre de la page, cloche */
-  .topbar { height: 56px; padding: 0 12px 0 16px; gap: 12px; background: var(--sidebar-bg); border-bottom: none; z-index: 110; }
+  .topbar {
+    height: 56px; padding: 0 12px 0 16px; gap: 12px; background: var(--sidebar-bg);
+    margin: 0; border: none; border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    top: 0; z-index: 110;
+  }
   .topbar .mobile-menu-btn { display: flex; }
   .topbar-title { font-size: 17px; font-weight: 600; color: #fff; }
   .topbar .bell-btn { background: transparent; border-color: rgba(255,255,255,0.15); color: #fff; }
 
   .sidebar {
     top: 56px;
+    left: 0;
     height: calc(100vh - 56px);
     height: calc(100dvh - 56px);
+    border-radius: 0 var(--radius-xl) 0 0;
+    box-shadow: none;
     transform: translateX(-100%);
     transition: transform 0.2s ease;
   }
@@ -2070,7 +2116,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   gap: 12px;
 }
 .billing-facts > div {
-  background: var(--bg);
+  background: var(--bg-subtle);
   border-radius: var(--radius);
   padding: 10px 12px;
   display: flex;
@@ -2285,8 +2331,8 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.pcal-chip--work  { background: var(--shift-color); color: #fff; }
-.pcal-chip--off   { background: var(--bg-hover); color: var(--text-muted); font-style: italic; font-weight: 500; }
+.pcal-chip--work  { background: var(--shift-solid-bg, var(--shift-color)); color: var(--shift-solid-text, #fff); box-shadow: inset 0 0 0 1.5px var(--shift-ring, transparent); }
+.pcal-chip--off   { background: var(--leave-hatch); color: var(--text-muted); font-style: italic; font-weight: 500; }
 .pcal-more { font-size: 10px; color: var(--text-muted); }
 .pcal-chip--times { display: flex; flex-direction: column; padding: 2px; line-height: 1.25; font-variant-numeric: tabular-nums; }
 

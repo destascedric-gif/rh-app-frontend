@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { toISO } from './WeekView';
 import DayDetail from './DayDetail';
 import { sortDayShifts, defaultSelectedDay, DETAIL_DAY_NAMES, DETAIL_MONTH_NAMES } from './dayDetailUtils';
-import { getEmployeeColor, getEmployeeColorLight } from './employeeColor';
 import { shiftColorVar } from './shiftColor';
 import MeetingTag from './MeetingTag';
 import { meetingsOn } from './meetingUtils';
@@ -162,12 +161,9 @@ export default function MonthView({
                         const showLabel = !continuesPrev;
 
                         const isWorkShift = type === 'travail';
-                        const empColor      = getEmployeeColor(shift.user_id);
-                        const empColorLight = getEmployeeColorLight(shift.user_id);
                         // Un créneau de travail prend la couleur de son horaire type ;
-                        // un congé/absence garde la couleur de l'employé.
-                        const style = isWorkShift ? shiftColorVar(shift)
-                          : isRest ? undefined : { borderLeftColor: empColor, background: empColorLight };
+                        // un congé/absence est gris rayé (.shift-non-work).
+                        const style = isWorkShift ? shiftColorVar(shift) : undefined;
                         const runClass = `${continuesPrev ? ' continues-prev' : ''}${continuesNext ? ' continues-next' : ''}`;
                         const timeTypeClass = isWorkShift ? ' shift-colored' : '';
 
@@ -183,7 +179,7 @@ export default function MonthView({
                             data-tooltip={fullName ? `${fullName} · ${hours}` : hours}
                           >
                             {initials && showLabel && (
-                              <span className="badge-avatar" style={{ background: empColor }}>
+                              <span className="badge-avatar">
                                 {initials}
                               </span>
                             )}

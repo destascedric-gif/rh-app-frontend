@@ -10,13 +10,12 @@ import {
 } from '../utils/collectiveAgreements';
 import { DEFAULT_OPEN_DAYS, OPEN_DAY_LABELS } from '../utils/openDays';
 import { SHIFT_PALETTE, NEUTRAL_SHIFT_COLOR } from '../components/schedule/shiftColor';
+import { DEFAULT_PRIMARY_COLOR, normalizePrimaryColor } from '../utils/brandColor';
 
 const EMPTY_PASSWORD_FORM = { currentPassword: '', newPassword: '', confirmPassword: '' };
 // color vide = couleur libre attribuée automatiquement par le serveur
 const EMPTY_TEMPLATE_FORM = { name: '', startTime: '', endTime: '', breakStart: '', breakEnd: '', color: '' };
 const formatTime = (t) => t ? t.slice(0, 5) : '';
-// Couleur principale d'origine d'Orgaly (valeur par défaut en base)
-const DEFAULT_PRIMARY_COLOR = '#1C4ED8';
 const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
 // Règles par défaut du Code du travail (le serveur refuse moins favorable
 // que les minimums légaux) : s'en écarter n'est légitime qu'avec une
@@ -38,7 +37,7 @@ const toForm = (data) => ({
   overtimeTier1Rate:           data.overtime_tier1_rate,
   overtimeTier2Rate:           data.overtime_tier2_rate,
   overtimeTier2ThresholdHours: data.overtime_tier2_threshold_hours,
-  primaryColor:                data.primary_color || DEFAULT_PRIMARY_COLOR,
+  primaryColor:                normalizePrimaryColor(data.primary_color),
   managerInSchedule:           Boolean(data.manager_in_schedule),
   meetingsCountAsWork:         Boolean(data.meetings_count_as_work),
   teamScheduleVisible:         Boolean(data.team_schedule_visible),

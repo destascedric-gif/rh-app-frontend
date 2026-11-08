@@ -1,4 +1,3 @@
-import { getEmployeeColor, getEmployeeColorLight } from './employeeColor';
 import { shiftColorVar } from './shiftColor';
 
 const formatTime = (t) => t?.slice(0, 5) ?? '';
@@ -24,11 +23,8 @@ export default function ShiftCard({
     : null;
 
   // Un créneau de travail prend la couleur de son horaire type (voir
-  // shiftColor.js) ; un congé/absence garde la couleur de l'employé.
-  const empColor      = getEmployeeColor(shift.user_id);
-  const empColorLight = getEmployeeColorLight(shift.user_id);
-  const style = isWorkShift ? shiftColorVar(shift)
-    : isRest ? undefined : { borderLeftColor: empColor, background: empColorLight };
+  // shiftColor.js) ; un congé/absence est gris rayé (.shift-non-work).
+  const style = isWorkShift ? shiftColorVar(shift) : undefined;
 
   const runClass = isRest ? '' : `${continuesPrev ? ' continues-prev' : ''}${continuesNext ? ' continues-next' : ''}`;
   const nonWorkClass = isRest ? ' shift-rest' : (!isWorkShift ? ' shift-non-work' : '');
