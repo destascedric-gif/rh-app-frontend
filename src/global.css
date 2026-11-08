@@ -7,9 +7,9 @@
 
 /* ── Variables ─────────────────────────────── */
 :root {
-  /* Ambiance « latte et bleu nuit » (choisie le 8 nov. 2026) : fond beige
-     chaud, cartes blanches posées dessus avec une ombre douce, menu bleu nuit. */
-  --bg:          #E4D9C7;  /* fond des pages */
+  /* Ambiance « crème et bleu nuit » (choisie le 8 nov. 2026) : fond crème
+     clair, cartes blanches posées dessus avec une ombre douce, menu bleu nuit. */
+  --bg:          #EFE8DA;  /* fond des pages : crème clair (8 nov. 2026, après essai du latte #E4D9C7 jugé trop marron) */
   --bg-card:     #FFFFFF;
   --bg-subtle:   #F7F3EC;  /* zones claires à l'intérieur d'une carte (en-têtes de tableau…) */
   --bg-hover:    #F2ECE2;
@@ -50,7 +50,7 @@
   --sidebar-line: rgba(255,255,255,0.09);
   --sidebar-w:   256px;
   /* Marge autour du menu et de la barre du haut, qui « flottent » (ordinateur) */
-  --frame-gap:   12px;
+  --frame-gap:   6px;
   --radius:      9px;
   --radius-lg:   14px;
   --radius-xl:   18px;
@@ -1390,7 +1390,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .week-td-cell.has-shift { cursor: pointer; }
 .week-td-cell.has-shift:hover { background: var(--bg-subtle); }
 .week-td-cell.past { opacity: 0.5; }
-.week-td-cell.weekend { background: rgba(228, 217, 199, 0.3); }
+.week-td-cell.weekend { background: rgba(224, 214, 196, 0.3); }
 .week-td-cell.holiday { background: color-mix(in srgb, var(--primary) 5%, transparent); }
 .week-td-cell.drag-over {
   background: var(--primary-light);
@@ -1564,7 +1564,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 }
 .month-td:last-child { border-right: none; }
 .month-td.other-month { background: var(--bg-subtle); opacity: 0.5; }
-.month-td.weekend { background: rgba(228, 217, 199, 0.3); }
+.month-td.weekend { background: rgba(224, 214, 196, 0.3); }
 .month-td.today { background: var(--primary-light); }
 .month-td.holiday { background: color-mix(in srgb, var(--primary) 5%, transparent); }
 .month-holiday { margin-left: 4px; font-size: 10px; font-weight: 600; color: var(--primary); vertical-align: 2px; }
