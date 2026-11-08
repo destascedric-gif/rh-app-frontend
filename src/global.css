@@ -70,7 +70,7 @@
      par un mince espace sable */
   --grid-sand:     #DDE2EA;  /* gris pastel bleuté entre les cases (choix de Cédric, 8 nov. 2026 au soir : le sable #E3D9C8 détonnait avec le bleu nuit et le bleu) ; assez marqué pour que le blanc des cases ressorte ; essais : #F0E9DC, #EEE8DD trop clairs, gris chaud #ECEAE6 refusé */
   --grid-line:     #D1D8E2;  /* contour fin et net des cases du planning */
-  --closed-bg:     #FFFFFF;  /* jours fermés : case blanche comme les autres, signalés par « · Fermé » (version nette) */
+  --closed-bg:     #E8EBF0;  /* jours fermés : case grisée (gris bleuté, assorti au fond du planning), demandée par Cédric le 8 nov. 2026 au soir ; avant : blanche avec « · Fermé » seul */
   --cell-hover:    color-mix(in srgb, var(--primary) 6%, #fff);
   --holiday-hover: color-mix(in srgb, var(--primary) 18%, #fff);
   --leave-hatch: repeating-linear-gradient(135deg, #F1EDE6 0 5px, #DFD8CC 5px 7px);
@@ -1644,6 +1644,13 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 /* Jours passés (semaine) : case blanche, contenu atténué comme dans le mois */
 .week-td-cell.past { opacity: 1; background: var(--bg-card); }
 .week-td-cell.past > * { opacity: 0.45; filter: grayscale(0.6); }
+/* Jours fermés : case grisée, y compris passés ou du mois voisin (sinon
+   les règles « passé » ci-dessus la remettraient en blanc) ; le férié et
+   le jour sélectionné gardent leur couleur, le survol reste bleu. */
+.week-td-cell.weekend:not(.holiday),
+.month-td.weekend:not(.holiday):not(.selected) { background: var(--closed-bg); }
+.week-td-cell.weekend.has-shift:not(.holiday):hover,
+.month-td--selectable.weekend:not(.holiday):not(.selected):hover { background: var(--cell-hover); }
 /* Jours fériés plus marqués sur le fond gris bleuté (demande de Cédric,
    8 nov. 2026 au soir) : bleu plus soutenu et contour bleu. Ordinateur
    seulement : le téléphone garde --holiday-cell. */
