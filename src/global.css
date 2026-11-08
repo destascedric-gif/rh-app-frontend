@@ -9,9 +9,9 @@
 :root {
   /* Ambiance « crème et bleu nuit » (choisie le 8 nov. 2026) : fond crème
      clair, cartes blanches posées dessus avec une ombre douce, menu bleu nuit. */
-  --bg:          #FAF6EE;  /* fond des pages : beige crème clair (8 nov. 2026 ; essais écartés, jugés trop foncés : latte #E4D9C7, #EFE8DA, #F3EDE3, #F8F3E9) */
+  --bg:          #FCF9F4;  /* fond des pages : crème très clair (8 nov. 2026 ; essais écartés, jugés trop foncés : latte #E4D9C7, #EFE8DA, #F3EDE3, #F8F3E9, #FAF6EE) */
   --bg-card:     #FFFFFF;
-  --bg-subtle:   #FBF8F2;  /* zones claires à l'intérieur d'une carte (en-têtes de tableau…) */
+  --bg-subtle:   #FDFBF8;  /* zones claires à l'intérieur d'une carte (en-têtes de tableau…) */
   --bg-hover:    #F2ECE2;
   --border:      #E2D9CA;
   --border-dark: #C7BBA7;
