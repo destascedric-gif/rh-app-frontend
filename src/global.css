@@ -66,8 +66,11 @@
   --holiday-cell: color-mix(in srgb, var(--primary) 12%, #fff);
   /* Survol d'une case du planning : bleu très léger (plus soutenu sur un
      férié), plutôt que le crème qui effaçait le bleu des fériés. */
-  /* Jours passés et mois voisins (vue mois) : fond légèrement grisé */
-  --past-bg:       #F3F0EA;
+  /* Planning en tuiles (8 nov. 2026) : cases blanches arrondies séparées
+     par un mince espace sable, qui détache le planning du fond crème */
+  --grid-sand:     #F0E9DC;
+  --grid-line:     #E6DED0;
+  --closed-bg:     #F6F1E8;  /* jours fermés à venir : tuile crème (opaque, sur le sable) */
   --cell-hover:    color-mix(in srgb, var(--primary) 6%, #fff);
   --holiday-hover: color-mix(in srgb, var(--primary) 18%, #fff);
   --leave-hatch: repeating-linear-gradient(135deg, #F1EDE6 0 5px, #DFD8CC 5px 7px);
@@ -1401,7 +1404,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .week-td-cell.has-shift:hover { background: var(--cell-hover); }
 .week-td-cell.holiday.has-shift:hover { background: var(--holiday-hover); }
 .week-td-cell.past { opacity: 0.5; }
-.week-td-cell.weekend { background: rgba(224, 214, 196, 0.3); }
+.week-td-cell.weekend { background: var(--closed-bg); }
 .week-td-cell.holiday { background: var(--holiday-cell); }
 .week-td-cell.drag-over {
   background: var(--primary-light);
@@ -1574,15 +1577,15 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   transition: background 0.1s;
 }
 .month-td:last-child { border-right: none; }
-.month-td.weekend { background: rgba(224, 214, 196, 0.3); }
+.month-td.weekend { background: var(--closed-bg); }
 .month-td.today { background: var(--primary-light); }
 .month-td.holiday { background: var(--holiday-cell); }
 .month-holiday { margin-left: 4px; font-size: 10px; font-weight: 600; color: var(--primary); vertical-align: 2px; }
-/* Jours passés et jours des mois voisins (8 nov. 2026) : un seul style,
-   fond légèrement grisé et contenu nettement atténué, pour bien les
-   distinguer des jours à venir sans multiplier les teintes. */
+/* Jours passés et jours des mois voisins (8 nov. 2026) : la case reste
+   blanche (un fond grisé assombrissait tout le mois en fin de mois), seul
+   le contenu est nettement atténué. */
 .month-td.past,
-.month-td.other-month { background: var(--past-bg); }
+.month-td.other-month { background: var(--bg-card); }
 .month-td.past > *,
 .month-td.other-month > * { opacity: 0.45; filter: grayscale(0.6); }
 
@@ -1614,6 +1617,25 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .month-td--selectable.holiday:hover { background: var(--holiday-hover); }
 .month-td.selected { box-shadow: inset 0 0 0 2px var(--primary); opacity: 1; }
 .month-td.selected .month-cell-num { background: var(--primary); color: #fff; }
+
+/* ── Planning en tuiles arrondies (semaine et mois, 8 nov. 2026) ──
+   Chaque case est une tuile blanche aux coins légèrement arrondis, séparée
+   des autres par un mince espace sable (--grid-sand). Placé après les
+   règles des grilles pour les remplacer. Les états (fermé, férié, aujourd'hui,
+   survol) gardent leurs couleurs : leurs sélecteurs sont plus précis. ── */
+.week-grid, .month-grid { background: var(--grid-sand); }
+.week-table, .month-table { border-collapse: separate; border-spacing: 4px; }
+.week-th-emp, .week-th-day, .week-th-total, .month-th { border: none; border-radius: 8px; background: transparent; }
+.week-td-emp, .week-td-cell, .week-td-total, .month-td {
+  border: none;
+  border-radius: 8px;
+  background: var(--bg-card);
+  box-shadow: inset 0 0 0 1px var(--grid-line);
+}
+.week-td-total { background: var(--bg-subtle); }
+/* Jours passés (semaine) : case blanche, contenu atténué comme dans le mois */
+.week-td-cell.past { opacity: 1; background: var(--bg-card); }
+.week-td-cell.past > * { opacity: 0.45; filter: grayscale(0.6); }
 .day-detail--desktop { margin: 20px 0 0; }
 .day-detail--desktop .pcal-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
 .day-detail--desktop .pcal-row { min-width: 0; }
