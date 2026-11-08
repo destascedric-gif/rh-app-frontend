@@ -9,7 +9,7 @@
 :root {
   /* Ambiance « crème et bleu nuit » (choisie le 8 nov. 2026) : fond crème
      clair, cartes blanches posées dessus avec une ombre douce, menu bleu nuit. */
-  --bg:          #FCF9F4;  /* fond des pages : crème très clair (8 nov. 2026 ; essais écartés : latte #E4D9C7, #EFE8DA, #F3EDE3, #F8F3E9, #FAF6EE trop foncés ; gris d'origine #F8F7F4 « presque pareil », moins doux) */
+  --bg:          #F1EBE1;  /* fond des pages : crème rapproché du sable du planning (8 nov. 2026, pour moins de teintes différentes et plus de contraste avec le blanc ; avant : #FCF9F4) */
   --bg-card:     #FFFFFF;
   --bg-subtle:   #FDFBF8;  /* zones claires à l'intérieur d'une carte (en-têtes de tableau…) */
   --bg-hover:    #F2ECE2;
