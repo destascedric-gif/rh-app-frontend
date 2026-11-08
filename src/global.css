@@ -60,6 +60,10 @@
   /* Créneau saisi à la main (sans horaire type) : blanc, contour foncé */
   --shift-free-ink: #2B3245;
   /* Congés et absences : gris à fines rayures */
+  /* Jours fériés : bleu de l'entreprise mêlé de blanc (opaque, pour ne pas
+     être « mangé » par le crème autour). Avant le 8 nov. 2026 : 9 % / 5 %. */
+  --holiday-head: color-mix(in srgb, var(--primary) 18%, #fff);
+  --holiday-cell: color-mix(in srgb, var(--primary) 12%, #fff);
   --leave-hatch: repeating-linear-gradient(135deg, #F1EDE6 0 5px, #DFD8CC 5px 7px);
 
   --font-display: 'Space Grotesk', sans-serif;
@@ -1321,7 +1325,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .week-th-day.today { background: var(--primary-light); }
 .week-th-day.weekend { background: var(--bg-hover); }
 /* Jour férié : bleu de l'entreprise très transparent, « Férié » sur la ligne du nom du jour */
-.week-th-day.holiday { background: color-mix(in srgb, var(--primary) 9%, var(--bg-card)); }
+.week-th-day.holiday { background: var(--holiday-head); }
 .week-th-day.holiday .week-day-name { color: var(--primary); }
 .week-day-holiday { font-size: 10px; font-weight: 600; white-space: nowrap; }
 .week-day-closed { font-size: 10px; font-weight: 600; white-space: nowrap; color: var(--text-light); }
@@ -1391,7 +1395,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .week-td-cell.has-shift:hover { background: var(--bg-subtle); }
 .week-td-cell.past { opacity: 0.5; }
 .week-td-cell.weekend { background: rgba(224, 214, 196, 0.3); }
-.week-td-cell.holiday { background: color-mix(in srgb, var(--primary) 5%, transparent); }
+.week-td-cell.holiday { background: var(--holiday-cell); }
 .week-td-cell.drag-over {
   background: var(--primary-light);
   box-shadow: inset 0 0 0 2px var(--primary);
@@ -1566,7 +1570,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .month-td.other-month { background: var(--bg-subtle); opacity: 0.5; }
 .month-td.weekend { background: rgba(224, 214, 196, 0.3); }
 .month-td.today { background: var(--primary-light); }
-.month-td.holiday { background: color-mix(in srgb, var(--primary) 5%, transparent); }
+.month-td.holiday { background: var(--holiday-cell); }
 .month-holiday { margin-left: 4px; font-size: 10px; font-weight: 600; color: var(--primary); vertical-align: 2px; }
 .month-td.past { opacity: 0.6; }
 
@@ -2313,7 +2317,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 }
 .pcal-day--other { background: transparent; color: var(--text-light); }
 .pcal-day--closed:not(.pcal-day--other) { background: var(--bg-hover); }
-.pcal-day--holiday { background: color-mix(in srgb, var(--primary) 7%, var(--bg-card)); }
+.pcal-day--holiday { background: var(--holiday-cell); }
 .pcal-day--holiday .pcal-num { color: var(--primary); }
 .pcal-day--holiday .pcal-num--today { color: #fff; }
 .pcal-day--other .pcal-chip { opacity: 0.55; }
