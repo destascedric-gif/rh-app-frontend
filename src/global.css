@@ -2957,3 +2957,43 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .week-grid--phone .meeting-tag { display: flex; justify-content: center; width: 100%; margin-top: 2px; padding: 1px 0; }
 .week-grid--phone .meeting-tag-title,
 .week-grid--phone .meeting-tag-time { display: none; }
+
+/* ── Haut du planning du gérant sur téléphone (proposition « B », 11 nov.
+   2026) : entonnoir et « + » dans la barre du haut, une seule ligne
+   ‹ période › + Semaine/Mois, horaires types en petites étiquettes. ── */
+.tb-sched { position: relative; display: flex; align-items: center; gap: 8px; }
+.topbar .tb-sched-btn { width: 36px; height: 36px; background: transparent; border-color: rgba(255,255,255,0.15); color: #fff; }
+.topbar .tb-sched-btn--on { background: rgba(255,255,255,0.14); }
+.topbar .tb-sched-btn--plus { background: var(--primary); border-color: var(--primary); }
+.tb-sched-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: #8FA6F5; }
+.tb-sched-menu {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 120;
+  min-width: 180px; padding: 6px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  display: flex; flex-direction: column;
+}
+.tb-sched-menu button {
+  padding: 10px 12px; border: none; background: none; border-radius: var(--radius);
+  font: inherit; font-size: 14px; font-weight: 500; color: var(--text); text-align: left;
+}
+.tb-sched-menu button:hover, .tb-sched-menu button:active { background: var(--bg-hover); }
+
+.schedule-filter--phone { margin-bottom: 8px; }
+.schedule-bar-phone { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.schedule-bar-phone .sbp-arrow { width: 34px; height: 34px; padding: 0; flex-shrink: 0; font-size: 20px; line-height: 1; display: flex; align-items: center; justify-content: center; }
+.sbp-period { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; line-height: 1.15; }
+.sbp-label { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; }
+.sbp-today { padding: 1px 4px; border: none; background: none; font: inherit; font-size: 11.5px; font-weight: 600; color: var(--primary); }
+.schedule-bar-phone .sbp-toggle { flex-shrink: 0; padding: 2px; }
+.schedule-bar-phone .sbp-toggle .role-btn { padding: 5px 9px; font-size: 12px; }
+
+@media (max-width: 640px) {
+  /* Horaires types : petites étiquettes sur une ligne, nom seul (la couleur
+     suffit ; les horaires s'affichent dans la case une fois posés) */
+  .template-palette { gap: 6px; margin-bottom: 8px; }
+  .template-palette-label { display: none; }
+  .template-chip { padding: 5px 10px; }
+  .template-chip strong { font-size: 12px; }
+  .template-chip span { display: none; }
+}

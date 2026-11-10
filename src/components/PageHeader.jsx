@@ -6,7 +6,10 @@ import useMediaQuery from '../utils/useMediaQuery';
 // Titre de la page et boutons d'action, affichés dans la barre du haut
 // commune (Layout). Sur téléphone/tablette, les boutons restent en tête de
 // page : la barre sombre n'a de place que pour le menu, le titre et la cloche.
-export default function PageHeader({ title, actions }) {
+// topbarActions : petits boutons à mettre dans la barre du haut même sur
+// téléphone (ex. planning : filtre et « + », 11 nov. 2026), à côté de la
+// cloche.
+export default function PageHeader({ title, actions, topbarActions }) {
   const { titleSlot, actionSlot } = useContext(TopbarContext);
   const compact = useMediaQuery(COMPACT_TOPBAR_QUERY);
 
@@ -18,6 +21,7 @@ export default function PageHeader({ title, actions }) {
       {actions && (compact || !actionSlot
         ? <div className="page-actions">{actions}</div>
         : createPortal(actions, actionSlot))}
+      {topbarActions && actionSlot && createPortal(topbarActions, actionSlot)}
     </>
   );
 }

@@ -10,6 +10,7 @@ import ScheduleLegend from '../components/schedule/ScheduleLegend';
 import { getShiftTemplates } from '../api/shiftTemplates';
 import PhoneCalendar from '../components/schedule/PhoneCalendar';
 import PhoneWeekList from '../components/schedule/PhoneWeekList';
+import PhoneScheduleBar from '../components/schedule/PhoneScheduleBar';
 import useMediaQuery, { PHONE_QUERY } from '../utils/useMediaQuery';
 import PageHeader from '../components/PageHeader';
 import { weekLabel } from '../utils/weekLabel';
@@ -222,7 +223,20 @@ export default function MySchedule() {
         </div>
       )}
 
-      {/* Barre de navigation */}
+      {/* Barre de navigation (téléphone : une seule ligne, 11 nov. 2026) */}
+      {isPhone ? (
+        <PhoneScheduleBar
+          label={shownView === 'week'
+            ? weekLabel(weekDays[0], weekDays[6])
+            : `${MONTH_NAMES[monthDate.getMonth()]} ${monthDate.getFullYear()}`}
+          onPrev={shownView === 'week' ? prevWeek : prevMonth}
+          onNext={shownView === 'week' ? nextWeek : nextMonth}
+          onToday={() => { setMonday(getMondayOfWeek()); setMonthDate(new Date()); }}
+          view={view}
+          onView={setView}
+          showToggle={!showTeam}
+        />
+      ) : (
       <div className="schedule-toolbar">
         <div className="schedule-nav">
           <button className="btn-ghost" onClick={shownView === 'week' ? prevWeek : prevMonth}>←</button>
@@ -245,6 +259,7 @@ export default function MySchedule() {
           </div>
         )}
       </div>
+      )}
 
       <ScheduleLegend templates={templates} />
 

@@ -12,6 +12,8 @@ import MeetingModal from '../components/schedule/MeetingModal';
 import ScheduleLegend from '../components/schedule/ScheduleLegend';
 import TemplatePalette from '../components/schedule/TemplatePalette';
 import PhoneCalendar from '../components/schedule/PhoneCalendar';
+import ScheduleTopbarButtons from '../components/schedule/ScheduleTopbarButtons';
+import PhoneScheduleBar from '../components/schedule/PhoneScheduleBar';
 import EmployeeMultiSelect from '../components/EmployeeMultiSelect';
 import useMediaQuery, { PHONE_QUERY } from '../utils/useMediaQuery';
 import PageHeader from '../components/PageHeader';
@@ -44,6 +46,8 @@ export default function AdminSchedule() {
   const [meetings,    setMeetings]    = useState([]);
   // Employés affichés (aucun choisi = tout le monde)
   const [filteredIds, setFilteredIds] = useState([]);
+  // Téléphone : choix des employés caché derrière l'entonnoir de la barre du haut
+  const [filterOpen, setFilterOpen] = useState(false);
   const [loading,     setLoading]     = useState(true);
   const [modal,       setModal]       = useState(null);
   const [meetingModal, setMeetingModal] = useState(null);
@@ -203,14 +207,51 @@ export default function AdminSchedule() {
     <div className="page">
       <PageHeader
         title="Planning"
-        actions={(
+        actions={isPhone ? null : (
           <>
             <button className="btn-secondary" onClick={() => setMeetingModal({ date: defaultMeetingDate() })}>+ Réunion</button>
             <button className="btn-primary" onClick={() => setModal({})}>+ Nouveau créneau</button>
           </>
         )}
+        topbarActions={isPhone ? (
+          <ScheduleTopbarButtons
+            filterOpen={filterOpen}
+            filterActive={filteredIds.length > 0}
+            onToggleFilter={() => setFilterOpen((o) => !o)}
+            onNewShift={() => setModal({})}
+            onNewMeeting={() => setMeetingModal({ date: defaultMeetingDate() })}
+          />
+        ) : null}
       />
 
+      {isPhone ? (
+        // Téléphone (proposition « B », 11 nov. 2026) : une seule ligne
+        // ‹ période › + Semaine/Mois, « Aujourd'hui » en petit sous la date ;
+        // le choix des employés n'apparaît qu'après l'entonnoir.
+        <>
+          {filterOpen && (
+            <div className="schedule-filter schedule-filter--phone">
+              <EmployeeMultiSelect
+                employees={employees}
+                value={filteredIds}
+                onChange={setFilteredIds}
+                allLabel="Tous les employés"
+                emptyMeansAll
+              />
+            </div>
+          )}
+          <PhoneScheduleBar
+            label={shownView === 'week'
+              ? weekLabel(weekDays[0], weekDays[6])
+              : `${MONTH_NAMES[monthDate.getMonth()]} ${monthDate.getFullYear()}`}
+            onPrev={shownView === 'week' ? prevWeek : prevMonth}
+            onNext={shownView === 'week' ? nextWeek : nextMonth}
+            onToday={() => { setMonday(getMondayOfWeek()); setMonthDate(new Date()); }}
+            view={view}
+            onView={setView}
+          />
+        </>
+      ) : (
       <div className="schedule-toolbar">
         <div className="schedule-filter">
           <EmployeeMultiSelect
@@ -241,8 +282,11 @@ export default function AdminSchedule() {
           <button className={`role-btn ${view==='month'?'active':''}`} onClick={() => setView('month')}>Mois</button>
         </div>
       </div>
+      )}
 
-      <ScheduleLegend templates={templates} />
+      {/* Sur téléphone, en semaine, les horaires types à glisser (déjà en
+          couleur) servent de légende */}
+      {!(isPhone && shownView === 'week') && <ScheduleLegend templates={templates} />}
       {shownView === 'week' && <TemplatePalette templates={templates} onTouchDrop={handleTemplateDrop} />}
 
       {loading ? (
