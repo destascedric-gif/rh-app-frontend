@@ -273,7 +273,7 @@ export default function AdminSchedule() {
           onShiftDelete={handleDelete}
           onTemplateDrop={handleTemplateDrop}
           onMeetingClick={(meeting) => setMeetingModal({ meeting })}
-          onReorder={isPhone ? undefined : handleReorder}
+          onReorder={handleReorder}
           phone={isPhone}
         />
       ) : (

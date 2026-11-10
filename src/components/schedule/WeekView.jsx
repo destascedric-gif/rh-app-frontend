@@ -149,12 +149,6 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                   }}
                 >
                   <td className="week-td-emp">
-                    {phone ? (
-                      <div className="week-emp-phone">
-                        <div className="emp-name">{emp.first_name}</div>
-                        {showTotals && <div className="emp-week-total">{frDecimal(getWeeklyTotal(emp.id))} h</div>}
-                      </div>
-                    ) : (
                     <div className="week-td-emp-inner">
                       {onReorder && (
                         <span
@@ -170,12 +164,18 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                           <DragHandleIcon />
                         </span>
                       )}
-                      <div>
-                        <div className="emp-name">{emp.first_name} {emp.last_name}</div>
-                        <div className="emp-email">{emp.id === currentUserId ? 'Vous' : emp.job_title}</div>
-                      </div>
+                      {phone ? (
+                        <div className="week-emp-phone">
+                          <div className="emp-name">{emp.first_name}</div>
+                          {showTotals && <div className="emp-week-total">{frDecimal(getWeeklyTotal(emp.id))} h</div>}
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="emp-name">{emp.first_name} {emp.last_name}</div>
+                          <div className="emp-email">{emp.id === currentUserId ? 'Vous' : emp.job_title}</div>
+                        </div>
+                      )}
                     </div>
-                    )}
                   </td>
                   {days.map((d, i) => {
                     const dateStr    = toISO(d);

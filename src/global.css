@@ -2923,10 +2923,15 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
    devant les règles « défilement de côté » des écrans étroits. */
 .week-grid--phone { overflow: hidden; margin: 0 -10px; border-radius: 12px; }
 .week-grid--phone .week-table { min-width: 0; border-spacing: 2px; }
-.week-grid--phone .col-emp { width: 50px; }
+.week-grid--phone .col-emp { width: 60px; }
 .week-grid--phone .week-th-emp,
-.week-grid--phone .week-td-emp { position: static; width: 50px; }
-.week-grid--phone .week-td-emp { padding: 4px 3px 4px 5px; border-radius: 6px; }
+.week-grid--phone .week-td-emp { position: static; width: 60px; }
+.week-grid--phone .week-td-emp { padding: 4px 3px 4px 1px; border-radius: 6px; }
+/* Poignée pour changer l'ordre des lignes : gardée sur téléphone (demande
+   de Cédric), resserrée */
+.week-grid--phone .week-td-emp-inner { gap: 2px; }
+.week-grid--phone .week-drag-handle { width: 14px; }
+.week-grid--phone .week-emp-phone { min-width: 0; }
 .week-grid--phone .emp-name { font-size: 11px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .week-grid--phone .emp-week-total { font-size: 10px; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .week-grid--phone .week-th-day { padding: 4px 0 3px; border-radius: 6px; }
@@ -2939,13 +2944,13 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .week-grid--phone .week-shift-badge {
   min-height: 38px;
   justify-content: center;
-  padding: 2px 1px 2px 3px;
+  padding: 2px 0 2px 2px;
   border-left-width: 2px;
   border-radius: 4px;
   overflow: hidden;
 }
 .week-grid--phone .badge-start,
-.week-grid--phone .badge-end { font-size: 10px; line-height: 1.3; letter-spacing: -0.2px; font-variant-numeric: tabular-nums; }
+.week-grid--phone .badge-end { font-size: 9.5px; line-height: 1.3; letter-spacing: -0.3px; font-variant-numeric: tabular-nums; }
 .week-grid--phone .badge-type-label { font-size: 9px; }
 .week-grid--phone .cell-empty { font-size: 9px; }
 /* Réunion : seulement l'icône, le détail s'ouvre au toucher */
