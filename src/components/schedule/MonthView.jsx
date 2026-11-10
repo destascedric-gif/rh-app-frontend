@@ -31,9 +31,7 @@ const getMonthCells = (year, month) => {
   for (let d = 1; d <= lastDay.getDate(); d++) {
     cells.push({ date: new Date(year, month, d), currentMonth: true });
   }
-  // Complète seulement la dernière semaine (avant : toujours 6 semaines,
-  // soit parfois une ou deux rangées entières du mois suivant, vides)
-  while (cells.length % 7 !== 0) {
+  while (cells.length < 42) {
     const last = cells[cells.length - 1].date;
     const next = new Date(last);
     next.setDate(next.getDate() + 1);
@@ -44,7 +42,7 @@ const getMonthCells = (year, month) => {
 
 const dayLabel = (d) => `${DETAIL_DAY_NAMES[d.getDay()].toLowerCase()} ${d.getDate()} ${DETAIL_MONTH_NAMES[d.getMonth()]}`;
 
-// Découpe les cellules en semaines de 7
+// Découpe les 42 cellules en 6 semaines de 7
 const chunkWeeks = (cells) => {
   const weeks = [];
   for (let i = 0; i < cells.length; i += 7) {
@@ -130,23 +128,16 @@ export default function MonthView({
                       onClick={() => setSelected(dateStr)}
                       title={holiday ? `Jour férié : ${holiday}` : undefined}
                     >
-                      {/* Numéro, « Férié » et « +N » sur une seule ligne
-                          (mois compact, 10 nov. 2026) */}
-                      <div className="month-cell-head">
-                        <button
-                          type="button"
-                          className="month-cell-num"
-                          onClick={(e) => { e.stopPropagation(); setSelected(dateStr); }}
-                          aria-pressed={isSelected}
-                          aria-label={`Voir le détail du ${dayLabel(cell.date)}${holiday ? `, férié (${holiday})` : ''}`}
-                        >
-                          {cell.date.getDate()}
-                        </button>
-                        {holiday && <span className="month-holiday">Férié</span>}
-                        {dayShifts.length > 3 && (
-                          <span className="month-overflow">+{dayShifts.length - 3} autres</span>
-                        )}
-                      </div>
+                      <button
+                        type="button"
+                        className="month-cell-num"
+                        onClick={(e) => { e.stopPropagation(); setSelected(dateStr); }}
+                        aria-pressed={isSelected}
+                        aria-label={`Voir le détail du ${dayLabel(cell.date)}${holiday ? `, férié (${holiday})` : ''}`}
+                      >
+                        {cell.date.getDate()}
+                      </button>
+                      {holiday && <span className="month-holiday">Férié</span>}
 
                       {dayShifts.slice(0, 3).map((shift, j) => {
                         const type = shift.type || 'travail';
@@ -204,6 +195,9 @@ export default function MonthView({
                         );
                       })}
 
+                      {dayShifts.length > 3 && (
+                        <div className="month-overflow">+{dayShifts.length - 3} autres</div>
+                      )}
                       {getMeetingsForDay(dateStr).map((m) => (
                         <MeetingTag key={m.id} meeting={m} onClick={isAdmin ? onMeetingClick : undefined} />
                       ))}

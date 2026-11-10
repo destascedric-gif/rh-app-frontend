@@ -1670,23 +1670,6 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .month-td.other-month > * { opacity: 1; filter: none; }
 .month-td.other-month .month-cell-num { color: var(--text-light); font-weight: 500; }
 .month-td.other-month .month-shift-badge { opacity: 0.55; }
-/* Mois compact (demande de Cédric, 10 nov. 2026 : le mois doit tenir dans
-   l'écran de l'ordinateur) : cases moins hautes, numéro et « +N autres »
-   sur la même ligne, pastilles plus fines. */
-.month-td { height: 60px; padding: 3px 5px 2px; }
-.month-grid .month-table { border-spacing: 3px; }
-.month-grid .month-th { padding: 5px 8px; }
-.month-cell-head { display: flex; align-items: center; gap: 4px; min-width: 0; height: 20px; }
-.month-cell-head .month-cell-num { height: 20px; min-width: 20px; margin: 0; }
-.month-cell-head .month-holiday { margin-left: 0; vertical-align: 0; }
-.month-cell-head .month-overflow { margin-left: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.month-td .month-shift-badge { padding: 1px 5px; margin-top: 2px; line-height: 16px; }
-.month-td .badge-avatar { width: 14px; height: 14px; font-size: 7.5px; }
-/* Ordinateur seulement (le téléphone garde ses marges) */
-@media (min-width: 641px) {
-  .schedule-toolbar { margin-bottom: 12px; }
-  .schedule-legend { margin-bottom: 10px; }
-}
 .day-detail--desktop { margin: 20px 0 0; }
 .day-detail--desktop .pcal-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
 .day-detail--desktop .pcal-row { min-width: 0; }
