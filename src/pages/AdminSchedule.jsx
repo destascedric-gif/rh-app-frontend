@@ -273,7 +273,8 @@ export default function AdminSchedule() {
           onShiftDelete={handleDelete}
           onTemplateDrop={handleTemplateDrop}
           onMeetingClick={(meeting) => setMeetingModal({ meeting })}
-          onReorder={handleReorder}
+          onReorder={isPhone ? undefined : handleReorder}
+          phone={isPhone}
         />
       ) : (
         <MonthView openDays={openDays} pentecostWorked={pentecostWorked}

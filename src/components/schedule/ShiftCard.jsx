@@ -3,9 +3,14 @@ import { shiftColorVar } from './shiftColor';
 const formatTime = (t) => t?.slice(0, 5) ?? '';
 
 const TYPE_LABELS = { travail: 'Travail', conge: 'Congé', repos: 'Repos', absence: 'Absence', absent: 'Absent' };
+// Libellés courts pour les cases étroites de la semaine sur téléphone
+const SHORT_LABELS = { ...TYPE_LABELS, absence: 'Abs.', absent: 'Abs.' };
 
+// tiny : semaine du gérant sur téléphone (cases étroites) — horaires sans
+// la pause, libellés courts, pas de bouton × (on supprime depuis la fiche
+// du créneau, qui s'ouvre au toucher).
 export default function ShiftCard({
-  shift, isAdmin, onClick, onDelete, compact = false,
+  shift, isAdmin, onClick, onDelete, compact = false, tiny = false,
   continuesPrev = false, continuesNext = false,
 }) {
   const start = formatTime(shift.start_time);
@@ -43,13 +48,13 @@ export default function ShiftCard({
         {isWorkShift ? (
           <>
             <span className="badge-start">{start}</span>
-            {breakLabel && <span className="badge-break">{breakLabel}</span>}
+            {breakLabel && !tiny && <span className="badge-break">{breakLabel}</span>}
             <span className="badge-end">{end}</span>
           </>
         ) : showLabel ? (
-          <span className="badge-type-label">{TYPE_LABELS[type]}</span>
+          <span className="badge-type-label">{(tiny ? SHORT_LABELS : TYPE_LABELS)[type]}</span>
         ) : null}
-        {isAdmin && (
+        {isAdmin && !tiny && (
           <button
             className="shift-delete-btn-inline"
             onClick={(e) => { e.stopPropagation(); onDelete?.(shift); }}

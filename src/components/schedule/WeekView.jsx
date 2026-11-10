@@ -69,7 +69,11 @@ const DragHandleIcon = () => (
 // employé (pas de colonne Total, sa propre ligne mise en avant)
 // onReorder(draggedEmpId, targetEmpId) : fourni uniquement côté gérant,
 // permet de glisser une ligne employé pour la remonter ou la descendre.
-export default function WeekView({ days, shifts, meetings = [], countMeetings = false, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick, showTotals = true, currentUserId = null, onReorder, openDays, pentecostWorked = false }) {
+// phone : semaine du gérant sur téléphone, façon Google Agenda (11 nov.
+// 2026) — toute la semaine tient dans l'écran sans défilement de côté :
+// prénom seul avec le total de la semaine dessous (pas de colonne Total),
+// cases étroites (horaires sans pause, libellés courts).
+export default function WeekView({ days, shifts, meetings = [], countMeetings = false, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick, showTotals = true, currentUserId = null, onReorder, openDays, pentecostWorked = false, phone = false }) {
   const [dragOverCell, setDragOverCell] = useState(null);
   const [draggedEmpId, setDraggedEmpId] = useState(null);
   const [dragOverEmpId, setDragOverEmpId] = useState(null);
@@ -107,19 +111,21 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
 
   // ── Vue admin ──
   if (employees) {
+    // Sur téléphone, le total passe sous le prénom (pas de colonne)
+    const totalCol = showTotals && !phone;
     return (
-      <div className="week-grid">
+      <div className={`week-grid${phone ? ' week-grid--phone' : ''}`}>
         <table className="week-table">
           <colgroup>
             <col className="col-emp" />
             {days.map((_, i) => <col key={i} className="col-day" />)}
-            {showTotals && <col className="col-total" />}
+            {totalCol && <col className="col-total" />}
           </colgroup>
           <thead>
             <tr>
               <th className="week-th-emp" />
               {days.map((d, i) => <DayHeader key={i} date={d} openDays={openDays} pentecostWorked={pentecostWorked} />)}
-              {showTotals && <th className="week-th-total">Total</th>}
+              {totalCol && <th className="week-th-total">Total</th>}
             </tr>
           </thead>
           <tbody>
@@ -143,6 +149,12 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                   }}
                 >
                   <td className="week-td-emp">
+                    {phone ? (
+                      <div className="week-emp-phone">
+                        <div className="emp-name">{emp.first_name}</div>
+                        {showTotals && <div className="emp-week-total">{frDecimal(getWeeklyTotal(emp.id))} h</div>}
+                      </div>
+                    ) : (
                     <div className="week-td-emp-inner">
                       {onReorder && (
                         <span
@@ -163,6 +175,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                         <div className="emp-email">{emp.id === currentUserId ? 'Vous' : emp.job_title}</div>
                       </div>
                     </div>
+                    )}
                   </td>
                   {days.map((d, i) => {
                     const dateStr    = toISO(d);
@@ -197,6 +210,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                             shift={shift}
                             isAdmin={isAdmin}
                             compact={true}
+                            tiny={phone}
                             continuesPrev={continuesPrev}
                             continuesNext={continuesNext}
                             onClick={() => isAdmin && onShiftClick?.(shift)}
@@ -214,7 +228,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                       </td>
                     );
                   })}
-                  {showTotals && <td className="week-td-total">{frDecimal(getWeeklyTotal(emp.id))} h</td>}
+                  {totalCol && <td className="week-td-total">{frDecimal(getWeeklyTotal(emp.id))} h</td>}
                 </tr>
               );
             })}
