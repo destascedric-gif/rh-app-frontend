@@ -204,7 +204,7 @@ export default function AdminSchedule() {
   };
 
   return (
-    <div className="page">
+    <div className="page page--wide">
       <PageHeader
         title="Planning"
         actions={isPhone ? null : (
@@ -284,9 +284,9 @@ export default function AdminSchedule() {
       </div>
       )}
 
-      {/* Sur téléphone, en semaine, les horaires types à glisser (déjà en
-          couleur) servent de légende */}
-      {!(isPhone && shownView === 'week') && <ScheduleLegend templates={templates} />}
+      {/* En semaine, les horaires types à glisser (déjà en couleur) servent
+          de légende, sur téléphone comme sur ordinateur (11 nov. 2026) */}
+      {shownView !== 'week' && <ScheduleLegend templates={templates} />}
       {shownView === 'week' && <TemplatePalette templates={templates} onTouchDrop={handleTemplateDrop} />}
 
       {loading ? (

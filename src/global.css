@@ -2914,6 +2914,27 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .oselect-option.is-disabled { opacity: 0.5; cursor: default; }
 .oselect-option svg { flex-shrink: 0; }
 
+/* ── Planning sur ordinateur, plus compact (11 nov. 2026, demande de
+   Cédric : « optimiser au mieux » chaque vue) ──
+   - la page du planning prend toute la largeur (les autres pages restent
+     limitées à 1100 px pour la lecture) ;
+   - semaine : horaires sur une ligne et pause dessous (avant : 3 lignes),
+     poste de l'employé sur une ligne, marges resserrées → la semaine d'une
+     équipe de 6 tient dans l'écran. */
+.page--wide { max-width: none; }
+.week-td-emp { padding: 6px 10px; }
+.week-td-emp-inner > div { min-width: 0; }
+.week-td-emp .emp-email { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.week-td-cell { padding: 4px; }
+.week-th-day { padding: 7px 6px; }
+.badge-times { font-size: 12px; font-weight: 600; line-height: 1.35; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.week-shift-badge .badge-break { font-size: 10.5px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.week-shift-badge { padding: 4px 7px; }
+@media (min-width: 769px) {
+  /* Plus de place pour le nom et le poste (la page est plus large) */
+  .col-emp, .week-th-emp, .week-td-emp { width: 190px; }
+}
+
 /* ── Semaine du gérant sur téléphone, façon Google Agenda (11 nov. 2026) ──
    Demande de Cédric : voir toute la semaine sur l'écran du téléphone sans
    faire glisser le tableau. Cases étroites, horaires sur deux lignes sans

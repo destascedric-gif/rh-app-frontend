@@ -45,13 +45,19 @@ export default function ShiftCard({
           ? `${start} → ${end}${breakLabel ? ` · pause ${breakLabel}` : ''}`
           : TYPE_LABELS[type]}
       >
-        {isWorkShift ? (
+        {isWorkShift ? (tiny ? (
           <>
             <span className="badge-start">{start}</span>
-            {breakLabel && !tiny && <span className="badge-break">{breakLabel}</span>}
             <span className="badge-end">{end}</span>
           </>
-        ) : showLabel ? (
+        ) : (
+          // Ordinateur (11 nov. 2026) : horaires sur une ligne, pause en
+          // dessous — case moins haute, la semaine tient dans l'écran
+          <>
+            <span className="badge-times">{start} – {end}</span>
+            {breakLabel && <span className="badge-break">Pause {breakLabel}</span>}
+          </>
+        )) : showLabel ? (
           <span className="badge-type-label">{(tiny ? SHORT_LABELS : TYPE_LABELS)[type]}</span>
         ) : null}
         {isAdmin && !tiny && (

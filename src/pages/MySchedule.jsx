@@ -189,7 +189,7 @@ export default function MySchedule() {
   );
 
   return (
-    <div className="page">
+    <div className="page page--wide">
       <PageHeader title="Mon planning" />
 
       {teamVisible && (
