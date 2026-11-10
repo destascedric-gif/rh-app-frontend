@@ -252,6 +252,9 @@ export default function MySchedule() {
           </button>
         </div>
 
+        {/* Ordinateur : légende dans la barre d'outils (une rangée de moins) */}
+        <ScheduleLegend templates={templates} />
+
         {!(showTeam && isPhone) && (
           <div className="role-toggle">
             <button className={`role-btn ${view==='week'?'active':''}`} onClick={() => setView('week')}>Semaine</button>
@@ -261,7 +264,7 @@ export default function MySchedule() {
       </div>
       )}
 
-      <ScheduleLegend templates={templates} />
+      {isPhone && <ScheduleLegend templates={templates} />}
 
       {loading ? (
         <p className="tab-loading">Chargement…</p>

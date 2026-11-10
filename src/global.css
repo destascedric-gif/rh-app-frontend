@@ -1680,7 +1680,7 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .day-detail--desktop .pcal-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
 .day-detail--desktop .pcal-row { min-width: 0; }
 
-.month-overflow { font-size: 10.5px; color: var(--text-light); }
+.month-overflow { font-size: 10.5px; line-height: 16px; color: var(--text-light); white-space: nowrap; }
 
 .month-shift-badge {
   display: flex;
@@ -2934,6 +2934,36 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   /* Plus de place pour le nom et le poste (la page est plus large) */
   .col-emp, .week-th-emp, .week-td-emp { width: 190px; }
 }
+/* Mois sur ordinateur : la hauteur des rangées est calculée pour remplir
+   l'écran (MonthView) ; marges resserrées en conséquence (les constantes
+   CELL_PAD et NUM_H de MonthView.jsx doivent suivre ces valeurs). */
+.month-grid .month-td { padding: 4px 6px; }
+.month-grid .month-cell-num { margin: 0 0 2px; }
+.month-grid .month-th { padding: 6px 8px; }
+/* Pastilles d'initiales quand la case manque de place (comme le mois du
+   téléphone) : couleur de l'horaire type, gris rayé pour repos / congé */
+.month-minis { display: flex; flex-wrap: wrap; gap: 3px; }
+.month-mini {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 19px; border-radius: 4px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.02em; line-height: 1;
+  cursor: pointer; overflow: hidden; white-space: nowrap;
+}
+.month-mini--work { background: var(--shift-solid-bg, var(--shift-color)); color: var(--shift-solid-text, #fff); box-shadow: inset 0 0 0 1.5px var(--shift-ring, transparent); }
+.month-mini--off { background: var(--leave-hatch); color: var(--text-muted); }
+.month-mini--more { background: var(--bg-card); color: var(--text-muted); box-shadow: inset 0 0 0 1px var(--border-dark); }
+.month-mini--meeting { background: var(--bg-card); color: var(--text); box-shadow: inset 0 0 0 1px var(--border-dark); }
+/* Semaine resserrée (WeekView, quand les lignes normales dépasseraient
+   l'écran) : pause et poste cachés (pause visible au survol du créneau),
+   horaires sur une seule ligne : environ 46 px par ligne. */
+.week-grid--dense .week-shift-badge .badge-break,
+.week-grid--dense .week-td-emp .emp-email { display: none; }
+.week-grid--dense .week-td-emp { padding: 4px 10px; }
+.week-grid--dense .week-td-cell { padding: 3px 4px; height: 38px; }
+.week-grid--dense .week-shift-badge { padding: 3px 7px; }
+.week-grid--dense .week-drag-handle { height: 14px; }
+/* Légende dans la barre d'outils (ordinateur) : une rangée de moins */
+.schedule-toolbar .schedule-legend { margin: 0; gap: 14px; }
 
 /* ── Semaine du gérant sur téléphone, façon Google Agenda (11 nov. 2026) ──
    Demande de Cédric : voir toute la semaine sur l'écran du téléphone sans

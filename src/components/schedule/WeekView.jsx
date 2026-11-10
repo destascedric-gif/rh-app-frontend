@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 import ShiftCard from './ShiftCard';
 import MeetingTag from './MeetingTag';
 import { meetingsOn, meetingExtraMinutes } from './meetingUtils';
 import { holidayName } from '../../utils/holidays';
 import { isClosedDay } from '../../utils/openDays';
 import { frDecimal } from '../../utils/formatNumber';
+
+// Hauteur d'une ligne d'employé sur ordinateur (px), pour savoir si la semaine tient
+const ROW_H = 64;
 
 export const getWeekDays = (monday) => {
   return Array.from({ length: 7 }, (_, i) => {
@@ -75,6 +78,28 @@ const DragHandleIcon = () => (
 // cases étroites (horaires sans pause, libellés courts).
 export default function WeekView({ days, shifts, meetings = [], countMeetings = false, employees, isAdmin, onShiftClick, onShiftDelete, onTemplateDrop, onMeetingClick, showTotals = true, currentUserId = null, onReorder, openDays, pentecostWorked = false, phone = false }) {
   const [dragOverCell, setDragOverCell] = useState(null);
+
+  // Semaine resserrée (11 nov. 2026, question de Cédric : « avec 7, 8, 9
+  // employés, ça tiendra ? ») : si les lignes normales dépassent l'écran,
+  // on cache la pause et le poste (visibles au survol / dans la fiche) pour
+  // des lignes plus basses. Au-delà d'une dizaine de personnes sur un petit
+  // écran, la page défile.
+  const gridRef = useRef(null);
+  const [dense, setDense] = useState(false);
+  const nRows = employees?.length ?? 0;
+  useLayoutEffect(() => {
+    if (!employees || phone) return undefined;
+    const compute = () => {
+      const g = gridRef.current;
+      if (!g) return;
+      const top = g.getBoundingClientRect().top + window.scrollY;
+      const headH = g.querySelector('thead')?.offsetHeight ?? 60;
+      setDense(top + headH + nRows * ROW_H + 20 > window.innerHeight && nRows > 1);
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, [employees, phone, nRows]);
   const [draggedEmpId, setDraggedEmpId] = useState(null);
   const [dragOverEmpId, setDragOverEmpId] = useState(null);
 
@@ -114,7 +139,7 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
     // Sur téléphone, le total passe sous le prénom (pas de colonne)
     const totalCol = showTotals && !phone;
     return (
-      <div className={`week-grid${phone ? ' week-grid--phone' : ''}`}>
+      <div ref={gridRef} className={`week-grid${phone ? ' week-grid--phone' : ''}${dense && !phone ? ' week-grid--dense' : ''}`}>
         <table className="week-table">
           <colgroup>
             <col className="col-emp" />

@@ -277,6 +277,10 @@ export default function AdminSchedule() {
           </button>
         </div>
 
+        {/* Ordinateur, mois : légende dans la barre d'outils (une rangée de
+            moins, pour que le mois tienne dans l'écran) */}
+        {shownView !== 'week' && <ScheduleLegend templates={templates} />}
+
         <div className="role-toggle">
           <button className={`role-btn ${view==='week'?'active':''}`} onClick={() => setView('week')}>Semaine</button>
           <button className={`role-btn ${view==='month'?'active':''}`} onClick={() => setView('month')}>Mois</button>
@@ -286,7 +290,7 @@ export default function AdminSchedule() {
 
       {/* En semaine, les horaires types à glisser (déjà en couleur) servent
           de légende, sur téléphone comme sur ordinateur (11 nov. 2026) */}
-      {shownView !== 'week' && <ScheduleLegend templates={templates} />}
+      {isPhone && shownView !== 'week' && <ScheduleLegend templates={templates} />}
       {shownView === 'week' && <TemplatePalette templates={templates} onTouchDrop={handleTemplateDrop} />}
 
       {loading ? (

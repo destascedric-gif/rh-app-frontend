@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 import { toISO } from './WeekView';
 import DayDetail from './DayDetail';
 import { sortDayShifts, defaultSelectedDay, DETAIL_DAY_NAMES, DETAIL_MONTH_NAMES } from './dayDetailUtils';
 import { shiftColorVar } from './shiftColor';
-import MeetingTag from './MeetingTag';
+import MeetingTag, { MeetingIcon } from './MeetingTag';
 import { meetingsOn } from './meetingUtils';
 import { holidayName } from '../../utils/holidays';
 import { isClosedDay, DEFAULT_OPEN_DAYS } from '../../utils/openDays';
@@ -31,7 +31,9 @@ const getMonthCells = (year, month) => {
   for (let d = 1; d <= lastDay.getDate(); d++) {
     cells.push({ date: new Date(year, month, d), currentMonth: true });
   }
-  while (cells.length < 42) {
+  // Complète seulement la dernière semaine (pas de rangée entière du mois
+  // suivant, vide) : une rangée de moins à faire tenir dans l'écran
+  while (cells.length % 7 !== 0) {
     const last = cells[cells.length - 1].date;
     const next = new Date(last);
     next.setDate(next.getDate() + 1);
@@ -42,7 +44,40 @@ const getMonthCells = (year, month) => {
 
 const dayLabel = (d) => `${DETAIL_DAY_NAMES[d.getDay()].toLowerCase()} ${d.getDate()} ${DETAIL_MONTH_NAMES[d.getMonth()]}`;
 
-// Découpe les 42 cellules en 6 semaines de 7
+// ── Mois qui tient dans l'écran (11 nov. 2026) ──
+// Demande de Cédric : sur son ordinateur, le mois débordait toujours en bas
+// (un premier essai de cases plus petites débordait encore et a été
+// annulé). Désormais, comme Google Agenda, la hauteur des rangées est
+// calculée pour que le mois remplisse exactement l'écran, et chaque case
+// montre ses créneaux en entier (initiales + horaires) s'il y a la place,
+// sinon en petites pastilles d'initiales colorées, comme le mois du
+// téléphone (le détail complet du jour s'affiche dessous, au clic).
+// Tailles de texte inchangées. Hauteurs en pixels (voir global.css) :
+const CELL_PAD   = 8;  // marge intérieure de la case (haut + bas)
+const NUM_H      = 24; // numéro du jour
+const BADGE_H    = 21; // une pastille de créneau complète
+const MEETING_H  = 36; // une étiquette de réunion (deux lignes)
+const MINI_W     = 30; // une pastille d'initiales (largeur)
+const MINI_GAP   = 3;
+const MINI_LINE  = 22; // une ligne de pastilles d'initiales
+const MIN_ROW_H  = 70; // en dessous, le mois déborde (très petits écrans)
+const BOTTOM_GAP = 14; // espace laissé sous le mois
+const PHONE_QUERY_STR = '(max-width: 640px)';
+
+// Disposition d'une case : créneaux complets ou pastilles d'initiales,
+// combien en montrer, et s'il faut un « +N ».
+const cellLayout = (rowH, cellW, nShifts, nMeetings) => {
+  if (!rowH) return { mini: false, shown: Math.min(nShifts, 3) };
+  const room = rowH - CELL_PAD - NUM_H;
+  if (nShifts * BADGE_H + nMeetings * MEETING_H <= room) return { mini: false, shown: nShifts };
+  const perLine  = Math.max(1, Math.floor(((cellW || 120) - 8 + MINI_GAP) / (MINI_W + MINI_GAP)));
+  const lines    = Math.max(1, Math.floor((room + MINI_GAP) / MINI_LINE));
+  const capacity = perLine * lines;
+  if (nShifts + nMeetings <= capacity) return { mini: true, shown: nShifts };
+  return { mini: true, shown: Math.max(0, Math.min(nShifts, capacity - 1 - nMeetings)) };
+};
+
+// Découpe les cellules en semaines de 7
 const chunkWeeks = (cells) => {
   const weeks = [];
   for (let i = 0; i < cells.length; i += 7) {
@@ -74,9 +109,30 @@ export default function MonthView({
   const getShiftsForDay = (dateStr) =>
     filteredShifts.filter(s => s.date?.slice(0, 10) === dateStr);
 
+  // Hauteur des rangées pour que le mois tienne dans l'écran (ordinateur)
+  const gridRef = useRef(null);
+  const [rowH, setRowH] = useState(null);
+  const [cellW, setCellW] = useState(null);
+  const nWeeks = weeks.length;
+  useLayoutEffect(() => {
+    const compute = () => {
+      const g = gridRef.current;
+      if (!g || window.matchMedia(PHONE_QUERY_STR).matches) { setRowH(null); return; }
+      setCellW(g.querySelector('tbody td')?.clientWidth ?? null);
+      const top = g.getBoundingClientRect().top + window.scrollY;
+      const headH = g.querySelector('thead')?.offsetHeight ?? 30;
+      // Espaces de 4 px entre les tuiles + bordure du cadre
+      const avail = window.innerHeight - top - BOTTOM_GAP - headH - 4 * (nWeeks + 2) - 2;
+      setRowH(Math.max(MIN_ROW_H, Math.floor(avail / nWeeks)));
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, [nWeeks]);
+
   return (
     <>
-    <div className="month-grid">
+    <div className="month-grid" ref={gridRef}>
       <table className="month-table">
         <colgroup>
           {DAY_LABELS.map((_, i) => <col key={i} />)}
@@ -110,6 +166,9 @@ export default function MonthView({
                   const isPast    = cell.date < new Date(new Date().setHours(0, 0, 0, 0));
 
                   const isSelected = dateStr === selected;
+                  const dayMeetings = getMeetingsForDay(dateStr);
+                  const { mini, shown } = cellLayout(rowH, cellW, dayShifts.length, dayMeetings.length);
+                  const hidden = dayShifts.length - shown;
                   const holiday    = holidayName(dateStr, pentecostWorked);
 
                   return (
@@ -126,6 +185,7 @@ export default function MonthView({
                         isSelected ? 'selected' : '',
                       ].filter(Boolean).join(' ')}
                       onClick={() => setSelected(dateStr)}
+                      style={rowH ? { height: rowH } : undefined}
                       title={holiday ? `Jour férié : ${holiday}` : undefined}
                     >
                       <button
@@ -139,7 +199,40 @@ export default function MonthView({
                       </button>
                       {holiday && <span className="month-holiday">Férié</span>}
 
-                      {dayShifts.slice(0, 3).map((shift, j) => {
+                      {mini && (
+                        // Place insuffisante : pastilles d'initiales colorées
+                        <div className="month-minis">
+                          {dayShifts.slice(0, shown).map((shift, j) => {
+                            const type = shift.type || 'travail';
+                            const work = type === 'travail';
+                            const name = shift.last_name ? `${shift.first_name} ${shift.last_name}` : null;
+                            const label = name
+                              ? `${shift.first_name?.[0] ?? ''}${shift.last_name?.[0] ?? ''}`.toUpperCase()
+                              : (work ? shortTime(shift.start_time) : TYPE_LABELS[type]?.[0]);
+                            const hours = work ? `${shortTime(shift.start_time)} – ${shortTime(shift.end_time)}` : TYPE_LABELS[type];
+                            return (
+                              <span
+                                key={j}
+                                className={`month-mini month-mini--${work ? 'work' : 'off'}`}
+                                style={work ? shiftColorVar(shift) : undefined}
+                                data-tooltip={name ? `${name} · ${hours}` : hours}
+                                onClick={(e) => { if (isAdmin && onShiftClick) { e.stopPropagation(); onShiftClick(shift); } }}
+                              >{label}</span>
+                            );
+                          })}
+                          {hidden > 0 && <span className="month-mini month-mini--more" data-tooltip="Voir le détail du jour">+{hidden}</span>}
+                          {dayMeetings.map((m) => (
+                            <span
+                              key={m.id}
+                              className="month-mini month-mini--meeting"
+                              data-tooltip={m.title}
+                              onClick={(e) => { if (isAdmin && onMeetingClick) { e.stopPropagation(); onMeetingClick(m); } }}
+                            ><MeetingIcon size={12} /></span>
+                          ))}
+                        </div>
+                      )}
+
+                      {!mini && dayShifts.slice(0, shown).map((shift, j) => {
                         const type = shift.type || 'travail';
                         const fullName = shift.last_name
                           ? `${shift.first_name} ${shift.last_name}`
@@ -195,10 +288,10 @@ export default function MonthView({
                         );
                       })}
 
-                      {dayShifts.length > 3 && (
-                        <div className="month-overflow">+{dayShifts.length - 3} autres</div>
+                      {!mini && hidden > 0 && (
+                        <div className="month-overflow">+{hidden} autre{hidden > 1 ? 's' : ''}</div>
                       )}
-                      {getMeetingsForDay(dateStr).map((m) => (
+                      {!mini && dayMeetings.map((m) => (
                         <MeetingTag key={m.id} meeting={m} onClick={isAdmin ? onMeetingClick : undefined} />
                       ))}
                     </td>
