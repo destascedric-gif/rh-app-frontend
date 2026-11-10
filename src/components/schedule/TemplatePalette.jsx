@@ -5,7 +5,7 @@ const formatTime = (t) => t?.slice(0, 5) ?? '';
 
 // Pseudo-modèle "Repos" : toujours proposé, même sans horaire type créé,
 // pour poser un jour non travaillé d'un simple glisser-déposer.
-const REST_DAY = { kind: 'repos', name: 'Repos' };
+export const REST_DAY = { kind: 'repos', name: 'Repos' };
 
 const startDrag = (e, payload) => {
   e.dataTransfer.effectAllowed = 'copy';

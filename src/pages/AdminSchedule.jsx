@@ -12,6 +12,7 @@ import MeetingModal from '../components/schedule/MeetingModal';
 import ScheduleLegend from '../components/schedule/ScheduleLegend';
 import TemplatePalette from '../components/schedule/TemplatePalette';
 import PhoneCalendar from '../components/schedule/PhoneCalendar';
+import PhoneTemplatePicker from '../components/schedule/PhoneTemplatePicker';
 import EmployeeMultiSelect from '../components/EmployeeMultiSelect';
 import useMediaQuery, { PHONE_QUERY } from '../utils/useMediaQuery';
 import PageHeader from '../components/PageHeader';
@@ -51,6 +52,8 @@ export default function AdminSchedule() {
   const [openDays, setOpenDays] = useState(null);
   // Lundi de Pentecôte travaillé (journée de solidarité) : pas affiché férié
   const [pentecostWorked, setPentecostWorked] = useState(false);
+  // Téléphone : horaire type choisi pour être placé (remplace le glisser-déposer)
+  const [armedTemplate, setArmedTemplate] = useState(null);
 
   useEffect(() => {
     getPlanningPeople(token).then(setEmployees).catch(console.error);
@@ -111,8 +114,14 @@ export default function AdminSchedule() {
     }
   };
 
-  // Un créneau enregistré remplace celui du même employé le même jour
-  const handleSaved = (saved) => {
+  // Un créneau enregistré remplace celui du même employé le même jour.
+  // Le serveur ne renvoie pas le nom de l'employé : on le reprend de la
+  // liste (sinon « undefined undefined » dans le détail du jour).
+  const handleSaved = (raw) => {
+    const emp = employees.find(e => e.id === raw.user_id);
+    const saved = raw.first_name || !emp
+      ? raw
+      : { ...raw, first_name: emp.first_name, last_name: emp.last_name };
     setShifts(prev => [
       ...prev.filter(s => s.id !== saved.id
         && !(s.user_id === saved.user_id && s.date?.slice(0, 10) === saved.date?.slice(0, 10))),
@@ -236,6 +245,7 @@ export default function AdminSchedule() {
 
       <ScheduleLegend templates={templates} />
       {shownView === 'week' && <TemplatePalette templates={templates} />}
+      {isPhone && <PhoneTemplatePicker templates={templates} armed={armedTemplate} onArm={setArmedTemplate} />}
 
       {loading ? (
         <p className="tab-loading">Chargement…</p>
@@ -252,6 +262,9 @@ export default function AdminSchedule() {
           onShiftDelete={handleDelete}
           onAddShift={(date) => setModal({ date })}
           onMeetingClick={(meeting) => setMeetingModal({ meeting })}
+          placeTemplate={armedTemplate}
+          placeEmployees={displayedEmployees.filter(e => e.is_active !== false)}
+          onPlaceTemplate={handleTemplateDrop}
         />
       ) : view === 'week' ? (
         <WeekView openDays={openDays} pentecostWorked={pentecostWorked}

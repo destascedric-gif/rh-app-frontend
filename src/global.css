@@ -2376,14 +2376,17 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   color: var(--text);
   text-align: center;
 }
-.pcal-day--other { background: transparent; color: var(--text-light); }
 /* Jours fermés : même gris bleuté que sur ordinateur (aligné à la demande
    de Cédric, 8 nov. 2026 au soir ; avant : beige --bg-hover) */
 .pcal-day--closed:not(.pcal-day--other) { background: var(--closed-bg); }
 .pcal-day--holiday { background: var(--holiday-cell); }
 .pcal-day--holiday .pcal-num { color: var(--primary); }
 .pcal-day--holiday .pcal-num--today { color: #fff; }
-.pcal-day--other .pcal-chip { opacity: 0.55; }
+/* Jours des mois voisins : case blanche comme sur ordinateur, seul le
+   contenu est atténué (demande de Cédric, 10 nov. 2026 ; avant : numéro
+   seul, sans case) */
+.pcal-day--other { background: var(--bg-card); }
+.pcal-day--other > * { opacity: 0.45; filter: grayscale(0.6); }
 .pcal-day--selected { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
 .pcal-num { align-self: center; min-width: 24px; height: 24px; line-height: 24px; border-radius: 12px; font-size: 13px; font-weight: 600; margin-bottom: 1px; }
 .pcal-num--today { background: var(--primary); color: #fff; }
@@ -2461,6 +2464,66 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   border-radius: var(--radius-lg);
   color: var(--danger);
 }
+
+/* Horaires types sur téléphone (PhoneTemplatePicker) : on touche un horaire,
+   puis un jour, puis les employés (10 nov. 2026, le glisser-déposer ne
+   marche pas au doigt) */
+.ptpl { margin-bottom: 12px; }
+.ptpl-label { font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; }
+.ptpl-done {
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: underline;
+}
+.ptpl-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 2px 16px 4px;
+  scrollbar-width: none;
+}
+.ptpl-chips::-webkit-scrollbar { display: none; }
+.ptpl .template-chip { flex-shrink: 0; cursor: pointer; font-family: inherit; text-align: left; }
+.ptpl .template-chip:hover { border-color: var(--border-dark); background: var(--bg-card); }
+.ptpl .template-chip--rest:hover { background: var(--bg-subtle); }
+.ptpl .template-chip--colored:hover { border-left-color: var(--shift-color); }
+.ptpl .template-chip.template-chip--armed {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+.ptpl .template-chip--colored.template-chip--armed { border-left-color: var(--shift-color); }
+.ptpl-create { flex-shrink: 0; align-self: center; }
+
+.pcal-place {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: var(--primary-light);
+  border: 1px solid var(--primary-border);
+  border-left: 4px solid var(--shift-color, var(--border-dark));
+  border-radius: var(--radius-lg);
+}
+.pcal-place-title { font-size: 13.5px; margin-bottom: 8px; }
+.pcal-place-empty { font-size: 13px; color: var(--text-muted); }
+.pcal-place-people { display: flex; flex-wrap: wrap; gap: 6px; }
+.pcal-place-btn {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border-dark);
+  border-radius: 999px;
+  background: var(--bg-card);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.pcal-place-btn:disabled { opacity: 0.5; }
 
 @media (max-width: 768px) {
   /* Planning gérant : les noms restent visibles quand on fait défiler les jours */
