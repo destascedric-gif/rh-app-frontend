@@ -1,22 +1,34 @@
 import { useNavigate } from 'react-router-dom';
 import { NEUTRAL_SHIFT_COLOR } from './shiftColor';
+import { isTouchScreen, startTouchTemplateDrag } from './touchTemplateDrag';
 
 const formatTime = (t) => t?.slice(0, 5) ?? '';
 
 // Pseudo-modèle "Repos" : toujours proposé, même sans horaire type créé,
 // pour poser un jour non travaillé d'un simple glisser-déposer.
-export const REST_DAY = { kind: 'repos', name: 'Repos' };
+const REST_DAY = { kind: 'repos', name: 'Repos' };
 
 const startDrag = (e, payload) => {
   e.dataTransfer.effectAllowed = 'copy';
   e.dataTransfer.setData('application/json', JSON.stringify(payload));
 };
 
-export default function TemplatePalette({ templates }) {
+// onTouchDrop(userId, date, modèle) : appelé quand on lâche un horaire au
+// doigt sur une case (téléphone) ; à la souris, c'est la case qui reçoit
+// le dépôt (WeekView, onTemplateDrop).
+export default function TemplatePalette({ templates, onTouchDrop }) {
   const navigate = useNavigate();
+  // Écran tactile : pas de glisser-déposer du navigateur (il bloquerait le
+  // nôtre), on suit le doigt nous-mêmes.
+  const touch = isTouchScreen();
+  const dragProps = (payload) => ({
+    draggable: !touch,
+    onDragStart: (e) => startDrag(e, payload),
+    onPointerDown: (e) => startTouchTemplateDrag(e, payload, onTouchDrop),
+  });
 
   const restChip = (
-    <div className="template-chip template-chip--rest" draggable onDragStart={(e) => startDrag(e, REST_DAY)}>
+    <div className="template-chip template-chip--rest" {...dragProps(REST_DAY)}>
       <strong>Repos</strong>
       <span>Jour non travaillé</span>
     </div>
@@ -39,7 +51,7 @@ export default function TemplatePalette({ templates }) {
     <div className="template-palette">
       <span className="template-palette-label">Glissez un horaire sur une case :</span>
       {templates.map((t) => (
-        <div key={t.id} className="template-chip template-chip--colored" style={{ '--shift-color': t.color || NEUTRAL_SHIFT_COLOR }} draggable onDragStart={(e) => startDrag(e, t)}>
+        <div key={t.id} className="template-chip template-chip--colored" style={{ '--shift-color': t.color || NEUTRAL_SHIFT_COLOR }} {...dragProps(t)}>
           <strong>{t.name}</strong>
           <span>{formatTime(t.start_time)} → {formatTime(t.end_time)}</span>
         </div>

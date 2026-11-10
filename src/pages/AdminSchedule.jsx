@@ -12,7 +12,6 @@ import MeetingModal from '../components/schedule/MeetingModal';
 import ScheduleLegend from '../components/schedule/ScheduleLegend';
 import TemplatePalette from '../components/schedule/TemplatePalette';
 import PhoneCalendar from '../components/schedule/PhoneCalendar';
-import PhoneTemplatePicker from '../components/schedule/PhoneTemplatePicker';
 import EmployeeMultiSelect from '../components/EmployeeMultiSelect';
 import useMediaQuery, { PHONE_QUERY } from '../utils/useMediaQuery';
 import PageHeader from '../components/PageHeader';
@@ -32,9 +31,11 @@ export default function AdminSchedule() {
   const { token } = useAuth();
 
   const [view,        setView]        = useState('week');
-  // Sur téléphone, toujours le calendrier du mois (façon agenda)
+  // Téléphone : Semaine (comme sur ordinateur, horaires types à glisser au
+  // doigt) ou Mois (calendrier façon agenda) ; avant le 11 nov. 2026, le
+  // gérant n'avait que le mois sur téléphone.
   const isPhone   = useMediaQuery(PHONE_QUERY);
-  const shownView = isPhone ? 'month' : view;
+  const shownView = view;
   const [monday,      setMonday]      = useState(getMondayOfWeek());
   const [monthDate,   setMonthDate]   = useState(new Date());
   const [employees,   setEmployees]   = useState([]);
@@ -52,8 +53,6 @@ export default function AdminSchedule() {
   const [openDays, setOpenDays] = useState(null);
   // Lundi de Pentecôte travaillé (journée de solidarité) : pas affiché férié
   const [pentecostWorked, setPentecostWorked] = useState(false);
-  // Téléphone : horaire type choisi pour être placé (remplace le glisser-déposer)
-  const [armedTemplate, setArmedTemplate] = useState(null);
 
   useEffect(() => {
     getPlanningPeople(token).then(setEmployees).catch(console.error);
@@ -237,19 +236,18 @@ export default function AdminSchedule() {
           </button>
         </div>
 
-        {!isPhone && <div className="role-toggle">
+        <div className="role-toggle">
           <button className={`role-btn ${view==='week'?'active':''}`} onClick={() => setView('week')}>Semaine</button>
           <button className={`role-btn ${view==='month'?'active':''}`} onClick={() => setView('month')}>Mois</button>
-        </div>}
+        </div>
       </div>
 
       <ScheduleLegend templates={templates} />
-      {shownView === 'week' && <TemplatePalette templates={templates} />}
-      {isPhone && <PhoneTemplatePicker templates={templates} armed={armedTemplate} onArm={setArmedTemplate} />}
+      {shownView === 'week' && <TemplatePalette templates={templates} onTouchDrop={handleTemplateDrop} />}
 
       {loading ? (
         <p className="tab-loading">Chargement…</p>
-      ) : isPhone ? (
+      ) : view === 'month' && isPhone ? (
         <PhoneCalendar openDays={openDays} pentecostWorked={pentecostWorked}
           key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
           year={monthDate.getFullYear()}
@@ -262,9 +260,6 @@ export default function AdminSchedule() {
           onShiftDelete={handleDelete}
           onAddShift={(date) => setModal({ date })}
           onMeetingClick={(meeting) => setMeetingModal({ meeting })}
-          placeTemplate={armedTemplate}
-          placeEmployees={displayedEmployees.filter(e => e.is_active !== false)}
-          onPlaceTemplate={handleTemplateDrop}
         />
       ) : view === 'week' ? (
         <WeekView openDays={openDays} pentecostWorked={pentecostWorked}

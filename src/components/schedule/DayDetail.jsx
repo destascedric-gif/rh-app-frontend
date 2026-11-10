@@ -11,7 +11,7 @@ import { isClosedDay } from '../../utils/openDays';
 export default function DayDetail({
   dateStr, shifts, meetings = [], showNames = false, isMe = () => false,
   isAdmin = false, onShiftClick, onShiftDelete, onAddShift, onMeetingClick, className = '',
-  pentecostWorked = false, openDays, children,
+  pentecostWorked = false, openDays,
 }) {
   const date = new Date(`${dateStr}T12:00:00`);
   const holiday = holidayName(dateStr, pentecostWorked);
@@ -27,9 +27,6 @@ export default function DayDetail({
           <button type="button" className="btn-ghost btn-sm" onClick={() => onAddShift(dateStr)}>+ Ajouter</button>
         )}
       </div>
-
-      {/* Placement d'un horaire type (téléphone, gérant) */}
-      {children}
 
       {meetings.length > 0 && (
         <div className="pcal-meetings">

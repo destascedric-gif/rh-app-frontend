@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { toISO } from './WeekView';
-import { shiftColorVar, NEUTRAL_SHIFT_COLOR } from './shiftColor';
-import { templateTimes } from './PhoneTemplatePicker';
+import { shiftColorVar } from './shiftColor';
 import { MeetingIcon } from './MeetingTag';
 import { meetingsOn } from './meetingUtils';
 import DayDetail from './DayDetail';
@@ -51,10 +50,7 @@ export default function PhoneCalendar({
   year, month, shifts, meetings = [], isAdmin = false, selectedUserIds = [],
   onShiftClick, onShiftDelete, onAddShift, onMeetingClick,
   team = false, currentUserId = null, openDays, pentecostWorked = false,
-  placeTemplate = null, placeEmployees = [], onPlaceTemplate,
 }) {
-  // Employés en cours de placement (évite un double envoi sur deux touches)
-  const [placing, setPlacing] = useState([]);
   // team : planning de l'équipe vu par un employé, en lecture seule —
   // initiales comme pour le gérant, sa propre ligne en premier (« Vous »),
   // seules les personnes qui travaillent occupent les cases.
@@ -82,20 +78,6 @@ export default function PhoneCalendar({
   const weeks = getMonthWeeks(year, month);
   const selectedShifts = shiftsOn(selected);
   const selectedMeetings = meetingsOnDay(selected);
-
-  // Horaire type choisi : employés affichés qui n'ont encore rien ce jour-là
-  // (un créneau existant se modifie en le touchant dans la liste)
-  const freeEmployees = placeTemplate
-    ? placeEmployees.filter((e) => !shifts.some((s) => s.user_id === e.id && s.date?.slice(0, 10) === selected))
-    : [];
-  const place = async (emp) => {
-    setPlacing((p) => [...p, emp.id]);
-    try {
-      await onPlaceTemplate(emp.id, selected, placeTemplate);
-    } finally {
-      setPlacing((p) => p.filter((id) => id !== emp.id));
-    }
-  };
 
   return (
     <div className="pcal">
@@ -171,32 +153,7 @@ export default function PhoneCalendar({
         onAddShift={onAddShift}
         onMeetingClick={onMeetingClick}
         pentecostWorked={pentecostWorked}
-      >
-        {placeTemplate && onPlaceTemplate && (
-          <div className="pcal-place" style={placeTemplate.kind === 'repos' ? undefined : { '--shift-color': placeTemplate.color || NEUTRAL_SHIFT_COLOR }}>
-            <p className="pcal-place-title">
-              Placer <strong>{placeTemplate.name}</strong> ({templateTimes(placeTemplate)}) pour :
-            </p>
-            {freeEmployees.length === 0 ? (
-              <p className="pcal-place-empty">Tout le monde a déjà un créneau ce jour-là.</p>
-            ) : (
-              <div className="pcal-place-people">
-                {freeEmployees.map((e) => (
-                  <button
-                    key={e.id}
-                    type="button"
-                    className="pcal-place-btn"
-                    disabled={placing.includes(e.id)}
-                    onClick={() => place(e)}
-                  >
-                    + {e.first_name} {e.last_name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </DayDetail>
+      />
     </div>
   );
 }

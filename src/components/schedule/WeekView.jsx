@@ -177,6 +177,9 @@ export default function WeekView({ days, shifts, meetings = [], countMeetings = 
                       <td
                         key={i}
                         className={`week-td-cell${shift ? ' has-shift' : ''}${isPast ? ' past' : ''}${isWeekend ? ' weekend' : ''}${holiday ? ' holiday' : ''}${isDragOver ? ' drag-over' : ''}`}
+                        // Repères pour le glisser au doigt (touchTemplateDrag)
+                        data-drop-emp={onTemplateDrop ? emp.id : undefined}
+                        data-drop-date={onTemplateDrop ? dateStr : undefined}
                         onDragOver={(e) => { if (onTemplateDrop) e.preventDefault(); }}
                         onDragEnter={(e) => { if (onTemplateDrop) { e.preventDefault(); setDragOverCell(cellKey); } }}
                         onDragLeave={() => setDragOverCell((k) => (k === cellKey ? null : k))}

@@ -1287,6 +1287,12 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .template-chip--colored { border-left: 4px solid var(--shift-color); }
 .template-chip--rest { border-style: dashed; background: var(--bg-subtle); }
 .template-chip--rest strong { font-style: italic; }
+/* Glisser au doigt (touchTemplateDrag.js, 11 nov. 2026) : appuyer sur une
+   étiquette la saisit au lieu de faire défiler la page ou de sélectionner
+   le texte ; une copie suit le doigt. */
+.template-chip { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.template-chip--dragging { opacity: 0.4; }
+.template-chip--ghost { box-shadow: 0 8px 20px rgba(26, 34, 56, 0.25); transform: scale(1.05); }
 
 .template-palette--empty {
   display: flex;
@@ -2469,66 +2475,6 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   border-radius: var(--radius-lg);
   color: var(--danger);
 }
-
-/* Horaires types sur téléphone (PhoneTemplatePicker) : on touche un horaire,
-   puis un jour, puis les employés (10 nov. 2026, le glisser-déposer ne
-   marche pas au doigt) */
-.ptpl { margin-bottom: 12px; }
-.ptpl-label { font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; }
-.ptpl-done {
-  margin-left: 4px;
-  padding: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  font-weight: 600;
-  color: var(--primary);
-  text-decoration: underline;
-}
-.ptpl-chips {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  margin: 0 -16px;
-  padding: 2px 16px 4px;
-  scrollbar-width: none;
-}
-.ptpl-chips::-webkit-scrollbar { display: none; }
-.ptpl .template-chip { flex-shrink: 0; cursor: pointer; font-family: inherit; text-align: left; }
-.ptpl .template-chip:hover { border-color: var(--border-dark); background: var(--bg-card); }
-.ptpl .template-chip--rest:hover { background: var(--bg-subtle); }
-.ptpl .template-chip--colored:hover { border-left-color: var(--shift-color); }
-.ptpl .template-chip.template-chip--armed {
-  border-color: var(--primary);
-  background: var(--primary-light);
-  box-shadow: 0 0 0 1px var(--primary);
-}
-.ptpl .template-chip--colored.template-chip--armed { border-left-color: var(--shift-color); }
-.ptpl-create { flex-shrink: 0; align-self: center; }
-
-.pcal-place {
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  background: var(--primary-light);
-  border: 1px solid var(--primary-border);
-  border-left: 4px solid var(--shift-color, var(--border-dark));
-  border-radius: var(--radius-lg);
-}
-.pcal-place-title { font-size: 13.5px; margin-bottom: 8px; }
-.pcal-place-empty { font-size: 13px; color: var(--text-muted); }
-.pcal-place-people { display: flex; flex-wrap: wrap; gap: 6px; }
-.pcal-place-btn {
-  min-height: 40px;
-  padding: 0 14px;
-  border: 1px solid var(--border-dark);
-  border-radius: 999px;
-  background: var(--bg-card);
-  font: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
-}
-.pcal-place-btn:disabled { opacity: 0.5; }
 
 @media (max-width: 768px) {
   /* Planning gérant : les noms restent visibles quand on fait défiler les jours */
