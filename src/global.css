@@ -3208,11 +3208,14 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .wt-btn {
   display: inline-flex; align-items: center; gap: 8px;
   height: 40px; padding: 0 13px;
-  border: 1px solid var(--primary-border); border-radius: var(--radius);
-  background: var(--primary-light); color: var(--primary);
-  font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap;
+  /* Bouton blanc classique, comme « + Réunion » (12 nov. 2026 : le bleu
+     « faisait tache », dixit Cédric) */
+  border: 1px solid var(--border-dark); border-radius: var(--radius);
+  background: var(--bg-card); color: var(--text);
+  font: inherit; font-size: 13px; font-weight: 500; white-space: nowrap;
 }
-.wt-btn:hover, .wt-btn--open { background: color-mix(in srgb, var(--primary) 15%, #fff); }
+.wt-btn svg { color: var(--text-muted); }
+.wt-btn:hover, .wt-btn--open { background: var(--bg-hover); }
 .wt-menu {
   position: absolute; top: calc(100% + 6px); left: 12px; z-index: 60;
   width: 380px; max-width: calc(100vw - 24px); padding: 6px;
