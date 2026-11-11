@@ -2671,6 +2671,46 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   .settings-tab-panel { min-height: 0; }
 }
 
+/* Planning : fenêtre « Générer avec l'IA » (11 nov. 2026) */
+.ai-modal { max-width: 920px; }
+.ai-spark { color: var(--primary); margin-right: 2px; }
+.ai-month { display: flex; align-items: center; gap: 10px; margin: -4px 0 8px; }
+.ai-month strong { min-width: 150px; text-align: center; font-family: var(--font-display), sans-serif; font-size: 15px; text-transform: capitalize; }
+.ai-box {
+  margin-bottom: 12px; padding: 10px 12px; border-radius: 10px;
+  background: var(--primary-light); border: 1px solid color-mix(in srgb, var(--primary) 25%, #fff);
+  font-size: 13px; line-height: 1.45;
+}
+.ai-box > b { display: block; margin-bottom: 4px; font-size: 13.5px; }
+.ai-box ul { margin: 0; padding-left: 18px; }
+.ai-box--warn { background: var(--warning-bg); border-color: #F2D3A3; }
+.ai-box--warn > b { color: #9A5B12; }
+.ai-box--error { background: var(--danger-bg); border-color: #F5C2C2; }
+.ai-box--error > b { color: var(--danger); }
+.ai-warning { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 4px 0; }
+.ai-warning + .ai-warning { border-top: 1px solid #F2D3A3; }
+.ai-warning-actions { display: inline-flex; gap: 6px; flex-shrink: 0; }
+.ai-warning-actions a { text-decoration: none; }
+.ai-gaps { margin-bottom: 12px; font-size: 13px; color: var(--text-muted); }
+.ai-gaps summary { cursor: pointer; font-weight: 500; color: var(--text); }
+.ai-gaps ul { margin: 6px 0 4px; padding-left: 18px; line-height: 1.5; }
+.ai-modal textarea { width: 100%; resize: vertical; font: inherit; font-size: 13.5px; }
+.ai-opts { margin-top: 12px; }
+.ai-loading { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 40px 10px; text-align: center; }
+.ai-loading p { margin: 0; }
+.ai-spinner {
+  width: 34px; height: 34px; margin-bottom: 10px; border-radius: 50%;
+  border: 3px solid var(--primary-light); border-top-color: var(--primary);
+  animation: ai-spin 0.9s linear infinite;
+}
+@keyframes ai-spin { to { transform: rotate(360deg); } }
+.ai-weeks { max-height: 46vh; overflow-y: auto; margin-bottom: 12px; padding-right: 2px; }
+.ai-week { margin-bottom: 8px; }
+.ai-week th.ai-out { opacity: 0.45; }
+.ai-refine { margin-bottom: 4px; }
+.ai-refine-row { display: flex; gap: 8px; }
+.ai-refine-row input { flex: 1; min-width: 0; }
+
 /* Règles de présence par poste (Paramètres, 11 nov. 2026) */
 .presence-rules { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .presence-rules li {

@@ -14,6 +14,7 @@ import PhoneCalendar from '../components/schedule/PhoneCalendar';
 import AssignTemplateModal from '../components/schedule/AssignTemplateModal';
 import WeekTemplatesMenu from '../components/schedule/WeekTemplatesMenu';
 import ApplyWeekTemplateModal from '../components/schedule/ApplyWeekTemplateModal';
+import AiPlanningModal from '../components/schedule/AiPlanningModal';
 import SaveWeekTemplateModal from '../components/schedule/SaveWeekTemplateModal';
 import { getWeekTemplates } from '../api/weekTemplates';
 import { countText } from '../components/schedule/weekTemplateUtils';
@@ -74,6 +75,9 @@ export default function AdminSchedule() {
   const [weekTemplates, setWeekTemplates] = useState([]);
   const [weekModal, setWeekModal] = useState(null);
   const [weekNotice, setWeekNotice] = useState('');
+  // Planning généré par IA (11 nov. 2026) : fenêtre ouverte, message après application
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiNotice, setAiNotice] = useState('');
 
   useEffect(() => {
     getWeekTemplates(token).then(setWeekTemplates).catch(console.error);
@@ -263,6 +267,9 @@ export default function AdminSchedule() {
         title="Planning"
         actions={isPhone ? null : (
           <>
+            <button className="btn-secondary" onClick={() => { setAiNotice(''); setAiOpen(true); }}>
+              <span className="ai-spark" aria-hidden="true">✦</span> Générer avec l'IA
+            </button>
             <button className="btn-secondary" onClick={() => setMeetingModal({ date: defaultMeetingDate() })}>+ Réunion</button>
             <button className="btn-primary" onClick={() => setModal({})}>+ Nouveau créneau</button>
           </>
@@ -356,6 +363,7 @@ export default function AdminSchedule() {
         </TemplatePalette>
       )}
       {weekNotice && shownView === 'week' && <p className="settings-notice wt-notice" role="status">{weekNotice}</p>}
+      {aiNotice && <p className="settings-notice wt-notice" role="status">{aiNotice}</p>}
 
       {loading ? (
         <p className="tab-loading">Chargement…</p>
@@ -403,6 +411,28 @@ export default function AdminSchedule() {
           onAddShift={(date) => setModal({ date })}
           onMeetingClick={(meeting) => setMeetingModal({ meeting })}
           onTemplateDropDay={handleDayDrop}
+        />
+      )}
+
+      {aiOpen && (
+        <AiPlanningModal
+          // Mois affiché, ou celui du jeudi de la semaine affichée
+          initialMonth={(() => {
+            const d = view === 'month' ? monthDate : new Date(weekDays[3]);
+            return { year: d.getFullYear(), month: d.getMonth() + 1 };
+          })()}
+          employees={employees}
+          shiftTemplates={templates}
+          onClose={() => setAiOpen(false)}
+          onDone={(r, label, period) => {
+            setAiOpen(false);
+            const done = r.added + r.replaced;
+            setAiNotice(`Planning de ${label} : ${done} case${done > 1 ? 's' : ''} enregistrée${done > 1 ? 's' : ''}`
+              + (r.replaced ? ` (dont ${r.replaced} remplacée${r.replaced > 1 ? 's' : ''})` : '') + '.');
+            setView('month');
+            setMonthDate(new Date(period.year, period.month - 1, 1));
+            loadShifts();
+          }}
         />
       )}
 
