@@ -3,30 +3,45 @@ import { useAuth } from '../../context/AuthContext';
 import { createPresenceRule, deletePresenceRule } from '../../api/presenceRules';
 import Select from '../Select';
 
-// « Au moins 1 Opticien à chaque heure d'ouverture »
-const presenceRuleText = (r) => `Au moins ${r.min_count} ${r.job_title} ${r.scope === 'toujours'
+// « Opticien diplômé ou Opticienne diplômée » ; « A, B ou C »
+const titlesText = (titles) => (titles.length < 2
+  ? titles.join('')
+  : `${titles.slice(0, -1).join(', ')} ou ${titles[titles.length - 1]}`);
+
+// « Au moins 1 Opticien diplômé ou Opticienne diplômée à chaque heure d'ouverture »
+const presenceRuleText = (r) => `Au moins ${r.min_count} ${titlesText(r.job_titles)} ${r.scope === 'toujours'
   ? 'à chaque heure d\'ouverture'
   : 'dans la journée'}`;
 
-// Paramètres → Règles de présence (11 nov. 2026) : qui doit toujours être là,
-// par poste (ex. un opticien diplômé dans un magasin d'optique). Respectées par
-// le planning généré par IA ; Orgaly vérifie chaque proposition.
+// Paramètres → Planning → Règles de présence (11 nov. 2026) : qui doit toujours
+// être là, par poste (ex. un opticien diplômé dans un magasin d'optique). Une
+// règle peut viser plusieurs postes (« Opticien diplômé » et « Opticienne
+// diplômée ») : une personne de l'un d'eux suffit. Respectées par le planning
+// généré par IA ; Orgaly vérifie chaque proposition.
 export default function PresenceRulesManager({ rules, jobTitles, loading, onChange }) {
   const { token } = useAuth();
-  const [form, setForm] = useState({ minCount: '1', jobTitle: '', scope: 'toujours' });
+  const [form, setForm] = useState({ minCount: '1', jobTitles: [], scope: 'toujours' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  // Poste choisi, ou le premier de la liste (qui peut arriver après l'ouverture)
-  const jobTitle = jobTitles.includes(form.jobTitle) ? form.jobTitle : (jobTitles[0] || '');
+  // Postes cochés encore présents dans les fiches
+  const chosen = form.jobTitles.filter((t) => jobTitles.includes(t));
+
+  const toggleTitle = (title) => setForm((f) => ({
+    ...f,
+    jobTitles: f.jobTitles.includes(title) ? f.jobTitles.filter((t) => t !== title) : [...f.jobTitles, title],
+  }));
 
   const add = async (e) => {
     e.preventDefault();
-    if (!jobTitle) { setError('Choisissez un poste.'); return; }
+    if (chosen.length === 0) { setError('Choisissez au moins un poste.'); return; }
     setSaving(true);
     setError('');
     try {
-      const saved = await createPresenceRule({ ...form, jobTitle, minCount: Number(form.minCount) }, token);
+      // Dans l'ordre de la liste, pour une phrase stable
+      const ordered = jobTitles.filter((t) => chosen.includes(t));
+      const saved = await createPresenceRule({ ...form, jobTitles: ordered, minCount: Number(form.minCount) }, token);
       onChange([...rules, saved]);
+      setForm((f) => ({ ...f, jobTitles: [] }));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -77,31 +92,60 @@ export default function PresenceRulesManager({ rules, jobTitles, loading, onChan
         </p>
       ) : (
         <form onSubmit={add} className="inline-form presence-rule-form">
-          <span className="presence-rule-word">Au moins</span>
-          <input
-            type="number" min="1" max="9" required aria-label="Nombre de personnes"
-            className="presence-rule-count"
-            value={form.minCount}
-            onChange={(e) => setForm((f) => ({ ...f, minCount: e.target.value }))}
-          />
-          <Select
-            aria-label="Poste"
-            value={jobTitle}
-            onChange={(e) => setForm((f) => ({ ...f, jobTitle: e.target.value }))}
-          >
-            {jobTitles.map((t) => <option key={t} value={t}>{t}</option>)}
-          </Select>
-          <Select
-            aria-label="Quand"
-            value={form.scope}
-            onChange={(e) => setForm((f) => ({ ...f, scope: e.target.value }))}
-          >
-            <option value="toujours">à chaque heure d'ouverture</option>
-            <option value="jour">au moins une fois dans la journée</option>
-          </Select>
-          <button type="submit" className="btn-primary btn-sm" disabled={saving}>
-            {saving ? 'Ajout…' : 'Ajouter'}
-          </button>
+          <div className="presence-rule-line">
+            <span>Au moins</span>
+            <input
+              type="number" min="1" max="9" required aria-label="Nombre de personnes"
+              className="presence-rule-count"
+              value={form.minCount}
+              onChange={(e) => setForm((f) => ({ ...f, minCount: e.target.value }))}
+            />
+            <span>{Number(form.minCount) > 1 ? 'personnes' : 'personne'}</span>
+            <Select
+              aria-label="Quand"
+              value={form.scope}
+              onChange={(e) => setForm((f) => ({ ...f, scope: e.target.value }))}
+            >
+              <option value="toujours">à chaque heure d'ouverture</option>
+              <option value="jour">au moins une fois dans la journée</option>
+            </Select>
+          </div>
+
+          <div className="presence-rule-titles">
+            <span id="presence-titles-label">parmi ces postes :</span>
+            <div className="presence-rule-chips" role="group" aria-labelledby="presence-titles-label">
+              {jobTitles.map((t) => {
+                const on = chosen.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`open-day-chip${on ? ' on' : ''}`}
+                    aria-pressed={on}
+                    onClick={() => toggleTitle(t)}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+            <span className="hint">
+              Cochez plusieurs postes si un même métier est écrit de plusieurs façons dans les
+              fiches (« Opticien diplômé », « Opticienne diplômée ») : une personne de l'un
+              d'eux suffit.
+            </span>
+          </div>
+
+          <div className="presence-rule-actions">
+            {chosen.length > 0 && (
+              <span className="presence-rule-preview">
+                {presenceRuleText({ min_count: form.minCount || 1, job_titles: jobTitles.filter((t) => chosen.includes(t)), scope: form.scope })}
+              </span>
+            )}
+            <button type="submit" className="btn-primary btn-sm" disabled={saving}>
+              {saving ? 'Ajout…' : 'Ajouter la règle'}
+            </button>
+          </div>
         </form>
       )}
       {error && <p className="error-msg">{error}</p>}

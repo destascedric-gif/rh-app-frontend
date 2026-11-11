@@ -13,6 +13,6 @@ const req = async (method, url, token, body = null) => {
 
 // Règles de présence par poste (gérant) : { rules, jobTitles }
 export const getPresenceRules   = (token)       => req('GET',    '/presence-rules', token);
-// { jobTitle, minCount, scope: 'toujours' | 'jour' }
+// { jobTitles: ['Opticien diplômé', …], minCount, scope: 'toujours' | 'jour' }
 export const createPresenceRule = (data, token) => req('POST',   '/presence-rules', token, data);
 export const deletePresenceRule = (id, token)   => req('DELETE', `/presence-rules/${id}`, token);

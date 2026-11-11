@@ -2683,10 +2683,14 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   border-radius: var(--radius-lg);
   font-size: 13.5px;
 }
-.presence-rule-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.presence-rule-form .select-trigger, .presence-rule-form > div { min-width: 0; }
-.presence-rule-word { font-size: 13.5px; }
+.presence-rule-form { display: flex; flex-direction: column; gap: 14px; font-size: 13.5px; }
+.presence-rule-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .presence-rule-count { width: 64px; }
+.presence-rule-titles { display: flex; flex-direction: column; gap: 8px; }
+.presence-rule-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.presence-rule-chips .open-day-chip { flex: 0 0 auto; padding: 6px 14px; }
+.presence-rule-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; }
+.presence-rule-preview { flex: 1; min-width: 0; color: var(--text-muted); font-style: italic; }
 .settings-window-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
 .settings-window-head h3 { flex: 1; margin: 0; }
 .settings-window-icon { width: 36px; height: 36px; }
