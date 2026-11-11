@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { NEUTRAL_SHIFT_COLOR } from './shiftColor';
-import { isTouchScreen, startTouchTemplateDrag } from './touchTemplateDrag';
+import { startTouchTemplateDrag } from './touchTemplateDrag';
 
 const formatTime = (t) => t?.slice(0, 5) ?? '';
 
@@ -8,24 +8,18 @@ const formatTime = (t) => t?.slice(0, 5) ?? '';
 // pour poser un jour non travaillé d'un simple glisser-déposer.
 const REST_DAY = { kind: 'repos', name: 'Repos' };
 
-const startDrag = (e, payload) => {
-  e.dataTransfer.effectAllowed = 'copy';
-  e.dataTransfer.setData('application/json', JSON.stringify(payload));
-};
-
-// onTouchDrop(userId, date, modèle) : appelé quand on lâche un horaire au
-// doigt sur une case (téléphone) ; userId est vide sur un jour du mois. À
-// la souris, c'est la case qui reçoit le dépôt (WeekView, MonthView).
+// onTouchDrop(userId, date, modèle) : appelé quand on lâche un horaire sur
+// une case (souris, doigt ou stylet) ; userId est vide sur un jour du mois.
 // compact : version fine sur une ligne (vue Mois, où elle sert de légende).
 // children : ajouté au bout de la rangée (bouton « Semaines types » en semaine).
 export default function TemplatePalette({ templates, onTouchDrop, compact = false, children = null }) {
   const navigate = useNavigate();
-  // Écran tactile : pas de glisser-déposer du navigateur (il bloquerait le
-  // nôtre), on suit le doigt nous-mêmes.
-  const touch = isTouchScreen();
+  // Un seul système de glisser pour la souris, le doigt et le stylet
+  // (touchTemplateDrag.js, 12 nov. 2026) : le glisser-déposer du navigateur
+  // est coupé, il ne marchait pas partout.
   const dragProps = (payload) => ({
-    draggable: !touch,
-    onDragStart: (e) => startDrag(e, payload),
+    draggable: false,
+    onDragStart: (e) => e.preventDefault(),
     onPointerDown: (e) => startTouchTemplateDrag(e, payload, onTouchDrop),
   });
 

@@ -1,8 +1,10 @@
-// Glisser un horaire type au doigt (téléphone, tablette).
+// Glisser un horaire type : à la souris, au doigt ou au stylet.
 //
-// Sur ordinateur, la palette utilise le glisser-déposer du navigateur
-// (draggable), qui ne marche pas au doigt sur la plupart des téléphones.
-// Ici on suit le doigt nous-mêmes : une copie de l'étiquette suit le doigt,
+// Depuis le 12 nov. 2026, c'est le SEUL système de glisser des horaires
+// types (avant, la souris utilisait le glisser-déposer du navigateur, coupé
+// quand le navigateur se croyait sur un écran tactile, ex. Firefox sur un
+// ordinateur à écran tactile : plus rien ne glissait chez SAS LLDB).
+// On suit le pointeur nous-mêmes : une copie de l'étiquette le suit,
 // la case visée s'éclaire (classe « drag-over », comme à la souris), et au
 // lâcher on crée le créneau sur la case sous le doigt. Les cases du
 // planning portent data-drop-emp (employé) et data-drop-date (jour).
@@ -18,7 +20,8 @@ export const isTouchScreen = () =>
   typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
 
 export function startTouchTemplateDrag(e, payload, onDrop) {
-  if (e.pointerType === 'mouse' || !onDrop) return;
+  if (!onDrop) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return; // bouton gauche seulement
   e.preventDefault();
 
   const chip = e.currentTarget;
