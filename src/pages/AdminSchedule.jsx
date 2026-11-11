@@ -9,9 +9,9 @@ import WeekView, { getWeekDays, toISO } from '../components/schedule/WeekView';
 import MonthView from '../components/schedule/MonthView';
 import ShiftModal from '../components/schedule/ShiftModal';
 import MeetingModal from '../components/schedule/MeetingModal';
-import ScheduleLegend from '../components/schedule/ScheduleLegend';
 import TemplatePalette from '../components/schedule/TemplatePalette';
 import PhoneCalendar from '../components/schedule/PhoneCalendar';
+import AssignTemplateModal from '../components/schedule/AssignTemplateModal';
 import ScheduleTopbarButtons from '../components/schedule/ScheduleTopbarButtons';
 import PhoneScheduleBar from '../components/schedule/PhoneScheduleBar';
 import EmployeeMultiSelect from '../components/EmployeeMultiSelect';
@@ -26,6 +26,11 @@ const getMondayOfWeek = (date = new Date()) => {
   d.setHours(0, 0, 0, 0);
   return d;
 };
+
+// Employés affichés : ceux choisis dans le menu, ou tout le monde
+const displayedEmployeesFor = (employees, ids) => (ids.length > 0
+  ? employees.filter(e => ids.includes(e.id))
+  : employees);
 
 const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
@@ -166,36 +171,67 @@ export default function AdminSchedule() {
   // Dépose d'un horaire type sur une case du planning : crée le créneau
   // directement avec les horaires du modèle, sans passer par la fenêtre de
   // création (choix du client — la rapidité prime sur la confirmation).
+  const applyTemplate = async (userId, date, template) => {
+    // "Repos" glissé : jour entier non travaillé (mêmes bornes qu'un congé)
+    if (template.kind === 'repos') {
+      handleSaved(await createShift(
+        { userId, date, startTime: '00:00', endTime: '23:59', breaks: [], type: 'repos' },
+        token
+      ));
+      return;
+    }
+    const breaks = template.break_start
+      ? [{ start_time: template.break_start, end_time: template.break_end, label: 'Pause' }]
+      : [];
+    handleSaved(await createShift(
+      { userId, date, startTime: template.start_time, endTime: template.end_time, breaks, type: 'travail' },
+      token
+    ));
+  };
+
   const handleTemplateDrop = async (userId, date, template) => {
     try {
-      // "Repos" glissé : jour entier non travaillé (mêmes bornes qu'un congé)
-      if (template.kind === 'repos') {
-        const saved = await createShift(
-          { userId, date, startTime: '00:00', endTime: '23:59', breaks: [], type: 'repos' },
-          token
-        );
-        handleSaved(saved);
-        return;
-      }
-      const breaks = template.break_start
-        ? [{ start_time: template.break_start, end_time: template.break_end, label: 'Pause' }]
-        : [];
-      const saved = await createShift(
-        { userId, date, startTime: template.start_time, endTime: template.end_time, breaks, type: 'travail' },
-        token
-      );
-      handleSaved(saved);
+      await applyTemplate(userId, date, template);
     } catch (err) {
       alert(err.message);
     }
   };
 
+  // Mois : horaire type lâché sur un jour (11 nov. 2026). Un seul salarié
+  // affiché (menu des employés) et libre ce jour-là : appliqué directement ;
+  // sinon, fenêtre « À quels salariés ? ».
+  const [assign, setAssign] = useState(null);
+  const assignPeople = displayedEmployeesFor(employees, filteredIds).filter(e => e.is_active !== false);
+  const handleDayDrop = (date, template) => {
+    const busy = (id) => shifts.some(s => s.user_id === id && s.date?.slice(0, 10) === date);
+    if (filteredIds.length === 1 && assignPeople.length === 1 && !busy(assignPeople[0].id)) {
+      handleTemplateDrop(assignPeople[0].id, date, template);
+      return;
+    }
+    setAssign({ date, template });
+  };
+  // Un employé visé (semaine) : créneau direct ; seulement un jour (mois) : on demande
+  const handleAnyDrop = (userId, date, template) => (userId
+    ? handleTemplateDrop(userId, date, template)
+    : handleDayDrop(date, template));
+  // Fenêtre : un créneau par salarié coché ; renvoie ceux qui ont échoué
+  const applyToMany = async (ids) => {
+    const failed = [];
+    for (const id of ids) {
+      try {
+        await applyTemplate(id, assign.date, assign.template);
+      } catch (err) {
+        const emp = employees.find(e => e.id === id);
+        failed.push({ id, message: `${emp ? `${emp.first_name} ${emp.last_name}` : 'Un salarié'} : ${err.message}` });
+      }
+    }
+    return failed;
+  };
+
   const weekDays = getWeekDays(monday);
   const range = getDateRange();
 
-  const displayedEmployees = filteredIds.length > 0
-    ? employees.filter(e => filteredIds.includes(e.id))
-    : employees;
+  const displayedEmployees = displayedEmployeesFor(employees, filteredIds);
 
   // Date proposée pour une nouvelle réunion : aujourd'hui s'il est affiché
   const defaultMeetingDate = () => {
@@ -279,7 +315,9 @@ export default function AdminSchedule() {
 
         {/* Ordinateur, mois : légende dans la barre d'outils (une rangée de
             moins, pour que le mois tienne dans l'écran) */}
-        {shownView !== 'week' && <ScheduleLegend templates={templates} />}
+        {/* (11 nov. 2026 : ce sont maintenant les horaires types à glisser
+            sur un jour, en version fine, qui servent de légende) */}
+        {shownView !== 'week' && <TemplatePalette templates={templates} onTouchDrop={handleAnyDrop} compact />}
 
         <div className="role-toggle">
           <button className={`role-btn ${view==='week'?'active':''}`} onClick={() => setView('week')}>Semaine</button>
@@ -290,8 +328,8 @@ export default function AdminSchedule() {
 
       {/* En semaine, les horaires types à glisser (déjà en couleur) servent
           de légende, sur téléphone comme sur ordinateur (11 nov. 2026) */}
-      {isPhone && shownView !== 'week' && <ScheduleLegend templates={templates} />}
-      {shownView === 'week' && <TemplatePalette templates={templates} onTouchDrop={handleTemplateDrop} />}
+      {isPhone && shownView !== 'week' && <TemplatePalette templates={templates} onTouchDrop={handleAnyDrop} compact />}
+      {shownView === 'week' && <TemplatePalette templates={templates} onTouchDrop={handleAnyDrop} />}
 
       {loading ? (
         <p className="tab-loading">Chargement…</p>
@@ -308,6 +346,7 @@ export default function AdminSchedule() {
           onShiftDelete={handleDelete}
           onAddShift={(date) => setModal({ date })}
           onMeetingClick={(meeting) => setMeetingModal({ meeting })}
+          onTemplateDropDay={handleDayDrop}
         />
       ) : view === 'week' ? (
         <WeekView openDays={openDays} pentecostWorked={pentecostWorked}
@@ -337,6 +376,18 @@ export default function AdminSchedule() {
           onShiftDelete={handleDelete}
           onAddShift={(date) => setModal({ date })}
           onMeetingClick={(meeting) => setMeetingModal({ meeting })}
+          onTemplateDropDay={handleDayDrop}
+        />
+      )}
+
+      {assign && (
+        <AssignTemplateModal
+          date={assign.date}
+          template={assign.template}
+          employees={assignPeople}
+          shifts={shifts}
+          onApply={applyToMany}
+          onClose={() => setAssign(null)}
         />
       )}
 

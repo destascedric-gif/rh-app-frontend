@@ -90,7 +90,10 @@ export default function MonthView({
   year, month, shifts, meetings = [], isAdmin, selectedUserIds = [],
   onShiftClick, onShiftDelete, onMeetingClick, onAddShift,
   team = false, currentUserId = null, openDays, pentecostWorked = false,
+  onTemplateDropDay,
 }) {
+  // Jour survolé pendant qu'on glisse un horaire type (gérant)
+  const [dragOverDate, setDragOverDate] = useState(null);
   const cells  = getMonthCells(year, month);
   const weeks  = chunkWeeks(cells);
   const today  = toISO(new Date());
@@ -183,7 +186,25 @@ export default function MonthView({
                         isClosedDay(cell.date, openDays) ? 'weekend' : '',
                         holiday ? 'holiday' : '',
                         isSelected ? 'selected' : '',
+                        dragOverDate === dateStr ? 'drag-over' : '',
                       ].filter(Boolean).join(' ')}
+                      // Horaire type lâché sur le jour (souris) ; repère
+                      // data-drop-date pour le glisser au doigt. Seulement
+                      // les jours du mois (les autres ne sont pas chargés).
+                      {...(onTemplateDropDay && cell.currentMonth ? {
+                        'data-drop-date': dateStr,
+                        onDragOver: (e) => e.preventDefault(),
+                        onDragEnter: (e) => { e.preventDefault(); setDragOverDate(dateStr); },
+                        onDragLeave: (e) => {
+                          if (!e.currentTarget.contains(e.relatedTarget)) setDragOverDate((d) => (d === dateStr ? null : d));
+                        },
+                        onDrop: (e) => {
+                          e.preventDefault();
+                          setDragOverDate(null);
+                          const raw = e.dataTransfer.getData('application/json');
+                          if (raw) onTemplateDropDay(dateStr, JSON.parse(raw));
+                        },
+                      } : {})}
                       onClick={() => setSelected(dateStr)}
                       style={rowH ? { height: rowH } : undefined}
                       title={holiday ? `Jour férié : ${holiday}` : undefined}

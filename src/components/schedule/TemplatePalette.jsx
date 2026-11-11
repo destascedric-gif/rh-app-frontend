@@ -14,9 +14,10 @@ const startDrag = (e, payload) => {
 };
 
 // onTouchDrop(userId, date, modèle) : appelé quand on lâche un horaire au
-// doigt sur une case (téléphone) ; à la souris, c'est la case qui reçoit
-// le dépôt (WeekView, onTemplateDrop).
-export default function TemplatePalette({ templates, onTouchDrop }) {
+// doigt sur une case (téléphone) ; userId est vide sur un jour du mois. À
+// la souris, c'est la case qui reçoit le dépôt (WeekView, MonthView).
+// compact : version fine sur une ligne (vue Mois, où elle sert de légende).
+export default function TemplatePalette({ templates, onTouchDrop, compact = false }) {
   const navigate = useNavigate();
   // Écran tactile : pas de glisser-déposer du navigateur (il bloquerait le
   // nôtre), on suit le doigt nous-mêmes.
@@ -33,6 +34,29 @@ export default function TemplatePalette({ templates, onTouchDrop }) {
       <span>Jour non travaillé</span>
     </div>
   );
+
+  if (compact) {
+    return (
+      <div className="template-palette template-palette--compact">
+        <span className="template-palette-label">Glissez sur un jour :</span>
+        {templates.map((t) => (
+          <div
+            key={t.id}
+            className="template-chip template-chip--colored template-chip--compact"
+            style={{ '--shift-color': t.color || NEUTRAL_SHIFT_COLOR }}
+            title={`${t.name} : ${formatTime(t.start_time)} → ${formatTime(t.end_time)}`}
+            {...dragProps(t)}
+          >
+            <strong>{t.name}</strong>
+            <span>{formatTime(t.start_time)}–{formatTime(t.end_time)}</span>
+          </div>
+        ))}
+        <div className="template-chip template-chip--rest template-chip--compact" title="Repos : jour non travaillé" {...dragProps(REST_DAY)}>
+          <strong>Repos</strong>
+        </div>
+      </div>
+    );
+  }
 
   if (templates.length === 0) {
     return (

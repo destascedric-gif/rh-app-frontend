@@ -3048,3 +3048,45 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   .template-chip strong { font-size: 12px; }
   .template-chip span { display: none; }
 }
+
+/* ── Horaires types à glisser sur un jour du mois (11 nov. 2026) ──
+   Demande de Cédric : dans le mois, on glisse un horaire type sur un jour,
+   puis une fenêtre demande à quels salariés l'appliquer
+   (AssignTemplateModal). Version fine des étiquettes : elles servent aussi
+   de légende (à la place de l'ancienne légende du mois). */
+.template-palette--compact { margin-bottom: 10px; gap: 6px; }
+.schedule-toolbar .template-palette--compact { margin: 0; }
+.template-chip--compact { flex-direction: row; align-items: baseline; gap: 6px; padding: 4px 10px; }
+.template-chip--compact strong { font-size: 12px; }
+.template-chip--compact span { font-size: 11px; }
+.month-grid .month-td.month-td--selectable.drag-over { background: var(--primary-light); box-shadow: inset 0 0 0 2px var(--primary); }
+.pcal-day.drag-over { background: var(--primary-light); border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+
+/* Fenêtre « À quels salariés ? » */
+.assign-template {
+  margin: 4px 0 14px;
+  padding: 8px 12px;
+  border-left: 4px solid var(--shift-color);
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  font-size: 13.5px;
+}
+.assign-template--rest { border-left-color: var(--border-dark); }
+.assign-all { margin-bottom: 8px; }
+.assign-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
+.assign-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.assign-row--on { border-color: var(--primary); background: var(--primary-light); }
+.assign-row input { width: 16px; height: 16px; margin: 0; flex-shrink: 0; accent-color: var(--primary); }
+.assign-name { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14px; font-weight: 600; }
+.assign-job { font-size: 12px; font-weight: 400; color: var(--text-muted); }
+.assign-busy { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.assign-warn { margin-top: 10px; color: var(--warning); }

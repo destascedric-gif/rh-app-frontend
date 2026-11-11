@@ -50,6 +50,7 @@ export default function PhoneCalendar({
   year, month, shifts, meetings = [], isAdmin = false, selectedUserIds = [],
   onShiftClick, onShiftDelete, onAddShift, onMeetingClick,
   team = false, currentUserId = null, openDays, pentecostWorked = false,
+  onTemplateDropDay,
 }) {
   // team : planning de l'équipe vu par un employé, en lecture seule —
   // initiales comme pour le gérant, sa propre ligne en premier (« Vous »),
@@ -106,6 +107,9 @@ export default function PhoneCalendar({
                 !holiday && isClosedDay(day, openDays) ? 'pcal-day--closed' : '',
                 dateStr === selected ? 'pcal-day--selected' : '',
               ].filter(Boolean).join(' ')}
+              // Gérant : repère pour lâcher un horaire type au doigt sur ce
+              // jour (touchTemplateDrag), jours du mois seulement
+              data-drop-date={onTemplateDropDay && inMonth(day) ? dateStr : undefined}
               onClick={() => setSelected(dateStr)}
               aria-label={label}
               aria-pressed={dateStr === selected}
