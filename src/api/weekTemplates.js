@@ -20,3 +20,6 @@ export const updateWeekTemplate = (id, data, token) => req('PUT',    `/week-temp
 export const deleteWeekTemplate = (id, token)       => req('DELETE', `/week-templates/${id}`, token);
 // { weekStart, mode: 'empty' | 'replace', templateId } ou { …, copyPrevious: true }
 export const applyWeekTemplate  = (data, token)     => req('POST',   '/week-templates/apply', token, data);
+// { weekStart, userIds } : vide la semaine (créneaux et repos, jamais les congés) ;
+// renvoie { deleted, slots } — slots à renvoyer à applyWeekTemplate pour annuler
+export const clearWeek          = (data, token)     => req('POST',   '/week-templates/clear', token, data);

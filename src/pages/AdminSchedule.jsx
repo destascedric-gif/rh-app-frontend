@@ -16,7 +16,8 @@ import WeekTemplatesMenu from '../components/schedule/WeekTemplatesMenu';
 import ApplyWeekTemplateModal from '../components/schedule/ApplyWeekTemplateModal';
 import AiPlanningModal from '../components/schedule/AiPlanningModal';
 import SaveWeekTemplateModal from '../components/schedule/SaveWeekTemplateModal';
-import { getWeekTemplates } from '../api/weekTemplates';
+import ClearWeekModal from '../components/schedule/ClearWeekModal';
+import { getWeekTemplates, applyWeekTemplate } from '../api/weekTemplates';
 import { countText } from '../components/schedule/weekTemplateUtils';
 import { useNavigate } from 'react-router-dom';
 import ScheduleTopbarButtons from '../components/schedule/ScheduleTopbarButtons';
@@ -75,6 +76,8 @@ export default function AdminSchedule() {
   const [weekTemplates, setWeekTemplates] = useState([]);
   const [weekModal, setWeekModal] = useState(null);
   const [weekNotice, setWeekNotice] = useState('');
+  // Après « Vider cette semaine » : ce qui a été effacé, pour « Annuler »
+  const [weekUndo, setWeekUndo] = useState(null);
   // Planning généré par IA (11 nov. 2026) : fenêtre ouverte, message après application
   const [aiOpen, setAiOpen] = useState(false);
   const [aiNotice, setAiNotice] = useState('');
@@ -85,7 +88,19 @@ export default function AdminSchedule() {
     getWeekTemplates(token).then(setWeekTemplates).catch(console.error);
   }, [token]);
   // Le message concerne la semaine affichée : il disparaît quand on en change
-  useEffect(() => { setWeekNotice(''); }, [monday]);
+  useEffect(() => { setWeekNotice(''); setWeekUndo(null); }, [monday]);
+
+  const undoClear = async () => {
+    const undo = weekUndo;
+    setWeekUndo(null);
+    try {
+      const r = await applyWeekTemplate({ weekStart: undo.weekStart, mode: 'empty', slots: undo.slots }, token);
+      setWeekNotice(`Semaine remise comme avant (${r.added} case${r.added > 1 ? 's' : ''}).`);
+      loadShifts();
+    } catch (err) {
+      setWeekNotice(`Impossible d'annuler : ${err.message}`);
+    }
+  };
 
   useEffect(() => {
     getPlanningPeople(token).then(setEmployees).catch(console.error);
@@ -364,10 +379,16 @@ export default function AdminSchedule() {
             onCopyPrevious={() => { setWeekNotice(''); setWeekModal({ kind: 'apply', source: 'previous' }); }}
             onSave={() => { setWeekNotice(''); setWeekModal({ kind: 'save' }); }}
             onManage={() => navigate('/parametres?rubrique=weeks')}
+            onClear={() => { setWeekNotice(''); setWeekUndo(null); setWeekModal({ kind: 'clear' }); }}
           />
         </TemplatePalette>
       )}
-      {weekNotice && shownView === 'week' && <p className="settings-notice wt-notice" role="status">{weekNotice}</p>}
+      {weekNotice && shownView === 'week' && (
+        <p className="settings-notice wt-notice" role="status">
+          {weekNotice}
+          {weekUndo && <button type="button" className="wt-undo" onClick={undoClear}>Annuler</button>}
+        </p>
+      )}
       {aiNotice && <p className="settings-notice wt-notice" role="status">{aiNotice}</p>}
 
       {loading ? (
@@ -458,6 +479,22 @@ export default function AdminSchedule() {
               + (r.kept ? `, ${r.kept} déjà remplie${r.kept > 1 ? 's' : ''} gardée${r.kept > 1 ? 's' : ''}` : '')
               + (r.protected ? `, ${r.protected} congé${r.protected > 1 ? 's' : ''} ou absence${r.protected > 1 ? 's' : ''} gardé${r.protected > 1 ? 's' : ''}` : '')
               + '.');
+            loadShifts();
+          }}
+        />
+      )}
+
+      {weekModal?.kind === 'clear' && (
+        <ClearWeekModal
+          weekStart={toISO(weekDays[0])}
+          employees={displayedEmployees}
+          allCount={employees.length}
+          shifts={shifts}
+          onClose={() => setWeekModal(null)}
+          onDone={(r) => {
+            setWeekModal(null);
+            setWeekNotice(`Semaine vidée : ${r.deleted} case${r.deleted > 1 ? 's' : ''} effacée${r.deleted > 1 ? 's' : ''}.`);
+            setWeekUndo(r.slots.length ? { weekStart: toISO(weekDays[0]), slots: r.slots } : null);
             loadShifts();
           }}
         />

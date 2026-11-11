@@ -3302,3 +3302,18 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   .wt-menu-wrap { margin-left: 0; padding-left: 0; border-left: none; }
   .wt-menu { left: 0; right: auto; width: calc(100vw - 32px); }
 }
+
+/* Vider une semaine (12 nov. 2026) : entrée rouge du menu, bouton rouge,
+   « Annuler » dans le message vert */
+.wt-menu-item--danger, .wt-menu-item--danger svg { color: var(--danger); }
+.wt-menu-item--danger:hover, .wt-menu-item--danger:focus-visible { background: var(--danger-bg); }
+.btn-danger {
+  background: var(--danger); color: #fff; border: none; padding: 8px 16px;
+  border-radius: var(--radius); font-size: 13.5px; font-weight: 500; cursor: pointer; white-space: nowrap;
+}
+.btn-danger:hover { background: color-mix(in srgb, var(--danger) 85%, #000); }
+.btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+.wt-undo {
+  margin-left: 10px; padding: 0; border: none; background: none;
+  font: inherit; font-weight: 600; color: var(--primary); text-decoration: underline; cursor: pointer;
+}
