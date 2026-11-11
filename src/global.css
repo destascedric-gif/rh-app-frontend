@@ -3305,8 +3305,16 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 /* Vider une semaine (12 nov. 2026) : entrée rouge du menu, bouton rouge,
    « Annuler » dans le message vert */
-.wt-menu-item--danger, .wt-menu-item--danger svg { color: var(--danger); }
-.wt-menu-item--danger:hover, .wt-menu-item--danger:focus-visible { background: var(--danger-bg); }
+/* « Vider la semaine » : bouton à part, à côté de « Semaines types » (12 nov. 2026) */
+.wt-menu-wrap { gap: 8px; }
+.wt-clear-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 40px; padding: 0 12px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg-card); color: var(--danger);
+  font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap;
+}
+.wt-clear-btn:hover, .wt-clear-btn:focus-visible { background: var(--danger-bg); border-color: color-mix(in srgb, var(--danger) 35%, #fff); }
 .btn-danger {
   background: var(--danger); color: #fff; border: none; padding: 8px 16px;
   border-radius: var(--radius); font-size: 13.5px; font-weight: 500; cursor: pointer; white-space: nowrap;

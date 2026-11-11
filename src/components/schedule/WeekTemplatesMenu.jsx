@@ -17,7 +17,7 @@ export const WeekIcon = (props) => (
 // Bouton « Semaines types » de la vue Semaine (11 nov. 2026) et son menu :
 // remplir la semaine avec une semaine type, copier la semaine précédente,
 // enregistrer la semaine affichée, aller gérer la liste (Paramètres).
-// onClear : « Vider cette semaine… » (12 nov. 2026), en rouge, en bas du menu
+// onClear : bouton « Vider la semaine » (12 nov. 2026), à côté du menu
 export default function WeekTemplatesMenu({ weekTemplates, onApply, onCopyPrevious, onSave, onManage, onClear }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -75,16 +75,16 @@ export default function WeekTemplatesMenu({ weekTemplates, onApply, onCopyPrevio
             <span className="wt-menu-text">Gérer les semaines types</span>
             <small>Paramètres</small>
           </button>
-          {onClear && (
-            <>
-              <div className="wt-menu-sep" />
-              <button type="button" role="menuitem" className="wt-menu-item wt-menu-item--danger" onClick={pick(onClear)}>
-                <svg {...icon}><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" /></svg>
-                <span className="wt-menu-text">Vider cette semaine…</span>
-              </button>
-            </>
-          )}
         </div>
+      )}
+
+      {/* « Vider la semaine » sorti du menu, juste à côté (12 nov. 2026,
+          demande de Cédric) ; la confirmation reste obligatoire */}
+      {onClear && (
+        <button type="button" className="wt-clear-btn" onClick={() => { setOpen(false); onClear(); }}>
+          <svg {...icon} width="15" height="15"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" /></svg>
+          <span>Vider la semaine</span>
+        </button>
       )}
     </div>
   );
