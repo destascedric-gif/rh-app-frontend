@@ -44,6 +44,8 @@ const toForm = (data) => ({
   overtimeTier2ThresholdHours: data.overtime_tier2_threshold_hours,
   primaryColor:                normalizePrimaryColor(data.primary_color),
   managerInSchedule:           Boolean(data.manager_in_schedule),
+  // Poste du gérant connecté (vide = « Gérant ») : compte pour les règles de présence
+  managerJobTitle:             data.manager_job_title ?? '',
   meetingsCountAsWork:         Boolean(data.meetings_count_as_work),
   teamScheduleVisible:         Boolean(data.team_schedule_visible),
   openDays:                    data.open_days || DEFAULT_OPEN_DAYS,
@@ -720,6 +722,25 @@ export default function Settings() {
                         </span>
                       </span>
                     </label>
+                  )}
+                  {planningTab === 'manager' && form.managerInSchedule && (
+                    <div className="field settings-manager-job">
+                      <label htmlFor="manager-job-title">Votre poste</label>
+                      <input
+                        id="manager-job-title"
+                        type="text"
+                        value={form.managerJobTitle}
+                        maxLength={100}
+                        placeholder="Gérant"
+                        onChange={(e) => handleChange('managerJobTitle', e.target.value)}
+                      />
+                      <span className="hint">
+                        Affiché sous votre nom dans le planning. Si vous avez un diplôme qui compte pour une
+                        règle de présence (par exemple « Opticien diplômé » ou « Pharmacien »), écrivez-le ici
+                        comme dans la règle : vous serez compté dans les vérifications et dans le planning
+                        généré par l'IA. Vide : « Gérant ».
+                      </span>
+                    </div>
                   )}
                   {planningTab === 'meetings' && (
                     <label className="settings-switch">
