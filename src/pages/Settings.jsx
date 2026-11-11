@@ -5,6 +5,8 @@ import { changePassword } from '../api/auth';
 import { getShiftTemplates, createShiftTemplate, updateShiftTemplate, deleteShiftTemplate } from '../api/shiftTemplates';
 import { getWeekTemplates } from '../api/weekTemplates';
 import WeekTemplatesManager from '../components/schedule/WeekTemplatesManager';
+import { getPresenceRules } from '../api/presenceRules';
+import PresenceRulesManager, { presenceRuleText } from '../components/schedule/PresenceRulesManager';
 import { useSearchParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Select from '../components/Select';
@@ -112,6 +114,16 @@ const SECTIONS = {
       </svg>
     ),
   },
+  presence: {
+    title: 'Règles de présence',
+    icon: (
+      <svg {...icon}>
+        <circle cx="9" cy="8" r="3" />
+        <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
+        <path d="M15.5 12.5l2 2 3.5-4" />
+      </svg>
+    ),
+  },
   security: {
     title: 'Sécurité',
     icon: (
@@ -185,6 +197,8 @@ export default function Settings() {
   });
   // Semaines types (11 nov. 2026)
   const [weekTemplates, setWeekTemplates] = useState([]);
+  // Règles de présence par poste (11 nov. 2026) et postes remplis dans les fiches
+  const [presence, setPresence] = useState({ rules: [], jobTitles: [], loaded: false });
   // Derniers paramètres enregistrés : rétablis si on ferme une fenêtre sans enregistrer
   const savedRef = useRef(null);
 
@@ -210,6 +224,9 @@ export default function Settings() {
 
   useEffect(() => { loadTemplates(); }, [token]);
   useEffect(() => { getWeekTemplates(token).then(setWeekTemplates).catch(console.error); }, [token]);
+  useEffect(() => {
+    getPresenceRules(token).then((data) => setPresence({ ...data, loaded: true })).catch(console.error);
+  }, [token]);
 
   // Aperçu en direct de la couleur principale : appliquée au site pendant le
   // choix, mais annulée en quittant la page si elle n'a pas été enregistrée.
@@ -392,6 +409,9 @@ export default function Settings() {
         {saved.teamScheduleVisible ? 'Les employés voient le planning de l\'équipe' : 'Chaque employé ne voit que son planning'}
       </>
     ),
+    presence: presence.rules.length === 0
+      ? 'Aucune règle pour l\'instant'
+      : presence.rules.map((r) => <span key={r.id} style={{ display: 'block' }}>{presenceRuleText(r)}</span>),
     security: 'Mot de passe de connexion',
   };
 
@@ -813,6 +833,17 @@ export default function Settings() {
             </label>
             {formFeedback}
           </form>
+        </SettingsWindow>
+      )}
+
+      {openSection === 'presence' && (
+        <SettingsWindow id="presence" wide onClose={closeWindow}>
+          <PresenceRulesManager
+            rules={presence.rules}
+            jobTitles={presence.jobTitles}
+            loading={!presence.loaded}
+            onChange={(rules) => setPresence((p) => ({ ...p, rules }))}
+          />
         </SettingsWindow>
       )}
 

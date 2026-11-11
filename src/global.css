@@ -2619,6 +2619,23 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 .settings-window { max-width: 560px; }
 .settings-window--wide { max-width: 760px; }
+
+/* Règles de présence par poste (Paramètres, 11 nov. 2026) */
+.presence-rules { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.presence-rules li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-size: 13.5px;
+}
+.presence-rule-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.presence-rule-form .select-trigger, .presence-rule-form > div { min-width: 0; }
+.presence-rule-word { font-size: 13.5px; }
+.presence-rule-count { width: 64px; }
 .settings-window-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
 .settings-window-head h3 { flex: 1; margin: 0; }
 .settings-window-icon { width: 36px; height: 36px; }
