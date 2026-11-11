@@ -17,3 +17,9 @@ export const setupOwnerPassword = (data)        => req('POST', '/owner/setup', n
 export const getOwnerActivity   = (params, token) => req('GET', `/owner/activity?${new URLSearchParams(params)}`, token);
 export const getOwnerHealth     = (token)         => req('GET', '/owner/health', token);
 export const getOwnerCompany    = (id, token)     => req('GET', `/owner/companies/${id}`, token);
+// Intelligence artificielle : dépenses et crédit estimé ; visites du site
+export const getOwnerAi          = (days, token)         => req('GET', `/owner/ai?days=${days}`, token);
+// { kind: 'recharge' | 'releve', amount } → crédit recalculé
+export const addOwnerAiCredit    = (data, token)         => req('POST', '/owner/ai/credit', token, data);
+export const deleteOwnerAiCredit = (id, token)           => req('DELETE', `/owner/ai/credit/${id}`, token);
+export const getOwnerVisits      = (days, token)         => req('GET', `/owner/visits?days=${days}`, token);

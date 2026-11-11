@@ -10,6 +10,8 @@ const NAV = [
   { to: '/pilotage', end: true, icon: 'home', label: 'Tableau de bord' },
   { to: '/pilotage/entreprises', icon: 'store', label: 'Entreprises' },
   { to: '/pilotage/formules', icon: 'crown', label: 'Formules et revenus' },
+  { to: '/pilotage/ia', icon: 'spark', label: 'Intelligence artificielle' },
+  { to: '/pilotage/visites', icon: 'eye', label: 'Visites du site' },
   { to: '/pilotage/journal', icon: 'list', label: 'Journal des actions' },
   { to: '/pilotage/sante', icon: 'pulse', label: 'Santé technique' },
 ];
@@ -20,6 +22,8 @@ export default function PilotageLayout() {
   const { pathname } = useLocation();
 
   useEffect(() => { document.title = 'Pilotage — Orgaly'; }, []);
+  // Les visites de Cédric sur le site ne sont pas comptées sur cet appareil
+  useEffect(() => { try { localStorage.setItem('orgaly_no_track', '1'); } catch { /* stockage indisponible */ } }, []);
   // Chaque page s'ouvre en haut
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 

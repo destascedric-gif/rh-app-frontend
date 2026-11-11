@@ -65,6 +65,12 @@ export default function Confidentialite() {
               <td>90 jours, puis suppression automatique</td>
             </tr>
             <tr>
+              <td>Mesure de la fréquentation des pages publiques (accueil, inscription, connexion, pages légales)</td>
+              <td>Page vue, date, provenance (site d'origine ou lien marqué), type d'appareil (téléphone ou ordinateur), et une empreinte du jour calculée à partir de l'adresse IP et du navigateur avec un secret renouvelé chaque jour. L'adresse IP elle-même n'est jamais enregistrée ; l'empreinte ne permet ni de la retrouver, ni de suivre une personne d'un jour à l'autre.</td>
+              <td>Intérêt légitime (mesure d'audience)</td>
+              <td>13 mois, puis suppression automatique</td>
+            </tr>
+            <tr>
               <td>E-mails de service</td>
               <td>Adresse e-mail, contenu du message (invitation, information sur le compte)</td>
               <td>Exécution du contrat</td>
@@ -110,9 +116,12 @@ export default function Confidentialite() {
 
       <h2>5. Cookies et stockage local</h2>
       <p>
-        Orgaly n'utilise aucun cookie publicitaire ni outil de mesure d'audience. Seul le jeton de
-        connexion est enregistré dans le stockage local du navigateur, ce qui est strictement
-        nécessaire au fonctionnement du service et ne requiert pas de consentement.
+        Orgaly n'utilise aucun cookie, ni publicitaire ni de mesure d'audience, et aucun outil de
+        mesure d'audience d'un tiers. La fréquentation des pages publiques est comptée par Orgaly
+        lui-même, sur son serveur, sans rien enregistrer sur l'appareil du visiteur et sans donnée
+        permettant de l'identifier (voir le tableau ci-dessus). Seul le jeton de connexion est
+        enregistré dans le stockage local du navigateur, ce qui est strictement nécessaire au
+        fonctionnement du service et ne requiert pas de consentement.
       </p>
 
       <h2>6. Sécurité</h2>

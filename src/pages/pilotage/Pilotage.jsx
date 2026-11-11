@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getOwnerStats, getOwnerHealth } from '../../api/owner';
+import { getOwnerStats, getOwnerHealth, getOwnerAi } from '../../api/owner';
+import { Link } from 'react-router-dom';
 import {
-  PageHead, CardHead, Kpi, PeriodSeg, Chart, CompaniesTable, JournalCard, HealthRows,
+  PageHead, CardHead, Kpi, PeriodSeg, Chart, CompaniesTable, JournalCard, HealthRows, Icon,
 } from './PilotageUi';
 import { PERIODS, STALE_DAYS, isStale, plural, signupXLabel } from './pilotageUtils';
 
@@ -19,6 +20,12 @@ export default function Pilotage() {
   const [error, setError] = useState('');
   const [health, setHealth] = useState(null);
   const [down, setDown] = useState(false);
+  // Crédit IA estimé : alerte en haut du tableau de bord quand il est bas
+  const [aiCredit, setAiCredit] = useState(null);
+
+  useEffect(() => {
+    getOwnerAi(30, token).then((d) => setAiCredit(d.credit)).catch(() => {});
+  }, [token]);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,6 +57,13 @@ export default function Pilotage() {
       <PageHead title="Tableau de bord" sub={`Bonjour ${user?.firstName || 'Cédric'}, voici l’essentiel d’Orgaly. Cliquez sur une carte pour le détail.`}>
         <PeriodSeg days={days} onChange={setDays} />
       </PageHead>
+
+      {aiCredit && aiCredit.balance !== null && aiCredit.balance < aiCredit.alert_usd && (
+        <div className="pil-card pil-alert">
+          <span><Icon name="alert" />Crédit IA bas : environ {aiCredit.balance.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $ restants. Pensez à recharger sur la Console Claude.</span>
+          <Link to="/pilotage/ia" className="pil-more">Voir le détail<Icon name="arrow" size={13} /></Link>
+        </div>
+      )}
 
       {error && <div className="pil-card pil-error">{error}</div>}
       {!stats && !error && <div className="pil-loading">Chargement…</div>}

@@ -35,6 +35,9 @@ import PilEntreprise from './pages/pilotage/PilEntreprise'
 import PilFormules from './pages/pilotage/PilFormules'
 import PilJournal from './pages/pilotage/PilJournal'
 import PilSante from './pages/pilotage/PilSante'
+import PilIA from './pages/pilotage/PilIA'
+import PilVisites from './pages/pilotage/PilVisites'
+import VisitTracker from './components/VisitTracker'
 import OwnerSetup from './pages/pilotage/OwnerSetup'
 
 const PrivateRoute = ({ children, adminOnly = false }) => {
@@ -60,6 +63,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <VisitTracker />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
@@ -82,6 +86,8 @@ function App() {
             <Route path="formules" element={<PilFormules />} />
             <Route path="journal" element={<PilJournal />} />
             <Route path="sante" element={<PilSante />} />
+            <Route path="ia" element={<PilIA />} />
+            <Route path="visites" element={<PilVisites />} />
           </Route>
           <Route path="/proprietaire/activer" element={<OwnerSetup />} />
           <Route path="/dashboard" element={<PrivateRoute adminOnly><Dashboard /></PrivateRoute>} />
