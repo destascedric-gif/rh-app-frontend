@@ -3,6 +3,8 @@ import { useState, useRef, useEffect, useId } from 'react';
 // Menu déroulant à choix multiple : cases à cocher, « Tout le monde » en un
 // clic et recherche par nom. Les personnes choisies s'affichent en
 // étiquettes dans le champ. value = tableau d'identifiants.
+// Sert aussi pour d'autres listes (ex. les postes des règles de présence) :
+// un élément { id, label } s'affiche avec son libellé tel quel.
 export default function EmployeeMultiSelect({
   employees, value, onChange, placeholder = 'Choisir…', allLabel = 'Tout le monde', emptyMeansAll = false,
 }) {
@@ -32,7 +34,7 @@ export default function EmployeeMultiSelect({
   const q = query.trim().toLowerCase();
   // Recherche sur le nom ou le poste (« prépa » trouve les préparateurs)
   const shown = q
-    ? employees.filter((e) => `${e.first_name} ${e.last_name} ${e.job_title ?? ''}`.toLowerCase().includes(q))
+    ? employees.filter((e) => (e.label ?? `${e.first_name} ${e.last_name} ${e.job_title ?? ''}`).toLowerCase().includes(q))
     : employees;
 
   const chosen = employees.filter((e) => selected.has(e.id));
@@ -57,7 +59,7 @@ export default function EmployeeMultiSelect({
         ) : (
           <span className="ems-chips">
             {chosen.slice(0, 3).map((e) => (
-              <span key={e.id} className="ems-chip">{e.first_name} {e.last_name?.[0]}.</span>
+              <span key={e.id} className="ems-chip">{e.label ?? `${e.first_name} ${e.last_name?.[0]}.`}</span>
             ))}
             {chosen.length > 3 && <span className="ems-chip ems-chip--more">+{chosen.length - 3}</span>}
           </span>
@@ -76,7 +78,7 @@ export default function EmployeeMultiSelect({
               placeholder="Rechercher…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              aria-label="Rechercher un employé"
+              aria-label="Rechercher"
               autoFocus
             />
           )}
@@ -94,7 +96,7 @@ export default function EmployeeMultiSelect({
                 <label className="ems-option">
                   <input type="checkbox" checked={selected.has(e.id)} onChange={() => toggle(e.id)} />
                   <span className="ems-option-text">
-                    <span>{e.first_name} {e.last_name}</span>
+                    <span>{e.label ?? `${e.first_name} ${e.last_name}`}</span>
                     {e.job_title && <span className="ems-option-job">{e.job_title}</span>}
                   </span>
                 </label>

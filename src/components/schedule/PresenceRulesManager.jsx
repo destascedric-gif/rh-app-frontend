@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { createPresenceRule, deletePresenceRule } from '../../api/presenceRules';
 import Select from '../Select';
+import EmployeeMultiSelect from '../EmployeeMultiSelect';
 
 // « Opticien diplômé ou Opticienne diplômée » ; « A, B ou C »
 const titlesText = (titles) => (titles.length < 2
@@ -25,11 +26,6 @@ export default function PresenceRulesManager({ rules, jobTitles, loading, onChan
   const [error, setError] = useState('');
   // Postes cochés encore présents dans les fiches
   const chosen = form.jobTitles.filter((t) => jobTitles.includes(t));
-
-  const toggleTitle = (title) => setForm((f) => ({
-    ...f,
-    jobTitles: f.jobTitles.includes(title) ? f.jobTitles.filter((t) => t !== title) : [...f.jobTitles, title],
-  }));
 
   const add = async (e) => {
     e.preventDefault();
@@ -112,23 +108,14 @@ export default function PresenceRulesManager({ rules, jobTitles, loading, onChan
           </div>
 
           <div className="presence-rule-titles">
-            <span id="presence-titles-label">parmi ces postes :</span>
-            <div className="presence-rule-chips" role="group" aria-labelledby="presence-titles-label">
-              {jobTitles.map((t) => {
-                const on = chosen.includes(t);
-                return (
-                  <button
-                    key={t}
-                    type="button"
-                    className={`open-day-chip${on ? ' on' : ''}`}
-                    aria-pressed={on}
-                    onClick={() => toggleTitle(t)}
-                  >
-                    {t}
-                  </button>
-                );
-              })}
-            </div>
+            <span>parmi ces postes :</span>
+            <EmployeeMultiSelect
+              employees={jobTitles.map((t) => ({ id: t, label: t }))}
+              value={chosen}
+              onChange={(titles) => setForm((f) => ({ ...f, jobTitles: titles }))}
+              placeholder="Choisir un ou plusieurs postes…"
+              allLabel="Tous les postes"
+            />
             <span className="hint">
               Cochez plusieurs postes si un même métier est écrit de plusieurs façons dans les
               fiches (« Opticien diplômé », « Opticienne diplômée ») : une personne de l'un
