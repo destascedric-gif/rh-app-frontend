@@ -313,12 +313,6 @@ export default function AdminSchedule() {
           </button>
         </div>
 
-        {/* Ordinateur, mois : légende dans la barre d'outils (une rangée de
-            moins, pour que le mois tienne dans l'écran) */}
-        {/* (11 nov. 2026 : ce sont maintenant les horaires types à glisser
-            sur un jour, en version fine, qui servent de légende) */}
-        {shownView !== 'week' && <TemplatePalette templates={templates} onTouchDrop={handleAnyDrop} compact />}
-
         <div className="role-toggle">
           <button className={`role-btn ${view==='week'?'active':''}`} onClick={() => setView('week')}>Semaine</button>
           <button className={`role-btn ${view==='month'?'active':''}`} onClick={() => setView('month')}>Mois</button>
@@ -328,7 +322,10 @@ export default function AdminSchedule() {
 
       {/* En semaine, les horaires types à glisser (déjà en couleur) servent
           de légende, sur téléphone comme sur ordinateur (11 nov. 2026) */}
-      {isPhone && shownView !== 'week' && <TemplatePalette templates={templates} onTouchDrop={handleAnyDrop} compact />}
+      {/* Mois : horaires types en version fine, sous la barre d'outils comme
+          en semaine (avant, dans la barre : Semaine/Mois passait à la ligne,
+          demande de Cédric de les remettre comme en semaine) */}
+      {shownView !== 'week' && <TemplatePalette templates={templates} onTouchDrop={handleAnyDrop} compact />}
       {shownView === 'week' && <TemplatePalette templates={templates} onTouchDrop={handleAnyDrop} />}
 
       {loading ? (
