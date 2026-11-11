@@ -52,6 +52,8 @@ const toForm = (data) => ({
   collectiveAgreement:         data.collective_agreement ?? '',
   // Choix du menu : '' (non renseignée), un IDCC de la liste, 9999 (aucune) ou 'other'
   agreementChoice:             agreementChoice(data.idcc),
+  // Accès au planning généré par IA (lecture seule : réglé par Orgaly)
+  aiPlanningEnabled:           Boolean(data.ai_planning_enabled),
 });
 
 // "1111110" → "Lun → Sam" ; jours non consécutifs : "Lun, Mer, Sam"
@@ -437,10 +439,14 @@ export default function Settings() {
           ))}
         </span>
         Semaines types : {weekTemplates.length === 0 ? 'aucune' : weekTemplates.map((t) => t.name).join(' · ')}
-        <br />
-        Règles de présence : {presence.rules.length === 0
-          ? 'aucune'
-          : `${presence.rules.length} règle${presence.rules.length > 1 ? 's' : ''}`}
+        {saved.aiPlanningEnabled && (
+          <>
+            <br />
+            Règles de présence : {presence.rules.length === 0
+              ? 'aucune'
+              : `${presence.rules.length} règle${presence.rules.length > 1 ? 's' : ''}`}
+          </>
+        )}
       </>
     ),
     security: 'Mot de passe de connexion',
@@ -648,7 +654,8 @@ export default function Settings() {
         <SettingsWindow id="planning" tabs onClose={closeWindow}>
           <div className="settings-tabs-layout">
             <div className="settings-tabs" role="tablist" aria-label="Réglages du planning">
-              {PLANNING_TABS.map((t) => (
+              {/* Règles de présence : seulement avec le planning par IA, qui s'en sert */}
+              {PLANNING_TABS.filter((t) => t.id !== 'presence' || saved.aiPlanningEnabled).map((t) => (
                 <Fragment key={t.id}>
                   {t.id === 'templates' && <span className="settings-tabs-sep" aria-hidden="true" />}
                   <button
@@ -891,7 +898,7 @@ export default function Settings() {
                 <WeekTemplatesManager weekTemplates={weekTemplates} shiftTemplates={templates} onChange={setWeekTemplates} />
               )}
 
-              {planningTab === 'presence' && (
+              {planningTab === 'presence' && saved.aiPlanningEnabled && (
                 <PresenceRulesManager
                   rules={presence.rules}
                   jobTitles={presence.jobTitles}

@@ -78,6 +78,8 @@ export default function AdminSchedule() {
   // Planning généré par IA (11 nov. 2026) : fenêtre ouverte, message après application
   const [aiOpen, setAiOpen] = useState(false);
   const [aiNotice, setAiNotice] = useState('');
+  // Bouton seulement pour les entreprises qui ont accès à l'IA (démo, SAS LLDB au départ)
+  const [aiEnabled, setAiEnabled] = useState(false);
 
   useEffect(() => {
     getWeekTemplates(token).then(setWeekTemplates).catch(console.error);
@@ -91,6 +93,7 @@ export default function AdminSchedule() {
       setCountMeetings(Boolean(s.meetings_count_as_work));
       setOpenDays(s.open_days);
       setPentecostWorked(Boolean(s.pentecost_monday_worked));
+      setAiEnabled(Boolean(s.ai_planning_enabled));
     }).catch(console.error);
     getShiftTemplates(token).then(setTemplates).catch(console.error);
   }, [token]);
@@ -267,9 +270,11 @@ export default function AdminSchedule() {
         title="Planning"
         actions={isPhone ? null : (
           <>
-            <button className="btn-secondary" onClick={() => { setAiNotice(''); setAiOpen(true); }}>
-              <span className="ai-spark" aria-hidden="true">✦</span> Générer avec l'IA
-            </button>
+            {aiEnabled && (
+              <button className="btn-secondary" onClick={() => { setAiNotice(''); setAiOpen(true); }}>
+                <span className="ai-spark" aria-hidden="true">✦</span> Générer avec l'IA
+              </button>
+            )}
             <button className="btn-secondary" onClick={() => setMeetingModal({ date: defaultMeetingDate() })}>+ Réunion</button>
             <button className="btn-primary" onClick={() => setModal({})}>+ Nouveau créneau</button>
           </>

@@ -57,6 +57,16 @@ export const SUBPROCESSORS = [
     purpose:  'Suivi des erreurs techniques, sans envoi volontaire de données RH',
     location: 'Allemagne (Union européenne)',
   },
+  // Ajouté le 11 nov. 2026 (planning généré par IA). Faits vérifiés sur les pages
+  // officielles d'Anthropic ce jour-là : contrat avec Anthropic Ireland, Limited
+  // pour les clients européens, accord de sous-traitance (DPA) inclus dans les
+  // conditions commerciales avec clauses contractuelles types, pas d'entraînement
+  // sur les données de l'API, suppression sous 30 jours, données stockées aux États-Unis.
+  {
+    name:     'Anthropic Ireland, Limited (Claude)',
+    purpose:  'Génération du planning par IA, seulement pour les entreprises qui utilisent cette fonction : prénoms, postes, contrats et horaires (jamais nom de famille, salaire ni coordonnées). Données supprimées sous 30 jours, jamais utilisées pour entraîner les modèles.',
+    location: 'États-Unis',
+  },
 ];
 
 // Pages légales publiques (routes déclarées dans App.jsx)
@@ -77,4 +87,4 @@ export const PRICING = {
 // Versions en vigueur (identiques au backend, src/config/legal.js)
 export const CGU_VERSION = '2026-10-01';
 export const CGV_VERSION = '2026-10-01';
-export const LEGAL_UPDATED_AT = '1er octobre 2026';
+export const LEGAL_UPDATED_AT = '11 novembre 2026';

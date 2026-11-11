@@ -78,14 +78,32 @@ export default function Confidentialite() {
       <h2>3. Destinataires</h2>
       <p>
         Les données ne sont accessibles qu'à l'Éditeur et aux prestataires techniques strictement
-        nécessaires : hébergement (Railway, Vercel), envoi d'e-mails (Brevo), suivi des erreurs (Sentry)
+        nécessaires : hébergement (Railway, Vercel), envoi d'e-mails (Brevo), suivi des erreurs (Sentry),
+        génération du planning par IA (Anthropic, pour les entreprises qui utilisent cette fonction)
         et paiement (Stripe Payments Europe Ltd, Irlande). La liste à jour figure dans l'
         <Link to="/dpa">accord de sous-traitance</Link>.
       </p>
 
+      <h3>Planning généré par intelligence artificielle</h3>
+      <p>
+        Lorsqu'un gérant utilise la fonction « Générer avec l'IA » du planning, Orgaly envoie à
+        Anthropic Ireland, Limited (modèle d'IA Claude) les éléments nécessaires pour proposer un
+        planning : prénoms et postes des salariés, durée de leur contrat, horaires et jours de repos
+        habituels, congés déjà posés, jours d'ouverture et demandes écrites du gérant. Aucun nom de
+        famille, salaire, adresse e-mail, numéro de téléphone ni date de naissance n'est envoyé.
+      </p>
+      <p>
+        Anthropic agit comme sous-traitant : selon ses conditions commerciales, ces données ne servent
+        jamais à entraîner ses modèles et sont supprimées sous 30 jours (sauf obligation légale ou
+        usage contraire à ses règles). L'IA ne fait qu'une proposition : rien n'est enregistré dans le
+        planning tant que le gérant ne l'a pas vérifiée et validée. Aucune décision n'est donc prise
+        de manière entièrement automatisée.
+      </p>
+
       <h2>4. Transferts hors de l'Union européenne</h2>
       <p>
-        Certains hébergeurs sont des sociétés américaines. Les transferts éventuels sont encadrés par
+        Certains prestataires sont des sociétés américaines ou stockent des données aux États-Unis
+        (notamment Anthropic pour le planning généré par IA). Les transferts éventuels sont encadrés par
         les clauses contractuelles types de la Commission européenne et, lorsque le prestataire y est
         certifié, par le cadre de protection des données UE–États-Unis (Data Privacy Framework).
       </p>
