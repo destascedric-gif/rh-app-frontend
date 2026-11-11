@@ -241,7 +241,7 @@ export default function AiPlanningModal({ initialMonth, employees, shiftTemplate
           <div className="ai-loading" role="status">
             <span className="ai-spinner" aria-hidden="true" />
             <p><b>L'IA prépare le planning de {monthText(period)}…</b></p>
-            <p className="hint">Cela peut prendre une à deux minutes. Orgaly vérifie ensuite chaque règle avant de vous le montrer.</p>
+            <p className="hint">Cela peut prendre deux à trois minutes. Orgaly vérifie ensuite chaque règle avant de vous le montrer.</p>
           </div>
         )}
 
