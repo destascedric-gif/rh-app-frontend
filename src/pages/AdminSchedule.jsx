@@ -12,6 +12,12 @@ import MeetingModal from '../components/schedule/MeetingModal';
 import TemplatePalette from '../components/schedule/TemplatePalette';
 import PhoneCalendar from '../components/schedule/PhoneCalendar';
 import AssignTemplateModal from '../components/schedule/AssignTemplateModal';
+import WeekTemplatesMenu from '../components/schedule/WeekTemplatesMenu';
+import ApplyWeekTemplateModal from '../components/schedule/ApplyWeekTemplateModal';
+import SaveWeekTemplateModal from '../components/schedule/SaveWeekTemplateModal';
+import { getWeekTemplates } from '../api/weekTemplates';
+import { countText } from '../components/schedule/weekTemplateUtils';
+import { useNavigate } from 'react-router-dom';
 import ScheduleTopbarButtons from '../components/schedule/ScheduleTopbarButtons';
 import PhoneScheduleBar from '../components/schedule/PhoneScheduleBar';
 import EmployeeMultiSelect from '../components/EmployeeMultiSelect';
@@ -62,6 +68,18 @@ export default function AdminSchedule() {
   const [openDays, setOpenDays] = useState(null);
   // Lundi de Pentecôte travaillé (journée de solidarité) : pas affiché férié
   const [pentecostWorked, setPentecostWorked] = useState(false);
+  // Semaines types (11 nov. 2026) : liste, fenêtre ouverte
+  // ({ kind: 'apply', source: 'previous' | id } ou { kind: 'save' }), message
+  const navigate = useNavigate();
+  const [weekTemplates, setWeekTemplates] = useState([]);
+  const [weekModal, setWeekModal] = useState(null);
+  const [weekNotice, setWeekNotice] = useState('');
+
+  useEffect(() => {
+    getWeekTemplates(token).then(setWeekTemplates).catch(console.error);
+  }, [token]);
+  // Le message concerne la semaine affichée : il disparaît quand on en change
+  useEffect(() => { setWeekNotice(''); }, [monday]);
 
   useEffect(() => {
     getPlanningPeople(token).then(setEmployees).catch(console.error);
@@ -326,7 +344,18 @@ export default function AdminSchedule() {
           en semaine (avant, dans la barre : Semaine/Mois passait à la ligne,
           demande de Cédric de les remettre comme en semaine) */}
       {shownView !== 'week' && <TemplatePalette templates={templates} onTouchDrop={handleAnyDrop} compact />}
-      {shownView === 'week' && <TemplatePalette templates={templates} onTouchDrop={handleAnyDrop} />}
+      {shownView === 'week' && (
+        <TemplatePalette templates={templates} onTouchDrop={handleAnyDrop}>
+          <WeekTemplatesMenu
+            weekTemplates={weekTemplates}
+            onApply={(t) => { setWeekNotice(''); setWeekModal({ kind: 'apply', source: t.id }); }}
+            onCopyPrevious={() => { setWeekNotice(''); setWeekModal({ kind: 'apply', source: 'previous' }); }}
+            onSave={() => { setWeekNotice(''); setWeekModal({ kind: 'save' }); }}
+            onManage={() => navigate('/parametres?rubrique=weeks')}
+          />
+        </TemplatePalette>
+      )}
+      {weekNotice && shownView === 'week' && <p className="settings-notice wt-notice" role="status">{weekNotice}</p>}
 
       {loading ? (
         <p className="tab-loading">Chargement…</p>
@@ -374,6 +403,46 @@ export default function AdminSchedule() {
           onAddShift={(date) => setModal({ date })}
           onMeetingClick={(meeting) => setMeetingModal({ meeting })}
           onTemplateDropDay={handleDayDrop}
+        />
+      )}
+
+      {weekModal?.kind === 'apply' && (
+        <ApplyWeekTemplateModal
+          weekStart={toISO(weekDays[0])}
+          initialSource={weekModal.source}
+          weekTemplates={weekTemplates}
+          shiftTemplates={templates}
+          employees={employees}
+          shifts={shifts}
+          onClose={() => setWeekModal(null)}
+          onDone={(r, sourceName) => {
+            setWeekModal(null);
+            const done = r.added + r.replaced;
+            setWeekNotice(`${sourceName} : ${done} case${done > 1 ? 's' : ''} remplie${done > 1 ? 's' : ''}`
+              + (r.replaced ? ` (dont ${r.replaced} remplacée${r.replaced > 1 ? 's' : ''})` : '')
+              + (r.kept ? `, ${r.kept} déjà remplie${r.kept > 1 ? 's' : ''} gardée${r.kept > 1 ? 's' : ''}` : '')
+              + (r.protected ? `, ${r.protected} congé${r.protected > 1 ? 's' : ''} ou absence${r.protected > 1 ? 's' : ''} gardé${r.protected > 1 ? 's' : ''}` : '')
+              + '.');
+            loadShifts();
+          }}
+        />
+      )}
+
+      {weekModal?.kind === 'save' && (
+        <SaveWeekTemplateModal
+          weekStart={toISO(weekDays[0])}
+          weekTemplates={weekTemplates}
+          employees={employees}
+          shifts={shifts}
+          onClose={() => setWeekModal(null)}
+          onSaved={(saved, replaced) => {
+            setWeekModal(null);
+            setWeekTemplates((prev) => [...prev.filter((t) => t.id !== saved.id), saved]
+              .sort((a, b) => a.name.localeCompare(b.name, 'fr')));
+            const n = saved.slots.filter((s) => s.type === 'travail').length;
+            const r = saved.slots.length - n;
+            setWeekNotice(`Semaine type « ${saved.name} » ${replaced ? 'remplacée' : 'enregistrée'} (${countText(n, r)}).`);
+          }}
         />
       )}
 

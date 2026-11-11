@@ -3,6 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import { getSettings, updateSettings } from '../api/settings';
 import { changePassword } from '../api/auth';
 import { getShiftTemplates, createShiftTemplate, updateShiftTemplate, deleteShiftTemplate } from '../api/shiftTemplates';
+import { getWeekTemplates } from '../api/weekTemplates';
+import WeekTemplatesManager from '../components/schedule/WeekTemplatesManager';
+import { useSearchParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Select from '../components/Select';
 import {
@@ -90,6 +93,15 @@ const SECTIONS = {
       </svg>
     ),
   },
+  weeks: {
+    title: 'Semaines types',
+    icon: (
+      <svg {...icon}>
+        <rect x="3" y="4.5" width="18" height="16" rx="2.5" />
+        <path d="M3 9.5h18M8 3v3M16 3v3M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 17h2M11 17h2" />
+      </svg>
+    ),
+  },
   planning: {
     title: 'Planning',
     icon: (
@@ -164,8 +176,15 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  // Rubrique dont la fenêtre est ouverte : 'legal', 'brand', 'templates', 'security' ou null
-  const [openSection, setOpenSection] = useState(null);
+  // Rubrique dont la fenêtre est ouverte : 'legal', 'brand', 'templates', 'weeks', 'planning', 'security' ou null.
+  // ?rubrique=weeks l'ouvre d'emblée (lien « Gérer les semaines types » du planning).
+  const [searchParams] = useSearchParams();
+  const [openSection, setOpenSection] = useState(() => {
+    const r = searchParams.get('rubrique');
+    return r && SECTIONS[r] ? r : null;
+  });
+  // Semaines types (11 nov. 2026)
+  const [weekTemplates, setWeekTemplates] = useState([]);
   // Derniers paramètres enregistrés : rétablis si on ferme une fenêtre sans enregistrer
   const savedRef = useRef(null);
 
@@ -190,6 +209,7 @@ export default function Settings() {
   const loadTemplates = () => getShiftTemplates(token).then(setTemplates).catch((err) => setTplError(err.message));
 
   useEffect(() => { loadTemplates(); }, [token]);
+  useEffect(() => { getWeekTemplates(token).then(setWeekTemplates).catch(console.error); }, [token]);
 
   // Aperçu en direct de la couleur principale : appliquée au site pendant le
   // choix, mais annulée en quittant la page si elle n'a pas été enregistrée.
@@ -358,6 +378,9 @@ export default function Settings() {
         ))}
       </span>
     ),
+    weeks: weekTemplates.length === 0
+      ? 'Aucune semaine type pour l\'instant'
+      : weekTemplates.map((t) => t.name).join(' · '),
     planning: (
       <>
         Ouvert : {openDaysSummary(saved.openDays)}
@@ -701,6 +724,12 @@ export default function Settings() {
             </form>
           )}
           {!editingTplId && tplError && <p className="error-msg">{tplError}</p>}
+        </SettingsWindow>
+      )}
+
+      {openSection === 'weeks' && (
+        <SettingsWindow id="weeks" wide onClose={closeWindow}>
+          <WeekTemplatesManager weekTemplates={weekTemplates} shiftTemplates={templates} onChange={setWeekTemplates} />
         </SettingsWindow>
       )}
 

@@ -17,7 +17,8 @@ const startDrag = (e, payload) => {
 // doigt sur une case (téléphone) ; userId est vide sur un jour du mois. À
 // la souris, c'est la case qui reçoit le dépôt (WeekView, MonthView).
 // compact : version fine sur une ligne (vue Mois, où elle sert de légende).
-export default function TemplatePalette({ templates, onTouchDrop, compact = false }) {
+// children : ajouté au bout de la rangée (bouton « Semaines types » en semaine).
+export default function TemplatePalette({ templates, onTouchDrop, compact = false, children = null }) {
   const navigate = useNavigate();
   // Écran tactile : pas de glisser-déposer du navigateur (il bloquerait le
   // nôtre), on suit le doigt nous-mêmes.
@@ -67,6 +68,7 @@ export default function TemplatePalette({ templates, onTouchDrop, compact = fals
         <button type="button" className="btn-ghost btn-sm" onClick={() => navigate('/parametres')}>
           En créer un
         </button>
+        {children}
       </div>
     );
   }
@@ -81,6 +83,7 @@ export default function TemplatePalette({ templates, onTouchDrop, compact = fals
         </div>
       ))}
       {restChip}
+      {children}
     </div>
   );
 }
