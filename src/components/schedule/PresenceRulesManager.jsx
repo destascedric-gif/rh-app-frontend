@@ -4,7 +4,7 @@ import { createPresenceRule, deletePresenceRule } from '../../api/presenceRules'
 import Select from '../Select';
 
 // « Au moins 1 Opticien à chaque heure d'ouverture »
-export const presenceRuleText = (r) => `Au moins ${r.min_count} ${r.job_title} ${r.scope === 'toujours'
+const presenceRuleText = (r) => `Au moins ${r.min_count} ${r.job_title} ${r.scope === 'toujours'
   ? 'à chaque heure d\'ouverture'
   : 'dans la journée'}`;
 

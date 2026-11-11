@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getSettings, updateSettings } from '../api/settings';
 import { changePassword } from '../api/auth';
@@ -6,7 +6,7 @@ import { getShiftTemplates, createShiftTemplate, updateShiftTemplate, deleteShif
 import { getWeekTemplates } from '../api/weekTemplates';
 import WeekTemplatesManager from '../components/schedule/WeekTemplatesManager';
 import { getPresenceRules } from '../api/presenceRules';
-import PresenceRulesManager, { presenceRuleText } from '../components/schedule/PresenceRulesManager';
+import PresenceRulesManager from '../components/schedule/PresenceRulesManager';
 import { useSearchParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Select from '../components/Select';
@@ -86,24 +86,6 @@ const SECTIONS = {
       </svg>
     ),
   },
-  templates: {
-    title: 'Horaires types',
-    icon: (
-      <svg {...icon}>
-        <circle cx="12" cy="12" r="8.5" />
-        <path d="M12 7.5V12l3 2" />
-      </svg>
-    ),
-  },
-  weeks: {
-    title: 'Semaines types',
-    icon: (
-      <svg {...icon}>
-        <rect x="3" y="4.5" width="18" height="16" rx="2.5" />
-        <path d="M3 9.5h18M8 3v3M16 3v3M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 17h2M11 17h2" />
-      </svg>
-    ),
-  },
   planning: {
     title: 'Planning',
     icon: (
@@ -111,16 +93,6 @@ const SECTIONS = {
         <rect x="3.5" y="4.5" width="17" height="16" rx="2" />
         <path d="M8 3v3M16 3v3M3.5 9.5h17" />
         <circle cx="12" cy="15" r="2.2" />
-      </svg>
-    ),
-  },
-  presence: {
-    title: 'Règles de présence',
-    icon: (
-      <svg {...icon}>
-        <circle cx="9" cy="8" r="3" />
-        <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
-        <path d="M15.5 12.5l2 2 3.5-4" />
       </svg>
     ),
   },
@@ -135,9 +107,59 @@ const SECTIONS = {
   },
 };
 
+// Onglets de la fenêtre Planning (11 nov. 2026, demande de Cédric : tout ce
+// qui touche au planning réuni au même endroit). Les quatre premiers sont des
+// réglages enregistrés avec « Enregistrer » ; les trois derniers s'enregistrent
+// au fur et à mesure.
+const PLANNING_TABS = [
+  {
+    id: 'open',
+    label: 'Jours d\'ouverture',
+    icon: <svg {...icon}><rect x="3.5" y="4.5" width="17" height="16" rx="2" /><path d="M8 3v3M16 3v3M3.5 9.5h17M8 14h2M14 14h2" /></svg>,
+  },
+  {
+    id: 'manager',
+    label: 'Gérant dans le planning',
+    icon: <svg {...icon}><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></svg>,
+  },
+  {
+    id: 'meetings',
+    label: 'Réunions',
+    icon: <svg {...icon}><circle cx="8" cy="9" r="2.8" /><circle cx="16" cy="9" r="2.8" /><path d="M3 19a5 5 0 0 1 10 0M11 19a5 5 0 0 1 10 0" /></svg>,
+  },
+  {
+    id: 'team',
+    label: 'Planning de l\'équipe',
+    icon: <svg {...icon}><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.8" /></svg>,
+  },
+  {
+    id: 'templates',
+    label: 'Horaires types',
+    icon: <svg {...icon}><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>,
+  },
+  {
+    id: 'weeks',
+    label: 'Semaines types',
+    icon: (
+      <svg {...icon}>
+        <rect x="3" y="4.5" width="18" height="16" rx="2.5" />
+        <path d="M3 9.5h18M8 3v3M16 3v3M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 17h2M11 17h2" />
+      </svg>
+    ),
+  },
+  {
+    id: 'presence',
+    label: 'Règles de présence',
+    icon: <svg {...icon}><circle cx="9" cy="8" r="3" /><path d="M3.5 19a5.5 5.5 0 0 1 11 0" /><path d="M15.5 12.5l2 2 3.5-4" /></svg>,
+  },
+];
+const PLANNING_FORM_TABS = ['open', 'manager', 'meetings', 'team'];
+// Anciens liens (?rubrique=weeks…) : ouvrent l'onglet correspondant du Planning
+const PLANNING_TAB_IDS = PLANNING_TABS.map((t) => t.id);
+
 // Fenêtre d'une rubrique : se ferme avec Échap, la croix ou un clic à côté.
 // Sur téléphone elle occupe tout l'écran (voir .settings-window dans le CSS).
-function SettingsWindow({ id, wide = false, onClose, children }) {
+function SettingsWindow({ id, wide = false, tabs = false, onClose, children }) {
   const ref = useRef(null);
   // onClose change à chaque rendu : on garde la dernière version sans
   // relancer l'effet (qui redonnerait le focus au premier champ).
@@ -162,7 +184,7 @@ function SettingsWindow({ id, wide = false, onClose, children }) {
     <div className="modal-overlay settings-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div
         ref={ref}
-        className={`modal settings-window${wide ? ' settings-window--wide' : ''}`}
+        className={`modal settings-window${wide ? ' settings-window--wide' : ''}${tabs ? ' settings-window--tabs' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={`settings-${id}-title`}
@@ -188,13 +210,17 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  // Rubrique dont la fenêtre est ouverte : 'legal', 'brand', 'templates', 'weeks', 'planning', 'security' ou null.
-  // ?rubrique=weeks l'ouvre d'emblée (lien « Gérer les semaines types » du planning).
+  // Rubrique dont la fenêtre est ouverte : 'legal', 'brand', 'planning', 'security' ou null.
+  // ?rubrique=planning (ou un onglet du Planning : ?rubrique=weeks, lien « Gérer les
+  // semaines types » du planning) l'ouvre d'emblée.
   const [searchParams] = useSearchParams();
+  const rubrique = searchParams.get('rubrique');
   const [openSection, setOpenSection] = useState(() => {
-    const r = searchParams.get('rubrique');
-    return r && SECTIONS[r] ? r : null;
+    if (PLANNING_TAB_IDS.includes(rubrique)) return 'planning';
+    return rubrique && SECTIONS[rubrique] ? rubrique : null;
   });
+  // Onglet ouvert dans la fenêtre Planning
+  const [planningTab, setPlanningTab] = useState(() => (PLANNING_TAB_IDS.includes(rubrique) ? rubrique : 'open'));
   // Semaines types (11 nov. 2026)
   const [weekTemplates, setWeekTemplates] = useState([]);
   // Règles de présence par poste (11 nov. 2026) et postes remplis dans les fiches
@@ -240,7 +266,18 @@ export default function Settings() {
     document.documentElement.style.setProperty('--primary', savedRef.current?.primaryColor ?? DEFAULT_PRIMARY_COLOR);
   }, []);
 
-  const openWindow = (id) => { setNotice(''); setError(''); setOpenSection(id); };
+  // Téléphone : la barre d'onglets défile de côté ; on y amène l'onglet ouvert
+  useEffect(() => {
+    if (openSection !== 'planning' || loading) return;
+    document.querySelector('.settings-tab.active')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [openSection, planningTab, loading]);
+
+  const openWindow = (id) => {
+    setNotice('');
+    setError('');
+    if (id === 'planning') setPlanningTab('open');
+    setOpenSection(id);
+  };
 
   // Fermer sans enregistrer : on revient aux valeurs enregistrées
   const closeWindow = () => {
@@ -385,33 +422,27 @@ export default function Settings() {
         Couleur principale {saved.primaryColor.toUpperCase()}
       </span>
     ),
-    templates: templates.length === 0 ? 'Aucun horaire type pour l\'instant' : (
-      <span className="settings-tile-chips">
-        {templates.map((t) => (
-          <span key={t.id} className="settings-tile-inline">
-            <span className="tpl-swatch" style={{ background: t.color || NEUTRAL_SHIFT_COLOR }} aria-hidden="true" />
-            {t.name}
-          </span>
-        ))}
-      </span>
-    ),
-    weeks: weekTemplates.length === 0
-      ? 'Aucune semaine type pour l\'instant'
-      : weekTemplates.map((t) => t.name).join(' · '),
+    // Planning : jours d'ouverture, horaires types, semaines types et règles de présence
     planning: (
       <>
         Ouvert : {openDaysSummary(saved.openDays)}
         <br />
-        {saved.managerInSchedule ? 'Le gérant figure dans le planning' : 'Le gérant n\'est pas dans le planning'}
+        <span className="settings-tile-chips">
+          <span>Horaires types :</span>
+          {templates.length === 0 ? 'aucun' : templates.map((t) => (
+            <span key={t.id} className="settings-tile-inline">
+              <span className="tpl-swatch" style={{ background: t.color || NEUTRAL_SHIFT_COLOR }} aria-hidden="true" />
+              {t.name}
+            </span>
+          ))}
+        </span>
+        Semaines types : {weekTemplates.length === 0 ? 'aucune' : weekTemplates.map((t) => t.name).join(' · ')}
         <br />
-        {saved.meetingsCountAsWork ? 'Réunions comptées dans les heures' : 'Réunions non comptées dans les heures'}
-        <br />
-        {saved.teamScheduleVisible ? 'Les employés voient le planning de l\'équipe' : 'Chaque employé ne voit que son planning'}
+        Règles de présence : {presence.rules.length === 0
+          ? 'aucune'
+          : `${presence.rules.length} règle${presence.rules.length > 1 ? 's' : ''}`}
       </>
     ),
-    presence: presence.rules.length === 0
-      ? 'Aucune règle pour l\'instant'
-      : presence.rules.map((r) => <span key={r.id} style={{ display: 'block' }}>{presenceRuleText(r)}</span>),
     security: 'Mot de passe de connexion',
   };
 
@@ -613,237 +644,263 @@ export default function Settings() {
         </SettingsWindow>
       )}
 
-      {openSection === 'templates' && (
-        <SettingsWindow id="templates" wide onClose={closeWindow}>
-          <div className="tab-toolbar">
-            <p className="hint" style={{ margin: 0 }}>
-              Modèles réutilisables (ex : "Matin", 9h–17h) à glisser directement sur le planning
-              pour créer un créneau sans ressaisir les horaires.
-            </p>
-            {!editingTplId && (
-              <button type="button" className="btn-ghost btn-sm" onClick={openNewTemplate}>+ Ajouter</button>
-            )}
-          </div>
-
-          {templates.length === 0 ? (
-            <p className="empty-state">Aucun horaire type pour l'instant.</p>
-          ) : (
-            <div className="table-wrap" style={{ marginBottom: editingTplId ? 14 : 0 }}>
-              <table className="rh-table">
-                <thead>
-                  <tr>
-                    <th>Nom</th>
-                    <th>Horaires</th>
-                    <th>Pause</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {templates.map((t) => (
-                    <tr key={t.id}>
-                      <td>
-                        <span className="tpl-name">
-                          <span className="tpl-swatch" style={{ background: t.color || NEUTRAL_SHIFT_COLOR }} aria-hidden="true" />
-                          <strong>{t.name}</strong>
-                        </span>
-                      </td>
-                      <td>{formatTime(t.start_time)} → {formatTime(t.end_time)}</td>
-                      <td className="text-muted">
-                        {t.break_start ? `${formatTime(t.break_start)}–${formatTime(t.break_end)}` : '—'}
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button type="button" className="btn-ghost btn-sm" onClick={() => openEditTemplate(t)}>Modifier</button>
-                          <button
-                            type="button"
-                            className="btn-ghost btn-sm"
-                            style={{ color: 'var(--danger)' }}
-                            onClick={() => handleTemplateDelete(t.id)}
-                          >Supprimer</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {editingTplId && (
-            <form onSubmit={handleTemplateSubmit} className="inline-form">
-              <div className="field-row">
-                <div className="field">
-                  <label>Nom *</label>
-                  <input
-                    type="text" required placeholder="Ex : Matin"
-                    value={templateForm.name}
-                    onChange={(e) => setTemplateForm((f) => ({ ...f, name: e.target.value }))}
-                  />
-                </div>
-                <div className="field">
-                  <label>Début *</label>
-                  <input
-                    type="time" required
-                    value={templateForm.startTime}
-                    onChange={(e) => setTemplateForm((f) => ({ ...f, startTime: e.target.value }))}
-                  />
-                </div>
-                <div className="field">
-                  <label>Fin *</label>
-                  <input
-                    type="time" required
-                    value={templateForm.endTime}
-                    onChange={(e) => setTemplateForm((f) => ({ ...f, endTime: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <div className="field-row">
-                <div className="field">
-                  <label>Pause — début <span className="hint">(optionnel)</span></label>
-                  <input
-                    type="time"
-                    value={templateForm.breakStart}
-                    onChange={(e) => setTemplateForm((f) => ({ ...f, breakStart: e.target.value }))}
-                  />
-                </div>
-                <div className="field">
-                  <label>Pause — fin <span className="hint">(optionnel)</span></label>
-                  <input
-                    type="time"
-                    value={templateForm.breakEnd}
-                    onChange={(e) => setTemplateForm((f) => ({ ...f, breakEnd: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <fieldset className="field color-field">
-                <legend>Couleur dans le planning</legend>
-                <div className="color-swatches">
-                  {SHIFT_PALETTE.map((c) => (
-                    <label key={c.value} className="color-swatch" title={c.label}>
-                      <input
-                        type="radio" name="tpl-color" value={c.value}
-                        checked={templateForm.color === c.value}
-                        onChange={() => setTemplateForm((f) => ({ ...f, color: c.value }))}
-                      />
-                      <span style={{ background: c.value }} />
-                      <span className="sr-only">{c.label}</span>
-                    </label>
-                  ))}
-                </div>
-                {editingTplId === 'new' && !templateForm.color && (
-                  <span className="hint">Sans choix, une couleur pas encore utilisée est attribuée.</span>
-                )}
-              </fieldset>
-              {tplError && <p className="error-msg">{tplError}</p>}
-              <div className="form-actions">
-                <button type="button" className="btn-ghost" onClick={() => setEditingTplId(null)} disabled={tplSaving}>Annuler</button>
-                <button type="submit" className="btn-primary" disabled={tplSaving}>
-                  {tplSaving ? 'Enregistrement…' : 'Enregistrer'}
-                </button>
-              </div>
-            </form>
-          )}
-          {!editingTplId && tplError && <p className="error-msg">{tplError}</p>}
-        </SettingsWindow>
-      )}
-
-      {openSection === 'weeks' && (
-        <SettingsWindow id="weeks" wide onClose={closeWindow}>
-          <WeekTemplatesManager weekTemplates={weekTemplates} shiftTemplates={templates} onChange={setWeekTemplates} />
-        </SettingsWindow>
-      )}
-
       {openSection === 'planning' && (
-        <SettingsWindow id="planning" onClose={closeWindow}>
-          <form onSubmit={handleSubmit}>
-            <div className="settings-open-days">
-              <strong>Jours d'ouverture</strong>
-              <div className="open-days-row" role="group" aria-label="Jours d'ouverture">
-                {OPEN_DAY_LABELS.map((label, i) => {
-                  const isOpen = form.openDays[i] === '1';
-                  return (
-                    <button
-                      key={label}
-                      type="button"
-                      className={`open-day-chip${isOpen ? ' on' : ''}`}
-                      aria-pressed={isOpen}
-                      onClick={() => {
-                        const next = form.openDays.slice(0, i) + (isOpen ? '0' : '1') + form.openDays.slice(i + 1);
-                        if (next.includes('1')) handleChange('openDays', next);
-                      }}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-              <span className="hint">
-                Cliquez sur un jour pour l'ouvrir ou le fermer. Les jours fermés sont grisés dans le
-                planning. Ce réglage ne change pas le décompte des congés.
-              </span>
+        <SettingsWindow id="planning" tabs onClose={closeWindow}>
+          <div className="settings-tabs-layout">
+            <div className="settings-tabs" role="tablist" aria-label="Réglages du planning">
+              {PLANNING_TABS.map((t) => (
+                <Fragment key={t.id}>
+                  {t.id === 'templates' && <span className="settings-tabs-sep" aria-hidden="true" />}
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={planningTab === t.id}
+                    className={`settings-tab${planningTab === t.id ? ' active' : ''}`}
+                    onClick={() => setPlanningTab(t.id)}
+                  >
+                    {t.icon}
+                    <span>{t.label}</span>
+                  </button>
+                </Fragment>
+              ))}
             </div>
 
-            <label className="settings-switch">
-              <input
-                type="checkbox"
-                checked={form.managerInSchedule}
-                onChange={(e) => handleChange('managerInSchedule', e.target.checked)}
-              />
-              <span className="settings-switch-text">
-                <strong>Le gérant apparaît dans le planning</strong>
-                <span className="hint">
-                  Pour les toutes petites équipes où le gérant travaille aussi en boutique : vous
-                  avez votre propre ligne dans le planning, avec vos créneaux et vos réunions.
-                  Décochez quand l'équipe est assez grande : vos créneaux passés restent enregistrés.
-                  Vous n'êtes jamais compté dans l'équipe, la paie ni l'abonnement.
-                </span>
-              </span>
-            </label>
+            <div className="settings-tab-panel" role="tabpanel">
+              {PLANNING_FORM_TABS.includes(planningTab) && (
+                <form onSubmit={handleSubmit}>
+                  {planningTab === 'open' && (
+                    <div className="settings-open-days">
+                      <strong>Jours d'ouverture</strong>
+                      <div className="open-days-row" role="group" aria-label="Jours d'ouverture">
+                        {OPEN_DAY_LABELS.map((label, i) => {
+                          const isOpen = form.openDays[i] === '1';
+                          return (
+                            <button
+                              key={label}
+                              type="button"
+                              className={`open-day-chip${isOpen ? ' on' : ''}`}
+                              aria-pressed={isOpen}
+                              onClick={() => {
+                                const next = form.openDays.slice(0, i) + (isOpen ? '0' : '1') + form.openDays.slice(i + 1);
+                                if (next.includes('1')) handleChange('openDays', next);
+                              }}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <span className="hint">
+                        Cliquez sur un jour pour l'ouvrir ou le fermer. Les jours fermés sont grisés dans le
+                        planning. Ce réglage ne change pas le décompte des congés.
+                      </span>
+                    </div>
+                  )}
+                  {planningTab === 'manager' && (
+                    <label className="settings-switch">
+                      <input
+                        type="checkbox"
+                        checked={form.managerInSchedule}
+                        onChange={(e) => handleChange('managerInSchedule', e.target.checked)}
+                      />
+                      <span className="settings-switch-text">
+                        <strong>Le gérant apparaît dans le planning</strong>
+                        <span className="hint">
+                          Pour les toutes petites équipes où le gérant travaille aussi en boutique : vous
+                          avez votre propre ligne dans le planning, avec vos créneaux et vos réunions.
+                          Décochez quand l'équipe est assez grande : vos créneaux passés restent enregistrés.
+                          Vous n'êtes jamais compté dans l'équipe, la paie ni l'abonnement.
+                        </span>
+                      </span>
+                    </label>
+                  )}
+                  {planningTab === 'meetings' && (
+                    <label className="settings-switch">
+                      <input
+                        type="checkbox"
+                        checked={form.meetingsCountAsWork}
+                        onChange={(e) => handleChange('meetingsCountAsWork', e.target.checked)}
+                      />
+                      <span className="settings-switch-text">
+                        <strong>Compter les réunions dans les heures de travail</strong>
+                        <span className="hint">
+                          Le temps de réunion en dehors du créneau (un jour de repos, avant ou après les
+                          horaires, pendant une pause) s'ajoute aux heures de la semaine et à la paie
+                          indicative. Une réunion pendant le créneau est déjà comptée : elle ne s'ajoute pas
+                          une deuxième fois.
+                        </span>
+                      </span>
+                    </label>
+                  )}
+                  {planningTab === 'team' && (
+                    <label className="settings-switch">
+                      <input
+                        type="checkbox"
+                        checked={form.teamScheduleVisible}
+                        onChange={(e) => handleChange('teamScheduleVisible', e.target.checked)}
+                      />
+                      <span className="settings-switch-text">
+                        <strong>Les employés voient le planning de toute l'équipe</strong>
+                        <span className="hint">
+                          Ajoute un onglet « Toute l'équipe » dans leur planning, en lecture seule : ils voient
+                          qui travaille et à quelle heure. Restent privés : le motif des absences (affiché
+                          « Absent »), les notes, les pauses et le total d'heures de chacun.
+                        </span>
+                      </span>
+                    </label>
+                  )}
+                  {formFeedback}
+                </form>
+              )}
 
-            <label className="settings-switch">
-              <input
-                type="checkbox"
-                checked={form.meetingsCountAsWork}
-                onChange={(e) => handleChange('meetingsCountAsWork', e.target.checked)}
-              />
-              <span className="settings-switch-text">
-                <strong>Compter les réunions dans les heures de travail</strong>
-                <span className="hint">
-                  Le temps de réunion en dehors du créneau (un jour de repos, avant ou après les
-                  horaires, pendant une pause) s'ajoute aux heures de la semaine et à la paie
-                  indicative. Une réunion pendant le créneau est déjà comptée : elle ne s'ajoute pas
-                  une deuxième fois.
-                </span>
-              </span>
-            </label>
-            <label className="settings-switch">
-              <input
-                type="checkbox"
-                checked={form.teamScheduleVisible}
-                onChange={(e) => handleChange('teamScheduleVisible', e.target.checked)}
-              />
-              <span className="settings-switch-text">
-                <strong>Les employés voient le planning de toute l'équipe</strong>
-                <span className="hint">
-                  Ajoute un onglet « Toute l'équipe » dans leur planning, en lecture seule : ils voient
-                  qui travaille et à quelle heure. Restent privés : le motif des absences (affiché
-                  « Absent »), les notes, les pauses et le total d'heures de chacun.
-                </span>
-              </span>
-            </label>
-            {formFeedback}
-          </form>
-        </SettingsWindow>
-      )}
+              {planningTab === 'templates' && (
+                <>
+                <div className="tab-toolbar">
+                  <p className="hint" style={{ margin: 0 }}>
+                    Modèles réutilisables (ex : "Matin", 9h–17h) à glisser directement sur le planning
+                    pour créer un créneau sans ressaisir les horaires.
+                  </p>
+                  {!editingTplId && (
+                    <button type="button" className="btn-ghost btn-sm" onClick={openNewTemplate}>+ Ajouter</button>
+                  )}
+                </div>
 
-      {openSection === 'presence' && (
-        <SettingsWindow id="presence" wide onClose={closeWindow}>
-          <PresenceRulesManager
-            rules={presence.rules}
-            jobTitles={presence.jobTitles}
-            loading={!presence.loaded}
-            onChange={(rules) => setPresence((p) => ({ ...p, rules }))}
-          />
+                {templates.length === 0 ? (
+                  <p className="empty-state">Aucun horaire type pour l'instant.</p>
+                ) : (
+                  <div className="table-wrap" style={{ marginBottom: editingTplId ? 14 : 0 }}>
+                    <table className="rh-table">
+                      <thead>
+                        <tr>
+                          <th>Nom</th>
+                          <th>Horaires</th>
+                          <th>Pause</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {templates.map((t) => (
+                          <tr key={t.id}>
+                            <td>
+                              <span className="tpl-name">
+                                <span className="tpl-swatch" style={{ background: t.color || NEUTRAL_SHIFT_COLOR }} aria-hidden="true" />
+                                <strong>{t.name}</strong>
+                              </span>
+                            </td>
+                            <td>{formatTime(t.start_time)} → {formatTime(t.end_time)}</td>
+                            <td className="text-muted">
+                              {t.break_start ? `${formatTime(t.break_start)}–${formatTime(t.break_end)}` : '—'}
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', gap: 6 }}>
+                                <button type="button" className="btn-ghost btn-sm" onClick={() => openEditTemplate(t)}>Modifier</button>
+                                <button
+                                  type="button"
+                                  className="btn-ghost btn-sm"
+                                  style={{ color: 'var(--danger)' }}
+                                  onClick={() => handleTemplateDelete(t.id)}
+                                >Supprimer</button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {editingTplId && (
+                  <form onSubmit={handleTemplateSubmit} className="inline-form">
+                    <div className="field-row">
+                      <div className="field">
+                        <label>Nom *</label>
+                        <input
+                          type="text" required placeholder="Ex : Matin"
+                          value={templateForm.name}
+                          onChange={(e) => setTemplateForm((f) => ({ ...f, name: e.target.value }))}
+                        />
+                      </div>
+                      <div className="field">
+                        <label>Début *</label>
+                        <input
+                          type="time" required
+                          value={templateForm.startTime}
+                          onChange={(e) => setTemplateForm((f) => ({ ...f, startTime: e.target.value }))}
+                        />
+                      </div>
+                      <div className="field">
+                        <label>Fin *</label>
+                        <input
+                          type="time" required
+                          value={templateForm.endTime}
+                          onChange={(e) => setTemplateForm((f) => ({ ...f, endTime: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="field-row">
+                      <div className="field">
+                        <label>Pause — début <span className="hint">(optionnel)</span></label>
+                        <input
+                          type="time"
+                          value={templateForm.breakStart}
+                          onChange={(e) => setTemplateForm((f) => ({ ...f, breakStart: e.target.value }))}
+                        />
+                      </div>
+                      <div className="field">
+                        <label>Pause — fin <span className="hint">(optionnel)</span></label>
+                        <input
+                          type="time"
+                          value={templateForm.breakEnd}
+                          onChange={(e) => setTemplateForm((f) => ({ ...f, breakEnd: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <fieldset className="field color-field">
+                      <legend>Couleur dans le planning</legend>
+                      <div className="color-swatches">
+                        {SHIFT_PALETTE.map((c) => (
+                          <label key={c.value} className="color-swatch" title={c.label}>
+                            <input
+                              type="radio" name="tpl-color" value={c.value}
+                              checked={templateForm.color === c.value}
+                              onChange={() => setTemplateForm((f) => ({ ...f, color: c.value }))}
+                            />
+                            <span style={{ background: c.value }} />
+                            <span className="sr-only">{c.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                      {editingTplId === 'new' && !templateForm.color && (
+                        <span className="hint">Sans choix, une couleur pas encore utilisée est attribuée.</span>
+                      )}
+                    </fieldset>
+                    {tplError && <p className="error-msg">{tplError}</p>}
+                    <div className="form-actions">
+                      <button type="button" className="btn-ghost" onClick={() => setEditingTplId(null)} disabled={tplSaving}>Annuler</button>
+                      <button type="submit" className="btn-primary" disabled={tplSaving}>
+                        {tplSaving ? 'Enregistrement…' : 'Enregistrer'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+                {!editingTplId && tplError && <p className="error-msg">{tplError}</p>}
+                </>
+              )}
+
+              {planningTab === 'weeks' && (
+                <WeekTemplatesManager weekTemplates={weekTemplates} shiftTemplates={templates} onChange={setWeekTemplates} />
+              )}
+
+              {planningTab === 'presence' && (
+                <PresenceRulesManager
+                  rules={presence.rules}
+                  jobTitles={presence.jobTitles}
+                  loading={!presence.loaded}
+                  onChange={(rules) => setPresence((p) => ({ ...p, rules }))}
+                />
+              )}
+            </div>
+          </div>
         </SettingsWindow>
       )}
 
