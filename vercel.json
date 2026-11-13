@@ -1,4 +1,9 @@
 {
   "cleanUrls": true,
+  "redirects": [
+    { "source": "/insta", "destination": "/?src=insta", "permanent": false },
+    { "source": "/carte", "destination": "/?src=carte", "permanent": false },
+    { "source": "/pub", "destination": "/?src=pub", "permanent": false }
+  ],
   "rewrites": [{ "source": "/(.*)", "destination": "/" }]
 }
