@@ -16,6 +16,8 @@ export const getOwnerStats      = (days, token) => req('GET', `/owner/stats?days
 export const setupOwnerPassword = (data)        => req('POST', '/owner/setup', null, data);
 export const getOwnerActivity   = (params, token) => req('GET', `/owner/activity?${new URLSearchParams(params)}`, token);
 export const getOwnerHealth     = (token)         => req('GET', '/owner/health', token);
+// Historique jour par jour (7, 30 ou 90 jours)
+export const getOwnerHealthHistory = (days, token) => req('GET', `/owner/health/history?days=${days}`, token);
 export const getOwnerCompany    = (id, token)     => req('GET', `/owner/companies/${id}`, token);
 // Intelligence artificielle : dépenses et crédit estimé ; visites du site
 export const getOwnerAi          = (days, token)         => req('GET', `/owner/ai?days=${days}`, token);

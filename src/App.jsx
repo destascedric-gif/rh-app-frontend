@@ -28,6 +28,7 @@ import Cgu from './pages/legal/Cgu'
 import Cgv from './pages/legal/Cgv'
 import Confidentialite from './pages/legal/Confidentialite'
 import Dpa from './pages/legal/Dpa'
+import NePasCompter from './pages/NePasCompter'
 import Pilotage from './pages/pilotage/Pilotage'
 import PilotageLayout from './pages/pilotage/PilotageLayout'
 import PilEntreprises from './pages/pilotage/PilEntreprises'
@@ -78,6 +79,7 @@ function App() {
           <Route path="/cgv" element={<Cgv />} />
           <Route path="/confidentialite" element={<Confidentialite />} />
           <Route path="/dpa" element={<Dpa />} />
+          <Route path="/ne-pas-compter" element={<NePasCompter />} />
           {/* Pilotage : tableau de bord et pages de détail, menu commun */}
           <Route path="/pilotage" element={<OwnerRoute><PilotageLayout /></OwnerRoute>}>
             <Route index element={<Pilotage />} />

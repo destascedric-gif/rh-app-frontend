@@ -119,9 +119,10 @@ export default function Confidentialite() {
         Orgaly n'utilise aucun cookie, ni publicitaire ni de mesure d'audience, et aucun outil de
         mesure d'audience d'un tiers. La fréquentation des pages publiques est comptée par Orgaly
         lui-même, sur son serveur, sans rien enregistrer sur l'appareil du visiteur et sans donnée
-        permettant de l'identifier (voir le tableau ci-dessus). Seul le jeton de connexion est
-        enregistré dans le stockage local du navigateur, ce qui est strictement nécessaire au
-        fonctionnement du service et ne requiert pas de consentement.
+        permettant de l'identifier (voir le tableau ci-dessus). Seuls le jeton de connexion et,
+        une fois connecté, une simple marque indiquant de ne pas compter ce navigateur dans la
+        fréquentation sont enregistrés dans le stockage local du navigateur, ce qui est strictement
+        nécessaire au fonctionnement du service et ne requiert pas de consentement.
       </p>
 
       <h2>6. Sécurité</h2>

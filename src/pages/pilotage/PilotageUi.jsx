@@ -378,7 +378,6 @@ export function HealthRows({ h, down, onShowErrors }) {
   const speedTone = !h.avg_ms ? 'ok' : h.avg_ms < 500 ? 'ok' : h.avg_ms < 1500 ? 'warn' : 'bad';
   const mailShare = Math.min(100, Math.round((h.emails_today / h.email_daily_limit) * 100));
   const mailTone = mailShare >= 90 || h.email_errors_24h > 0 ? 'bad' : mailShare >= 70 ? 'warn' : 'ok';
-  const partialDay = h.uptime_s < 86400;
 
   return (
     <div className="pil-health">
@@ -386,7 +385,7 @@ export function HealthRows({ h, down, onShowErrors }) {
         detail={`Redémarré il y a ${fmtUptime(h.uptime_s)}`} />
       <HealthRow tone={speedTone} icon="clock" label="Temps de réponse moyen"
         value={h.avg_ms == null ? '—' : `${h.avg_ms} ms`}
-        detail={`${plural(h.requests_24h, 'requête')}${partialDay ? ' depuis le redémarrage' : ''}`} />
+        detail={`${plural(h.requests_24h, 'requête')} en 24 heures`} />
       <HealthRow tone={h.errors_24h > 0 ? 'bad' : 'ok'} icon={h.errors_24h > 0 ? 'alert' : 'check'}
         label="Erreurs du serveur" value={h.errors_24h}
         detail={h.last_error_at ? `Dernière : ${fmtWhen(h.last_error_at)}` : 'Aucune erreur enregistrée'}>

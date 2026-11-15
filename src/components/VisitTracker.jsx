@@ -13,14 +13,19 @@ let last = { key: '', at: 0 };
 
 // Compteur de visites (11 nov. 2026) : à chaque page publique affichée,
 // prévient le serveur (page, site d'origine, ?src= des liens de Cédric).
-// Aucun cookie, rien d'enregistré sur l'appareil. Les appareils où le
-// propriétaire a ouvert le pilotage ne sont pas comptés.
+// Aucun cookie, rien d'enregistré sur l'appareil. Ne sont pas comptés : les
+// navigateurs où quelqu'un s'est connecté à Orgaly (propriétaire, gérant,
+// salarié) et ceux passés par la page /ne-pas-compter.
 export default function VisitTracker() {
   const { pathname, search } = useLocation();
 
   useEffect(() => {
     if (!PUBLIC_PATHS.has(pathname)) return;
-    try { if (localStorage.getItem('orgaly_no_track')) return; } catch { /* stockage indisponible */ }
+    // Pas compté : appareil exclu (pilotage ouvert, page /ne-pas-compter,
+    // ou quelqu'un s'y est déjà connecté à Orgaly)
+    try {
+      if (localStorage.getItem('orgaly_no_track') || localStorage.getItem('rh_token')) return;
+    } catch { /* stockage indisponible */ }
     // Une seule fois par page (le mode développement lance les effets deux fois)
     const key = `${pathname}${search}`;
     if (last.key === key && Date.now() - last.at < 2000) return;

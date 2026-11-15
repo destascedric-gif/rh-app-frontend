@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
     if (savedToken && savedUser) {
       setToken(savedToken);
       setUser(JSON.parse(savedUser));
+      try { localStorage.setItem('orgaly_no_track', '1'); } catch { /* stockage indisponible */ }
     }
     setLoading(false);
   }, []);
@@ -23,6 +24,9 @@ export const AuthProvider = ({ children }) => {
     setToken(jwtToken);
     localStorage.setItem('rh_token', jwtToken);
     localStorage.setItem('rh_user', JSON.stringify(userData));
+    // Navigateur d'une personne qui a un compte (gérant, salarié,
+    // propriétaire) : ses visites des pages publiques ne sont plus comptées
+    try { localStorage.setItem('orgaly_no_track', '1'); } catch { /* stockage indisponible */ }
   };
 
   const logout = () => {
