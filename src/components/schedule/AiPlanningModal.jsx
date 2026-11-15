@@ -252,11 +252,19 @@ export default function AiPlanningModal({ initialMonth, employees, shiftTemplate
               {proposal.attempts > 1 ? ` (corrigée ${proposal.attempts - 1} fois par Orgaly)` : ''}. Rien n'est encore enregistré.
             </p>
 
+            {/* Remarques de l'IA repliées par défaut (15 nov. 2026, demande
+                de Cédric : « un gros pavé bleu ») ; un clic les déplie,
+                comme le compteur d'heures */}
             {proposal.notes.length > 0 && (
-              <div className="ai-box">
-                <b>Remarques de l'IA</b>
+              <details className="ai-box ai-box--fold">
+                <summary>
+                  <svg className="ai-fold-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+                  <b>Remarques de l'IA</b>
+                  <span className="ai-fold-count">{proposal.notes.length}</span>
+                  <span className="ai-fold-hint" aria-hidden="true" />
+                </summary>
                 <ul>{proposal.notes.map((n) => <li key={n}>{n}</li>)}</ul>
-              </div>
+              </details>
             )}
             {blocking.length > 0 && (
               <div className="ai-box ai-box--error">
