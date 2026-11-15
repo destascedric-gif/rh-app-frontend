@@ -2715,7 +2715,24 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .ai-gaps { margin-bottom: 12px; font-size: 13px; color: var(--text-muted); }
 .ai-gaps summary { cursor: pointer; font-weight: 500; color: var(--text); }
 .ai-gaps ul { margin: 6px 0 4px; padding-left: 18px; line-height: 1.5; }
-.ai-modal textarea { width: 100%; resize: vertical; font: inherit; font-size: 13.5px; }
+/* Zones de texte de la fenêtre IA (demandes, retouche) : sobres, coins
+   arrondis, contour fin qui devient bleu avec un halo léger quand on écrit
+   (15 nov. 2026 ; avant : aspect brut du navigateur) */
+.ai-modal textarea,
+.ai-refine-row input {
+  width: 100%; padding: 10px 13px;
+  border: 1px solid var(--border-dark); border-radius: 10px;
+  background: var(--bg-card); color: var(--text);
+  font: inherit; font-size: 13.5px; line-height: 1.5;
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ai-modal textarea { resize: vertical; min-height: 96px; }
+.ai-modal textarea::placeholder,
+.ai-refine-row input::placeholder { color: var(--text-light); }
+.ai-modal textarea:hover,
+.ai-refine-row input:hover { border-color: color-mix(in srgb, var(--primary) 35%, var(--border-dark)); }
+.ai-modal textarea:focus,
+.ai-refine-row input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-ring); }
 .ai-opts { margin-top: 12px; }
 .ai-loading { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 40px 10px; text-align: center; }
 .ai-loading p { margin: 0; }
@@ -2729,8 +2746,8 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .ai-week { margin-bottom: 8px; }
 .ai-week th.ai-out { opacity: 0.45; }
 .ai-refine { margin-bottom: 4px; }
-.ai-refine-row { display: flex; gap: 8px; }
-.ai-refine-row input { flex: 1; min-width: 0; }
+.ai-refine-row { display: flex; gap: 8px; align-items: stretch; }
+.ai-refine-row input { flex: 1; min-width: 0; width: auto; }
 
 /* Règles de présence par poste (Paramètres, 11 nov. 2026) */
 .presence-rules { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
