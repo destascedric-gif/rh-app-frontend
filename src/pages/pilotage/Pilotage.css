@@ -94,6 +94,7 @@
 .pil-pill { display: inline-block; font-size: 11.5px; padding: 2px 9px; border-radius: 6px; }
 .pil-pill--pro { background: #2A2312; color: var(--pil-gold); border: 1px solid #4A3D1C; }
 .pil-pill--free { background: #1A1A19; color: var(--pil-mut); border: 1px solid #2E2D2A; }
+.pil-price { margin-left: 6px; color: var(--pil-mut); font-size: 12px; font-variant-numeric: tabular-nums; }
 .pil-st { display: inline-flex; align-items: center; gap: 5px; }
 .pil-st--ok { color: var(--pil-ok); }
 .pil-st--warn { color: var(--pil-warn); }

@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import {
   PageHead, CardHead, Kpi, PeriodSeg, Chart, CompaniesTable, JournalCard, HealthRows, Icon,
 } from './PilotageUi';
-import { PERIODS, STALE_DAYS, isStale, plural, signupXLabel } from './pilotageUtils';
+import { PERIODS, STALE_DAYS, isStale, isPaying, fmtEuro, plural, signupXLabel } from './pilotageUtils';
 
 // Tableau de bord : un résumé de chaque rubrique ; chaque carte mène à
 // sa page de détail. Uniquement des chiffres globaux, jamais le contenu
@@ -47,8 +47,10 @@ export default function Pilotage() {
 
   const period = PERIODS.find((p) => p.days === days);
   const t = stats?.totals;
-  const total = stats ? stats.plans.free + stats.plans.pro : 0;
-  const proShare = total ? Math.round((stats.plans.pro / total) * 100) : 0;
+  const total = stats ? stats.companies.length : 0;
+  const paying = stats ? stats.companies.filter(isPaying) : [];
+  const freeCount = total - paying.length;
+  const estimate = paying.reduce((s, c) => s + c.price_month, 0);
   const toFollow = stats ? stats.companies.filter((c) => isStale(c.last_activity)).length : 0;
   const monthly = days === 365;
 
@@ -73,8 +75,8 @@ export default function Pilotage() {
           <div className="pil-kpis">
             <Kpi to="/pilotage/entreprises" icon="store" label="Entreprises inscrites" value={t.companies} delta={`+${t.new_companies} ${period.since}`} />
             <Kpi to="/pilotage/entreprises" icon="users" label="Salariés actifs" value={t.employees} delta={`+${t.new_employees} ${period.since}`} />
-            <Kpi to="/pilotage/formules" icon="crown" label="Entreprises en Pro" value={t.pro_companies} delta={`${proShare} % des entreprises`} />
-            <Kpi to="/pilotage/formules" icon="euro" label="Revenus du mois" value="—" delta="dès que Stripe sera branché" muted />
+            <Kpi to="/pilotage/formules" icon="crown" label="Entreprises payantes" value={paying.length} delta={total ? `${Math.round((paying.length / total) * 100)} % des entreprises` : '—'} />
+            <Kpi to="/pilotage/formules" icon="euro" label="Revenu mensuel estimé" value={fmtEuro(estimate)} delta="rien n'est encore encaissé" muted />
           </div>
 
           <div className="pil-row">
@@ -96,14 +98,14 @@ export default function Pilotage() {
             <section className="pil-card">
               <CardHead title="Formules" sub={`${plural(total, 'entreprise')} au total`} to="/pilotage/formules" />
               <div className="pil-bar" aria-hidden="true">
-                {stats.plans.free > 0 && <div className="pil-bar-free" style={{ flex: stats.plans.free }} />}
-                {stats.plans.pro > 0 && <div className="pil-bar-pro" style={{ flex: stats.plans.pro }} />}
+                {freeCount > 0 && <div className="pil-bar-free" style={{ flex: freeCount }} />}
+                {paying.length > 0 && <div className="pil-bar-pro" style={{ flex: paying.length }} />}
               </div>
               <div className="pil-legend">
-                <span><i className="pil-sw pil-sw--free" />Gratuit <b>{stats.plans.free}</b></span>
-                <span><i className="pil-sw pil-sw--pro" />Pro <b>{stats.plans.pro}</b></span>
+                <span><i className="pil-sw pil-sw--free" />Gratuites <b>{freeCount}</b></span>
+                <span><i className="pil-sw pil-sw--pro" />Payantes <b>{paying.length}</b></span>
               </div>
-              <p className="pil-sub pil-sub--spaced">Proches de la limite gratuite ({stats.free_limit} salariés)</p>
+              <p className="pil-sub pil-sub--spaced">Bientôt payantes ({stats.pricing.freeEmployees} salariés, le prochain rend l'abonnement payant)</p>
               {stats.near_limit.length === 0
                 ? <p className="pil-empty">Aucune pour l'instant.</p>
                 : (
@@ -111,7 +113,7 @@ export default function Pilotage() {
                     {stats.near_limit.map((c) => (
                       <li key={c.id}>
                         <button type="button" className="pil-link-plain" onClick={() => navigate(`/pilotage/entreprises/${c.id}`)}>{c.name}</button>
-                        {' · '}<b>{c.employees}</b>/{stats.free_limit}
+                        {' · '}<b>{c.employees}</b> salariés
                       </li>
                     ))}
                   </ul>

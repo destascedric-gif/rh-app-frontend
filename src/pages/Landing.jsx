@@ -79,7 +79,7 @@ export default function Landing() {
             <a href="#change" className="landing-btn-text">Voir ce qui change</a>
           </div>
           <div className="landing-note">
-            Gratuit jusqu'à {PRICING.freeEmployeeLimit} salariés · Sans carte bancaire
+            Gratuit jusqu'à {PRICING.freeEmployees} salariés · {PRICING.trialMonths} mois d'essai offerts · Sans carte bancaire
           </div>
         </div>
 
@@ -167,20 +167,23 @@ export default function Landing() {
         <div className="landing-pricing">
           <div>
             <h2>Un tarif simple</h2>
-            <p>Sans engagement, résiliable en ligne à tout moment.</p>
+            <p>Sans engagement. {PRICING.trialMonths} mois d'essai offerts à l'inscription.</p>
           </div>
           <div className="landing-prices">
             <div className="landing-price">
-              <div className="landing-price-label">Jusqu'à {PRICING.freeEmployeeLimit} salariés</div>
+              <div className="landing-price-label">Jusqu'à {PRICING.freeEmployees} salariés</div>
               <div className="landing-price-value">Gratuit</div>
-              <div className="landing-price-label">Toutes les fonctions, sans limite de durée.</div>
+              <div className="landing-price-label">Tout l'abonnement, sans limite de durée.</div>
             </div>
             <div className="landing-price">
-              <div className="landing-price-label">Au-delà de {PRICING.freeEmployeeLimit} salariés</div>
+              <div className="landing-price-label">Au-delà de {PRICING.freeEmployees} salariés</div>
               <div className="landing-price-value">
                 {PRICING.pricePerEmployee} <span>HT / salarié / mois</span>
               </div>
-              <div className="landing-price-label">Le montant suit le nombre de salariés actifs.</div>
+              <div className="landing-price-label">
+                Les {PRICING.freeEmployees} premiers restent offerts. Jamais plus de {PRICING.monthlyCap} HT
+                par mois. À l'année : 2 mois offerts.
+              </div>
             </div>
           </div>
         </div>

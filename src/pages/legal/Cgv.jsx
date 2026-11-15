@@ -17,23 +17,41 @@ export default function Cgv() {
       <h2>2. Offres</h2>
       <ul>
         <li>
-          <strong>Plan Gratuit</strong> : accès à toutes les fonctionnalités, dans la limite de{' '}
-          {PRICING.freeEmployeeLimit} employés actifs.
+          <strong>Formule gratuite</strong> : l'abonnement est gratuit, sans limite de durée, pour un
+          Client qui compte au plus {PRICING.freeEmployees} employés actifs.
         </li>
         <li>
-          <strong>Plan Pro</strong> : nombre d'employés actifs illimité, au prix de{' '}
-          <strong>{PRICING.pricePerEmployee} HT par employé actif et par mois</strong>.
+          <strong>Abonnement payant</strong> : au-delà, les {PRICING.freeEmployees} premiers employés
+          actifs restent offerts et chaque employé actif supplémentaire est facturé{' '}
+          <strong>{PRICING.pricePerEmployee} HT par mois</strong>. Le montant est plafonné à{' '}
+          <strong>{PRICING.monthlyCap} HT par mois et par établissement</strong> (un établissement
+          correspond à un espace Orgaly).
+        </li>
+        <li>
+          <strong>Paiement annuel</strong> : le Client peut régler un an d'avance ; il paie alors{' '}
+          {PRICING.annualMonthsPaid} mois pour 12.
+        </li>
+        <li>
+          <strong>Période d'essai</strong> : tout nouveau Client bénéficie de{' '}
+          {PRICING.trialMonths} mois d'essai gratuits à compter de la création de son espace, sans
+          moyen de paiement à fournir. Aucune somme n'est due avant la souscription d'un abonnement
+          payant par l'Administrateur.
+        </li>
+        <li>
+          <strong>Option « IA avancée »</strong> (lorsqu'elle est proposée au Client) : génération du
+          planning par intelligence artificielle, au prix de {PRICING.aiOptionPrice} HT par mois, dans
+          la limite de {PRICING.aiMonthlyGenerations} générations par mois calendaire ; les générations
+          non utilisées ne sont pas reportées.
         </li>
       </ul>
       <p>
         Est un « employé actif » tout compte employé non désactivé, y compris les invitations en
-        attente d'activation. Le compte administrateur n'est pas compté. En plan Pro, tous les employés
-        actifs sont facturés, y compris les cinq premiers.
+        attente d'activation. Le compte administrateur n'est pas compté.
       </p>
 
       <h2>3. Souscription</h2>
       <p>
-        L'Administrateur souscrit au plan Pro depuis la page « Abonnement » de son espace, après avoir
+        L'Administrateur souscrit à l'abonnement payant depuis la page « Abonnement » de son espace, après avoir
         accepté les présentes CGV. Le paiement est réalisé sur une page sécurisée de notre prestataire
         de paiement Stripe ; l'Éditeur n'a jamais accès aux numéros de carte. L'abonnement prend effet
         dès la confirmation du paiement.
@@ -43,7 +61,8 @@ export default function Cgv() {
       <p>
         Les prix sont exprimés en euros hors taxes. {EDITOR.vatMention} : le montant facturé
         correspond donc au prix hors taxes, tant que l'Éditeur bénéficie de ce régime. L'abonnement
-        est facturé mensuellement, d'avance, à la date anniversaire de la souscription. Une facture est
+        est facturé d'avance, chaque mois ou chaque année selon la formule choisie, à la date
+        anniversaire de la souscription. Une facture est
         émise à chaque échéance et reste disponible dans l'espace de facturation.
       </p>
       <p>
@@ -55,9 +74,9 @@ export default function Cgv() {
       <p>
         Le paiement s'effectue par prélèvement automatique sur la carte bancaire enregistrée. En cas
         d'échec, de nouvelles tentatives sont effectuées pendant plusieurs jours et le Client en est
-        averti. Si le paiement reste impayé, l'abonnement est résilié et le compte repasse au plan
-        Gratuit : aucune donnée n'est supprimée, mais l'ajout ou la réactivation d'employés au-delà de
-        la limite gratuite est bloqué.
+        averti. Si le paiement reste impayé, l'abonnement est résilié : aucune donnée n'est supprimée, mais
+        l'accès au service peut être limité tant que le compte compte plus de{' '}
+        {PRICING.freeEmployees} employés actifs.
       </p>
       <p>
         Conformément à l'article L. 441-10 du Code de commerce, toute somme non payée à l'échéance
@@ -67,11 +86,12 @@ export default function Cgv() {
 
       <h2>6. Durée et résiliation</h2>
       <p>
-        L'abonnement est conclu pour une durée d'un mois, renouvelée tacitement chaque mois. Le Client
+        L'abonnement est conclu pour une durée d'un mois ou d'un an selon la formule choisie,
+        renouvelée tacitement pour la même durée. Le Client
         peut le résilier <strong>à tout moment, en ligne</strong>, depuis la page « Abonnement » puis
         « Gérer mon abonnement », sans frais ni justification. La résiliation prend effet à la fin de
-        la période mensuelle en cours, déjà payée ; aucun remboursement au prorata n'est effectué. Le
-        compte repasse ensuite au plan Gratuit avec ses données.
+        la période en cours (mois ou année), déjà payée ; aucun remboursement au prorata n'est
+        effectué. Le compte conserve ensuite ses données.
       </p>
       <p>
         L'Éditeur peut résilier l'abonnement en cas de manquement grave du Client non corrigé 15 jours

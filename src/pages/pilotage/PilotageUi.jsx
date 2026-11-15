@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getOwnerActivity } from '../../api/owner';
 import Select from '../../components/Select';
 import {
-  PERIODS, fmtDate, fmtWhen, fmtUptime, activityLabel, daysAgo, isStale, plural,
+  PERIODS, fmtDate, fmtEuro, fmtWhen, fmtUptime, activityLabel, daysAgo, isStale, plural, BILLING_STATES,
 } from './pilotageUtils';
 
 // Briques d'affichage communes aux pages de pilotage (noir et or)
@@ -94,8 +94,10 @@ export function PeriodSeg({ days, onChange }) {
   );
 }
 
-export function PlanPill({ plan }) {
-  return <span className={`pil-pill pil-pill--${plan === 'pro' ? 'pro' : 'free'}`}>{plan === 'pro' ? 'Pro' : 'Gratuit'}</span>;
+// Situation tarifaire : Gratuit / Offert (gris), Essai / Payant (doré)
+export function PlanPill({ state }) {
+  const info = BILLING_STATES[state] ?? BILLING_STATES.gratuit;
+  return <span className={`pil-pill pil-pill--${info.paying ? 'pro' : 'free'}`}>{info.label}</span>;
 }
 
 export function ActivityStatus({ date }) {
@@ -195,7 +197,7 @@ export function CompaniesTable({ companies, sort, onSort }) {
     { key: 'name', label: 'Entreprise' },
     { key: 'created_at', label: 'Inscrite le' },
     { key: 'employees', label: 'Salariés' },
-    { key: 'plan', label: 'Formule' },
+    { key: 'price_month', label: 'Formule' },
     { key: 'shifts_30d', label: 'Créneaux (30 j)' },
     { key: 'last_activity', label: 'Dernière activité' },
   ];
@@ -220,7 +222,7 @@ export function CompaniesTable({ companies, sort, onSort }) {
             <td><Link to={`/pilotage/entreprises/${c.id}`} className="pil-row-link" onClick={(e) => e.stopPropagation()}>{c.name}</Link></td>
             <td>{fmtDate(c.created_at)}</td>
             <td>{c.employees}</td>
-            <td><PlanPill plan={c.plan} /></td>
+            <td><PlanPill state={c.billing_state} />{c.price_month > 0 && <span className="pil-price"> {fmtEuro(c.price_month)}</span>}</td>
             <td>{c.shifts_30d}</td>
             <td><ActivityStatus date={c.last_activity} /></td>
           </tr>

@@ -11,6 +11,7 @@ const req = async (method, url, token, body = null) => {
     const err = new Error(data.message || 'Erreur serveur');
     err.status = res.status;
     err.problems = data.problems;
+    err.usage = data.usage; // limite mensuelle atteinte : { used, limit, remaining }
     throw err;
   }
   return data;
@@ -19,6 +20,8 @@ const req = async (method, url, token, body = null) => {
 // Planning généré par IA (gérant)
 // Ce qu'Orgaly sait avant de générer : { warnings, people, range, … }
 export const getAiPlanningFacts = (year, month, token) => req('GET', `/ai-planning/facts?year=${year}&month=${month}`, token);
+// Générations utilisées ce mois-ci : { used, limit, remaining }
+export const getAiPlanningUsage = (token) => req('GET', '/ai-planning/usage', token);
 // « Oui, la fiche est juste »
 export const confirmContract = (userId, token) => req('POST', '/ai-planning/confirm-contract', token, { userId });
 // { year, month, mode, requests, previous?: { slots }, refinement? } → proposition (rien n'est écrit)

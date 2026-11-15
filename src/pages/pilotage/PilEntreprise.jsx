@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getOwnerCompany } from '../../api/owner';
 import { PageHead, CardHead, Kpi, Chart, JournalCard, PlanPill, ActivityStatus } from './PilotageUi';
-import { fmtDate, fmtLongDate, fmtEuro, activityLabel, plural, PRO_PRICE } from './pilotageUtils';
+import { fmtDate, fmtLongDate, fmtEuro, activityLabel, plural } from './pilotageUtils';
 
 // Fiche d'une entreprise : uniquement des nombres (jamais les noms des
 // salariés, leurs horaires ou leurs demandes)
@@ -26,7 +26,7 @@ export default function PilEntreprise() {
   if (!data) return <><PageHead title="Entreprise" back={back} /><div className="pil-loading">Chargement…</div></>;
 
   const c = data.company;
-  const limit = data.free_limit;
+  const p = data.pricing;
   // Comptés dans l'abonnement : salariés actifs et invitations en attente
   const billed = c.employees + c.pending_invites;
   const usage = [
@@ -41,15 +41,17 @@ export default function PilEntreprise() {
   return (
     <>
       <PageHead
-        title={<>{c.name} <PlanPill plan={c.plan} /></>}
+        title={<>{c.name} <PlanPill state={c.billing_state} /></>}
         sub={`Inscrite le ${fmtLongDate(c.created_at)} · dernière activité ${activityLabel(c.last_activity)}`}
         back={back}
       />
 
       <div className="pil-kpis">
         <Kpi icon="users" label="Salariés actifs" value={c.employees}
-          delta={c.plan === 'pro' ? `${fmtEuro(billed * PRO_PRICE)} HT / mois (estimé)` : `${billed} / ${limit} de la formule gratuite`} />
-        <Kpi icon="mail" label="Invitations en attente" value={c.pending_invites} delta="comptées dans la limite" muted />
+          delta={c.billing_state === 'offert' ? 'abonnement offert pour toujours'
+            : c.price_month > 0 ? `${fmtEuro(c.price_month)} HT / mois${c.billing_state === 'essai' ? ' après l’essai' : ''} (${billed} comptés)`
+            : `${billed} / ${p.freeEmployees} salariés offerts`} />
+        <Kpi icon="mail" label="Invitations en attente" value={c.pending_invites} delta="comptées dans le prix" muted />
         <Kpi icon="crown" label="Gérants" value={c.managers} delta={c.inactive_employees > 0 ? `${plural(c.inactive_employees, 'ancien salarié')}` : 'aucun ancien salarié'} muted />
         <div className="pil-card pil-kpi">
           <div className="pil-kpi-label">Dernière activité</div>

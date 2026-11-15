@@ -9,8 +9,19 @@ export const PERIODS = [
 // Au-delà de ce nombre de jours sans activité, l'entreprise est à relancer
 export const STALE_DAYS = 14;
 
-// Prix de la formule Pro, par salarié actif et par mois (HT)
-export const PRO_PRICE = 3.9;
+// Situation tarifaire d'une entreprise (tarifs du 13 nov. 2026, calculée par
+// le serveur : billing_state, price_month). Rien n'est encore encaissé.
+export const BILLING_STATES = {
+  gratuit: { label: 'Gratuit', paying: false },  // 3 salariés ou moins
+  offert:  { label: 'Offert', paying: false },   // gratuite pour toujours (SAS LLDB)
+  essai:   { label: 'Essai', paying: true },     // paierait, encore dans ses 3 mois d'essai
+  payant:  { label: 'Payant', paying: true },    // paierait, essai terminé
+};
+export const isPaying = (c) => Boolean(BILLING_STATES[c.billing_state]?.paying);
+
+// Résumé du prix : « 3 offerts · 3,90 € au-delà · plafond 79 € »
+export const pricingLine = (p) =>
+  `${p.freeEmployees} salariés offerts · ${fmtEuro(p.pricePerEmployee)} HT par salarié en plus · plafond ${fmtEuro(p.monthlyCap)} HT / mois`;
 
 export const fmtDate = (d) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 export const fmtLongDate = (d) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });

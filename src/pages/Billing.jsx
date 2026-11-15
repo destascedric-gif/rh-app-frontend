@@ -1,203 +1,148 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getBilling, startCheckout, openPortal } from '../api/billing';
+import { getBilling } from '../api/billing';
 import { EDITOR } from '../legal/legalInfo';
 import PageHeader from '../components/PageHeader';
 
 const euros = (n) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
 const date  = (d) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+const plural = (n, word) => `${n} ${word}${n > 1 ? 's' : ''}`;
 
-const RETURN_NOTICES = {
-  succes: 'Paiement confirmé. Activation du plan Pro en cours…',
-  annule: 'Paiement annulé : aucun montant n\'a été débité.',
-};
+// Prix pour un nombre de salariés : même calcul que le serveur
+// (billing.service.js, computePrice), pour les exemples de la page
+const priceFor = (n, p) => Math.min(p.monthlyCap, Math.max(0, n - p.freeEmployees) * p.pricePerEmployee);
 
+// Page « Abonnement » (tarifs du 13 nov. 2026, affichés depuis le 15 nov.) :
+// le prix est calculé et affiché, mais le paiement en ligne n'est pas encore
+// ouvert : rien n'est demandé au gérant et rien n'est bloqué.
 export default function Billing() {
   const { token } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const [billing,    setBilling]    = useState(null);
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState('');
-  const [acceptCgv,  setAcceptCgv]  = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
-
-  // Retour de la page de paiement Stripe (?statut=...), lu une seule fois à
-  // l'arrivée : effacer le paramètre de l'URL ne doit pas relancer l'effet
-  // (son nettoyage arrêterait la vérification en cours).
-  const [statut] = useState(() => searchParams.get('statut'));
-  const [notice, setNotice] = useState(() => RETURN_NOTICES[statut] ?? '');
-
-  const load = useCallback(() => getBilling(token).then((b) => { setBilling(b); return b; }), [token]);
+  const [billing, setBilling] = useState(null);
+  const [error,   setError]   = useState('');
 
   useEffect(() => {
-    load().catch((err) => setError(err.message)).finally(() => setLoading(false));
-  }, [load]);
+    getBilling(token).then(setBilling).catch((err) => setError(err.message));
+  }, [token]);
 
-  useEffect(() => {
-    if (statut) setSearchParams({}, { replace: true });
-  }, [statut, setSearchParams]);
+  if (error) return <div className="page"><div className="notif-bar notif-bar--danger">{error}</div></div>;
+  if (!billing) return <div className="page"><p className="page-loading">Chargement…</p></div>;
 
-  // Le plan n'est activé qu'à la réception du webhook, qui peut arriver
-  // quelques secondes après le retour : on relit l'état jusqu'à le voir en Pro.
-  useEffect(() => {
-    if (statut !== 'succes') return;
-
-    let attempts = 0;
-    const timer = setInterval(async () => {
-      attempts += 1;
-      try {
-        const b = await load();
-        if (b.plan === 'pro') {
-          setNotice('Votre plan Pro est actif. Merci pour votre confiance !');
-          clearInterval(timer);
-        } else if (attempts >= 8) {
-          setNotice('Paiement reçu. L\'activation prend plus de temps que prévu : rechargez la page dans une minute.');
-          clearInterval(timer);
-        }
-      } catch {
-        clearInterval(timer);
-      }
-    }, 2000);
-    return () => clearInterval(timer);
-  }, [statut, load]);
-
-  const redirectTo = async (action) => {
-    setError('');
-    setRedirecting(true);
-    try {
-      const { url } = await action(token);
-      window.location.assign(url);
-    } catch (err) {
-      setError(err.message);
-      setRedirecting(false);
-    }
-  };
-
-  if (loading) return <div className="page"><p className="page-loading">Chargement…</p></div>;
-  if (!billing) return <div className="page"><div className="notif-bar notif-bar--danger">{error}</div></div>;
-
-  const isPro    = billing.plan === 'pro';
-  const limit    = billing.freeEmployeeLimit;
-  const count    = billing.activeEmployees;
-  const monthly  = Math.max(1, count) * billing.pricePerEmployee;
-  const atLimit  = !isPro && count >= limit;
-  const usagePct = Math.min(100, (count / limit) * 100);
+  const p      = billing.pricing;
+  const count  = billing.activeEmployees;
+  const price  = billing.price;
+  const billed = price.billedEmployees;
+  const capAt  = p.freeEmployees + Math.ceil(p.monthlyCap / p.pricePerEmployee);
+  const examples = [p.freeEmployees + 1, p.freeEmployees + 3, 10, capAt];
 
   return (
     <div className="page">
       <PageHeader title="Abonnement" />
 
-      {notice && <div className="notif-bar notif-bar--success">{notice}</div>}
-      {error  && <div className="notif-bar notif-bar--danger">{error}</div>}
-      {billing.subscriptionStatus === 'past_due' && (
-        <div className="notif-bar notif-bar--warning">
-          Le dernier prélèvement a échoué. Mettez à jour votre moyen de paiement pour conserver le plan Pro.
-        </div>
-      )}
-
-      {/* ── Offre actuelle ─────────────────────────── */}
+      {/* ── Ce que paie l'entreprise ──────────────── */}
       <div className="section-card billing-current">
         <div className="billing-current-head">
           <div>
-            <div className="billing-label">Offre actuelle</div>
+            <div className="billing-label">Votre abonnement</div>
             <div className="billing-plan-name">
-              {isPro ? 'Pro' : 'Gratuit'}
-              <span className={`badge ${isPro ? 'badge-info' : 'badge-active'}`}>
-                {isPro ? `${euros(billing.pricePerEmployee)} HT / employé / mois` : 'Sans engagement'}
-              </span>
+              {billing.freeForever ? 'Offert' : price.monthly === 0 ? 'Gratuit' : `${euros(price.monthly)} HT / mois`}
+              {billing.freeForever
+                ? <span className="badge badge-active">Premier client d'Orgaly</span>
+                : billing.inTrial && <span className="badge badge-info">Essai gratuit jusqu'au {date(billing.trialEndsAt)}</span>}
             </div>
           </div>
-          {billing.hasBillingAccount && (
-            <button className="btn-secondary" disabled={redirecting} onClick={() => redirectTo(openPortal)}>
-              {isPro ? 'Gérer mon abonnement' : 'Voir mes factures'}
-            </button>
-          )}
         </div>
 
-        {isPro ? (
-          <div className="billing-facts">
-            <div><span>Employés actifs facturés</span><strong>{Math.max(1, count)}</strong></div>
-            <div><span>Montant mensuel estimé</span><strong>{euros(monthly)} HT</strong></div>
-            {billing.currentPeriodEnd && (
-              <div>
-                <span>{billing.cancelAtPeriodEnd ? 'Fin de l\'abonnement' : 'Prochaine échéance'}</span>
-                <strong>{date(billing.currentPeriodEnd)}</strong>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="usage">
-            <div className="usage-row">
-              <span>Employés actifs</span>
-              <strong>{count} / {limit}</strong>
-            </div>
-            <div className="usage-meter" role="progressbar" aria-valuemin={0} aria-valuemax={limit} aria-valuenow={count}>
-              <div className={`usage-meter-fill${atLimit ? ' full' : ''}`} style={{ width: `${usagePct}%` }} />
-            </div>
-            {atLimit && (
-              <p className="hint">Limite du plan gratuit atteinte : passez au plan Pro pour ajouter d'autres employés.</p>
-            )}
-          </div>
-        )}
-
-        {isPro && billing.cancelAtPeriodEnd && (
-          <p className="hint billing-note">
-            Résiliation programmée : votre compte repassera au plan Gratuit à cette date, avec toutes ses données.
+        {billing.freeForever ? (
+          <p className="billing-text">
+            Votre entreprise fait partie des premiers clients d'Orgaly : l'abonnement vous est offert,
+            quel que soit le nombre de salariés ({plural(count, 'salarié')} aujourd'hui).
           </p>
+        ) : (
+          <>
+            <div className="billing-facts">
+              <div><span>Salariés comptés</span><strong>{count}</strong></div>
+              <div>
+                <span>Dont offerts</span>
+                <strong>{Math.min(count, p.freeEmployees)}</strong>
+              </div>
+              <div>
+                <span>Prix par mois</span>
+                <strong>{price.monthly === 0 ? 'Gratuit' : `${euros(price.monthly)} HT`}</strong>
+              </div>
+              {price.monthly > 0 && (
+                <div>
+                  <span>Ou payé à l'année</span>
+                  <strong>{euros(price.annual)} HT / an</strong>
+                </div>
+              )}
+            </div>
+            <p className="hint billing-note">
+              {price.monthly === 0
+                ? `Jusqu'à ${p.freeEmployees} salariés, Orgaly est gratuit, sans limite de durée.`
+                : price.capped
+                  ? `Plafond atteint : ${euros(p.monthlyCap)} HT par mois au plus, quel que soit le nombre de salariés.`
+                  : `${plural(billed, 'salarié')} en plus des ${p.freeEmployees} offerts × ${euros(p.pricePerEmployee)} HT.`}
+              {' '}Le gérant n'est pas compté ; les invitations en attente le sont.
+            </p>
+            <p className="hint billing-note">
+              Le paiement en ligne n'est pas encore ouvert : rien ne vous est demandé pour le moment.
+              {billing.inTrial && ` Votre essai gratuit dure jusqu'au ${date(billing.trialEndsAt)}.`}
+            </p>
+          </>
         )}
       </div>
 
-      {/* ── Comparatif / passage au Pro ───────────── */}
-      {!isPro && (
-        <div className="plan-grid">
-          <div className="plan-card">
-            <div className="plan-name">Gratuit</div>
-            <div className="plan-price">0 €</div>
-            <ul className="plan-features">
-              <li>Jusqu'à {limit} employés actifs</li>
-              <li>Congés, planning, pointage</li>
-              <li>Bulletins de paie indicatifs</li>
-            </ul>
-            <div className="plan-current">Votre offre actuelle</div>
-          </div>
-
-          <div className="plan-card plan-card--pro">
-            <div className="plan-name">Pro</div>
-            <div className="plan-price">
-              {euros(billing.pricePerEmployee)} <span>HT / employé actif / mois</span>
+      {/* ── Comment le prix est calculé ───────────── */}
+      <div className="section-card">
+        <h2 className="section-title">Comment le prix est calculé</h2>
+        <ul className="plan-features billing-rules">
+          <li>Les {p.freeEmployees} premiers salariés sont toujours offerts.</li>
+          <li>Puis {euros(p.pricePerEmployee)} HT par salarié en plus et par mois.</li>
+          <li>Jamais plus de {euros(p.monthlyCap)} HT par mois et par boutique (atteint à {capAt} salariés).</li>
+          <li>Paiement à l'année : {p.annualMonthsPaid} mois payés pour 12, soit {12 - p.annualMonthsPaid} mois offerts.</li>
+          <li>{p.trialMonths} mois d'essai gratuits à l'inscription, sans carte bancaire.</li>
+        </ul>
+        <div className="billing-examples">
+          {examples.map((n) => (
+            <div key={n}>
+              <span>{plural(n, 'salarié')}</span>
+              <strong>{euros(priceFor(n, p))} HT / mois</strong>
             </div>
-            <ul className="plan-features">
-              <li>Employés illimités</li>
-              <li>Toutes les fonctionnalités du plan Gratuit</li>
-              <li>Résiliable en ligne à tout moment</li>
-            </ul>
-            <p className="hint plan-estimate">
-              Avec vos {count} employé{count > 1 ? 's' : ''} actif{count > 1 ? 's' : ''} : {euros(monthly)} HT par mois,
-              ajusté au prorata quand leur nombre change. {EDITOR.vatMention}.
-            </p>
+          ))}
+        </div>
+        <p className="hint billing-note">Sans engagement. {EDITOR.vatMention}.</p>
+      </div>
 
-            {billing.billingEnabled ? (
-              <>
-                <label className="consent-check">
-                  <input type="checkbox" checked={acceptCgv} onChange={(e) => setAcceptCgv(e.target.checked)} />
-                  <span>
-                    J'accepte les <Link to="/cgv" target="_blank">conditions générales de vente</Link> et
-                    l'<Link to="/dpa" target="_blank">accord de sous-traitance des données</Link>.
-                  </span>
-                </label>
-                <button
-                  className="btn-primary plan-cta"
-                  disabled={!acceptCgv || redirecting}
-                  onClick={() => redirectTo(startCheckout)}
-                >
-                  {redirecting ? 'Redirection vers le paiement…' : 'Passer au plan Pro'}
-                </button>
-              </>
-            ) : (
-              <button className="btn-primary plan-cta" disabled>Paiement en ligne bientôt disponible</button>
-            )}
+      {/* ── Option IA : seulement pour les entreprises qui y ont accès ── */}
+      {billing.aiPlanningEnabled && (
+        <div className="section-card">
+          <div className="billing-current-head">
+            <div>
+              <div className="billing-label">Option</div>
+              <div className="billing-plan-name">
+                IA avancée
+                <span className="badge badge-info">
+                  {billing.freeForever ? 'Offerte' : `${euros(p.aiOptionPrice)} HT / mois`}
+                </span>
+              </div>
+            </div>
+          </div>
+          <p className="billing-text">
+            Le planning du mois proposé par l'IA, à partir de vos habitudes : {p.aiMonthlyGenerations} générations
+            par mois.
+          </p>
+          <div className="usage">
+            <div className="usage-row">
+              <span>Générations utilisées ce mois-ci</span>
+              <strong>{billing.aiGenerationsUsed} / {p.aiMonthlyGenerations}</strong>
+            </div>
+            <div className="usage-meter" role="progressbar" aria-valuemin={0} aria-valuemax={p.aiMonthlyGenerations} aria-valuenow={billing.aiGenerationsUsed}>
+              <div
+                className={`usage-meter-fill${billing.aiGenerationsUsed >= p.aiMonthlyGenerations ? ' full' : ''}`}
+                style={{ width: `${Math.min(100, (billing.aiGenerationsUsed / p.aiMonthlyGenerations) * 100)}%` }}
+              />
+            </div>
+            <p className="hint">Le compteur repart à zéro le 1er de chaque mois.</p>
           </div>
         </div>
       )}

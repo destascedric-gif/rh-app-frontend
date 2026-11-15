@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getAdminSchedule } from '../../api/schedule';
 import {
-  getAiPlanningFacts, confirmContract, generateAiPlanning, applyAiPlanning,
+  getAiPlanningFacts, getAiPlanningUsage, confirmContract, generateAiPlanning, applyAiPlanning,
 } from '../../api/aiPlanning';
 import { NEUTRAL_SHIFT_COLOR } from './shiftColor';
 import { WEEKDAY_LABELS, addDaysISO, shortTime, colorOfSlot } from './weekTemplateUtils';
@@ -19,6 +19,21 @@ const hoursText = (h) => `${String(Math.round(h * 10) / 10).replace('.', ',')} h
 
 // Aperçu d'une semaine de la proposition : une ligne par salarié, une colonne
 // par jour ; les cases déjà posées (gardées) sont marquées « gardé ».
+// Compteur des générations du mois (option IA : 10 par mois)
+function UsageLine({ usage, refine = false }) {
+  if (!usage) return null;
+  const { used, limit, remaining } = usage;
+  return (
+    <p className={`ai-usage${remaining === 0 ? ' ai-usage--none' : ''}`}>
+      {remaining === 0
+        ? `Les ${limit} générations de ce mois-ci sont utilisées : de nouveau disponibles le 1er du mois prochain.`
+        : refine
+          ? `Une retouche compte comme une génération : encore ${remaining} sur ${limit} ce mois-ci.`
+          : `${used} génération${used > 1 ? 's' : ''} sur ${limit} utilisée${used > 1 ? 's' : ''} ce mois-ci.`}
+    </p>
+  );
+}
+
 function ProposalWeek({ weekStart, people, slotAt, existingAt, shiftTemplates, inMonth }) {
   return (
     <div className="wt-prev ai-week">
@@ -83,6 +98,13 @@ export default function AiPlanningModal({ initialMonth, employees, shiftTemplate
   const [refinement, setRefinement] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // Limite de l'option IA : 10 générations par mois (15 nov. 2026)
+  const [usage, setUsage] = useState(null);
+  const noneLeft = usage?.remaining === 0;
+
+  useEffect(() => {
+    getAiPlanningUsage(token).then(setUsage).catch(() => {});
+  }, [token]);
 
   const loadFacts = useCallback(() => {
     setFacts(null);
@@ -111,10 +133,12 @@ export default function AiPlanningModal({ initialMonth, employees, shiftTemplate
         facts ? getAdminSchedule(facts.range.start, facts.range.end, null, token) : [],
       ]);
       setProposal(result);
+      if (result.usage) setUsage(result.usage);
       setExisting(shifts);
       setRefinement('');
       setStep('proposal');
     } catch (err) {
+      if (err.usage) setUsage(err.usage);
       setError(err.message);
       setStep(proposal ? 'proposal' : 'prepare');
     }
@@ -228,9 +252,10 @@ export default function AiPlanningModal({ initialMonth, employees, shiftTemplate
             )}
 
             {error && <p className="error-msg">{error}</p>}
+            <UsageLine usage={usage} />
             <div className="form-actions">
               <button type="button" className="btn-ghost" onClick={onClose}>Annuler</button>
-              <button type="button" className="btn-primary" onClick={() => generate(false)} disabled={!facts}>
+              <button type="button" className="btn-primary" onClick={() => generate(false)} disabled={!facts || noneLeft}>
                 Générer le planning
               </button>
             </div>
@@ -311,10 +336,11 @@ export default function AiPlanningModal({ initialMonth, employees, shiftTemplate
                   onChange={(e) => setRefinement(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && refinement.trim()) { e.preventDefault(); generate(true); } }}
                 />
-                <button type="button" className="btn-secondary" onClick={() => generate(true)} disabled={!refinement.trim()}>
+                <button type="button" className="btn-secondary" onClick={() => generate(true)} disabled={!refinement.trim() || noneLeft}>
                   Redemander
                 </button>
               </div>
+              <UsageLine usage={usage} refine />
             </div>
 
             {error && <p className="error-msg">{error}</p>}

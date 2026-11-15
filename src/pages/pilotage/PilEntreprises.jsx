@@ -2,27 +2,27 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getOwnerStats } from '../../api/owner';
 import { PageHead, CardHead, Kpi, CompaniesTable, Icon } from './PilotageUi';
-import { STALE_DAYS, isStale, plural } from './pilotageUtils';
+import { STALE_DAYS, isStale, isPaying, plural } from './pilotageUtils';
 
 // Toutes les entreprises clientes : recherche, filtres, tri
 const FILTERS = [
   { key: 'all', label: 'Toutes' },
   { key: 'active', label: 'Actives' },
   { key: 'stale', label: 'À relancer' },
-  { key: 'free', label: 'Gratuit' },
-  { key: 'pro', label: 'Pro' },
+  { key: 'free', label: 'Gratuites' },
+  { key: 'pro', label: 'Payantes' },
 ];
 const MATCH = {
   all: () => true,
   active: (c) => !isStale(c.last_activity),
   stale: (c) => isStale(c.last_activity),
-  free: (c) => c.plan !== 'pro',
-  pro: (c) => c.plan === 'pro',
+  free: (c) => !isPaying(c),
+  pro: (c) => isPaying(c),
 };
 
 const compare = (key) => (a, b) => {
   const va = a[key], vb = b[key];
-  if (key === 'name' || key === 'plan') return String(va).localeCompare(String(vb), 'fr');
+  if (key === 'name') return String(va).localeCompare(String(vb), 'fr');
   if (key === 'created_at' || key === 'last_activity') return (va ? new Date(va) : 0) - (vb ? new Date(vb) : 0);
   return (va ?? 0) - (vb ?? 0);
 };
@@ -53,7 +53,7 @@ export default function PilEntreprises() {
 
   const onSort = (key) => setSort((s) => (s.key === key
     ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' }
-    : { key, dir: key === 'name' || key === 'plan' ? 'asc' : 'desc' }));
+    : { key, dir: key === 'name' ? 'asc' : 'desc' }));
 
   const companies = stats?.companies ?? [];
   const active = companies.filter((c) => !isStale(c.last_activity)).length;

@@ -78,13 +78,20 @@ export const LEGAL_PAGES = [
   { path: '/dpa',              label: 'Sous-traitance (DPA)' },
 ];
 
-// Offre commerciale (doit rester alignée sur le backend, billing.service.js)
+// Offre commerciale, tarifs du 13 nov. 2026 (doit rester alignée sur le
+// backend, billing.service.js)
 export const PRICING = {
-  freeEmployeeLimit: 5,
-  pricePerEmployee:  '3,90 €',
+  freeEmployees:    3,        // toujours offerts
+  pricePerEmployee: '3,90 €', // HT, par salarié en plus et par mois
+  monthlyCap:       '79 €',   // HT, plafond par mois et par boutique
+  capEmployees:     24,       // nombre de salariés où le plafond est atteint
+  annualMonthsPaid: 10,       // paiement à l'année : 10 mois payés pour 12
+  trialMonths:      3,        // essai gratuit à l'inscription
+  aiOptionPrice:    '19,90 €',// HT par mois, option « IA avancée »
+  aiMonthlyGenerations: 10,
 };
 
 // Versions en vigueur (identiques au backend, src/config/legal.js)
 export const CGU_VERSION = '2026-10-01';
-export const CGV_VERSION = '2026-10-01';
-export const LEGAL_UPDATED_AT = '11 novembre 2026';
+export const CGV_VERSION = '2026-11-15';
+export const LEGAL_UPDATED_AT = '15 novembre 2026';

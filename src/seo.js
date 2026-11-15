@@ -10,7 +10,7 @@ export const SITE_URL = 'https://www.myorgaly.fr';
 export const DEFAULT_TITLE = 'Orgaly — Planning, congés et pointage pour petites équipes';
 export const DEFAULT_DESCRIPTION =
   "Orgaly simplifie la gestion d'équipe des petits commerces : planning, congés, pointage et "
-  + 'calcul des heures au même endroit. Gratuit jusqu\'à 5 salariés, sans carte bancaire.';
+  + 'calcul des heures au même endroit. Gratuit jusqu\'à 3 salariés, 3 mois d\'essai offerts, sans carte bancaire.';
 
 // Pages légales affichées dans Google seulement une fois l'identité de
 // l'éditeur complète (sinon elles montreraient « [à compléter] »).
