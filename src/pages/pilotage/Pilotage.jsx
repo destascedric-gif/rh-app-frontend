@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getOwnerStats, getOwnerHealth, getOwnerAi } from '../../api/owner';
+import { getOwnerStats, getOwnerHealth, getOwnerAi, getOwnerVisits } from '../../api/owner';
 import { Link } from 'react-router-dom';
 import {
   PageHead, CardHead, Kpi, PeriodSeg, Chart, CompaniesTable, JournalCard, HealthRows, Icon,
@@ -22,6 +22,13 @@ export default function Pilotage() {
   const [down, setDown] = useState(false);
   // Crédit IA estimé : alerte en haut du tableau de bord quand il est bas
   const [aiCredit, setAiCredit] = useState(null);
+  // Visites du site sur les 7 derniers jours (toujours la semaine, quelle
+  // que soit la période choisie en haut)
+  const [visits, setVisits] = useState(null);
+
+  useEffect(() => {
+    getOwnerVisits(7, token).then(setVisits).catch(() => {});
+  }, [token]);
 
   useEffect(() => {
     getOwnerAi(30, token).then((d) => setAiCredit(d.credit)).catch(() => {});
@@ -120,6 +127,28 @@ export default function Pilotage() {
                 )}
             </section>
           </div>
+
+          <section className="pil-card">
+            <CardHead
+              title="Visites de la semaine"
+              sub={visits
+                ? `7 derniers jours · ${plural(visits.totals.visitors, 'visiteur')} · ${visits.totals.views} page${visits.totals.views > 1 ? 's' : ''} vue${visits.totals.views > 1 ? 's' : ''}`
+                : 'Chargement…'}
+              to="/pilotage/visites"
+              linkLabel="Toutes les visites"
+            />
+            {visits && (
+              <Chart
+                type="bar"
+                series={visits.series.map((s) => ({ bucket: s.bucket, value: s.visitors, views: s.views }))}
+                width={900}
+                height={190}
+                xLabel={(b) => new Date(`${b}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}
+                tip={(p) => `${new Date(`${p.bucket}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' })} · ${plural(p.value, 'visiteur')} · ${p.views} page${p.views > 1 ? 's' : ''} vue${p.views > 1 ? 's' : ''}`}
+                ariaLabel="Visiteurs des 7 derniers jours"
+              />
+            )}
+          </section>
 
           <section className="pil-card">
             <CardHead

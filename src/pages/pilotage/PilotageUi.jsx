@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getOwnerActivity } from '../../api/owner';
 import Select from '../../components/Select';
 import {
-  PERIODS, fmtDate, fmtEuro, fmtWhen, fmtUptime, activityLabel, daysAgo, isStale, plural, BILLING_STATES,
+  PERIODS, fmtDate, fmtEuro, fmtMonth, fmtWhen, fmtUptime, activityLabel, daysAgo, isStale, plural, BILLING_STATES,
 } from './pilotageUtils';
 
 // Briques d'affichage communes aux pages de pilotage (noir et or)
@@ -198,7 +198,7 @@ export function CompaniesTable({ companies, sort, onSort }) {
     { key: 'created_at', label: 'Inscrite le' },
     { key: 'employees', label: 'Salariés' },
     { key: 'price_month', label: 'Formule' },
-    { key: 'shifts_30d', label: 'Créneaux (30 j)' },
+    { key: 'planning_months', label: 'Mois de planning' },
     { key: 'last_activity', label: 'Dernière activité' },
   ];
   return (
@@ -223,7 +223,10 @@ export function CompaniesTable({ companies, sort, onSort }) {
             <td>{fmtDate(c.created_at)}</td>
             <td>{c.employees}</td>
             <td><PlanPill state={c.billing_state} />{c.price_month > 0 && <span className="pil-price"> {fmtEuro(c.price_month)}</span>}</td>
-            <td>{c.shifts_30d}</td>
+            <td>
+              <span className={c.planning_months === 0 ? 'pil-zero' : ''}>{c.planning_months}</span>
+              {c.planning_until && <span className="pil-price"> · jusqu’à {fmtMonth(c.planning_until)}</span>}
+            </td>
             <td><ActivityStatus date={c.last_activity} /></td>
           </tr>
         ))}
@@ -254,7 +257,8 @@ export function JournalList({ entries, showCompany = true }) {
             <span className="pil-journal-when">{fmtWhen(e.created_at)}</span>
             <span className="pil-journal-what">
               {showCompany && <b>{e.company ?? 'Visiteur non connecté'}</b>}
-              {e.role && <span className="pil-journal-role">{showCompany ? ' · ' : ''}{e.role}</span>}
+              {e.actor && <span className="pil-journal-actor">{showCompany ? ' · ' : ''}{e.actor}</span>}
+              {e.role && <span className="pil-journal-role">{e.actor ? ` (${e.role})` : `${showCompany ? ' · ' : ''}${e.role}`}</span>}
               <span className="pil-journal-action"> {e.label}</span>
             </span>
             <span className={`pil-st pil-st--${s.cls}`} title={e.http_status ? `Code ${e.http_status}` : undefined}>

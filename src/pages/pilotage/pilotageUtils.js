@@ -25,6 +25,8 @@ export const pricingLine = (p) =>
 
 export const fmtDate = (d) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 export const fmtLongDate = (d) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+// « déc. 2026 » (planning_until : 'AAAA-MM-JJ')
+export const fmtMonth = (d) => new Date(`${d}T12:00:00`).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
 export const fmtEuro = (n) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
 export const daysAgo = (d) => Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
 export const isStale = (d) => !d || daysAgo(d) > STALE_DAYS;

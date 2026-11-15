@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getOwnerCompany } from '../../api/owner';
 import { PageHead, CardHead, Kpi, Chart, JournalCard, PlanPill, ActivityStatus } from './PilotageUi';
-import { fmtDate, fmtLongDate, fmtEuro, activityLabel, plural } from './pilotageUtils';
+import { fmtDate, fmtLongDate, fmtEuro, fmtMonth, activityLabel, plural } from './pilotageUtils';
 
 // Fiche d'une entreprise : uniquement des nombres (jamais les noms des
 // salariés, leurs horaires ou leurs demandes)
@@ -42,7 +42,7 @@ export default function PilEntreprise() {
     <>
       <PageHead
         title={<>{c.name} <PlanPill state={c.billing_state} /></>}
-        sub={`Inscrite le ${fmtLongDate(c.created_at)} · dernière activité ${activityLabel(c.last_activity)}`}
+        sub={`Inscrite le ${fmtLongDate(c.created_at)} · ${c.planning_months} mois de planning${c.planning_until ? ` (jusqu’à ${fmtMonth(c.planning_until)})` : ''} · dernière activité ${activityLabel(c.last_activity)}`}
         back={back}
       />
 

@@ -145,6 +145,7 @@
 .pil-journal-what { color: var(--pil-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pil-journal-what b { color: #FFFFFF; font-weight: 600; }
 .pil-journal-role { color: var(--pil-mut); }
+.pil-journal-actor { color: #FFFFFF; }
 .pil-journal .pil-st { font-size: 12.5px; }
 
 /* Santé technique */

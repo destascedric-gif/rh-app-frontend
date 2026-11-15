@@ -60,7 +60,7 @@ export default function Confidentialite() {
             </tr>
             <tr>
               <td>Suivi du bon fonctionnement et de l'utilisation du service (journal des actions)</td>
-              <td>Type d'action effectuée (par exemple « créneau créé » ou « connexion »), date et heure, résultat (réussi, refusé, erreur), entreprise, rôle et identifiant interne de l'auteur. Jamais le contenu : ni horaires, ni motifs, ni destinataires des e-mails.</td>
+              <td>Type d'action effectuée (par exemple « créneau créé » ou « connexion »), date et heure, résultat (réussi, refusé, erreur), entreprise, rôle, identifiant interne, prénom et initiale du nom de l'auteur (visibles uniquement par l'Éditeur, pour le support et la sécurité). Jamais le contenu : ni horaires, ni motifs, ni destinataires des e-mails.</td>
               <td>Intérêt légitime (sécurité et amélioration du service)</td>
               <td>90 jours, puis suppression automatique</td>
             </tr>
