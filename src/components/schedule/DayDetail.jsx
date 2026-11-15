@@ -12,6 +12,9 @@ export default function DayDetail({
   dateStr, shifts, meetings = [], showNames = false, isMe = () => false,
   isAdmin = false, onShiftClick, onShiftDelete, onAddShift, onMeetingClick, className = '',
   pentecostWorked = false, openDays,
+  // tinted : tuile entière à la couleur de l'horaire type (mois sur
+  // ordinateur, 15 nov. 2026) ; le téléphone garde la barre de couleur
+  tinted = false,
 }) {
   const date = new Date(`${dateStr}T12:00:00`);
   const holiday = holidayName(dateStr, pentecostWorked);
@@ -69,11 +72,13 @@ export default function DayDetail({
                 {isWork && s.net_hours ? <span className="pcal-item-hours">{s.net_hours} h</span> : null}
               </>
             );
+            const itemClass = `pcal-item${tinted ? (isWork ? ' pcal-item--tinted shift-colored' : ' pcal-item--off') : ''}`;
+            const itemStyle = tinted && isWork ? shiftColorVar(s) : undefined;
             return (
               <li key={s.id} className={`pcal-row${isMe(s) ? ' pcal-row--me' : ''}`}>
                 {isAdmin && onShiftClick
-                  ? <button type="button" className="pcal-item" onClick={() => onShiftClick(s)}>{content}</button>
-                  : <div className="pcal-item">{content}</div>}
+                  ? <button type="button" className={itemClass} style={itemStyle} onClick={() => onShiftClick(s)}>{content}</button>
+                  : <div className={itemClass} style={itemStyle}>{content}</div>}
                 {isAdmin && onShiftDelete && (
                   <button
                     type="button"

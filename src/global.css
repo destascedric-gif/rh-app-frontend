@@ -3090,11 +3090,11 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .month-grid .month-th { padding: 6px 8px; }
 /* Pastilles d'initiales quand la case manque de place (comme le mois du
    téléphone) : couleur de l'horaire type, gris rayé pour repos / congé */
-.month-minis { display: flex; flex-wrap: wrap; gap: 3px; }
+.month-minis { display: flex; flex-wrap: wrap; gap: 2px 3px; }
 .month-mini {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 30px; height: 19px; border-radius: 4px;
-  font-size: 10px; font-weight: 700; letter-spacing: 0.02em; line-height: 1;
+  width: 27px; height: 17px; border-radius: 4px;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.02em; line-height: 1;
   cursor: pointer; overflow: hidden; white-space: nowrap;
 }
 .month-mini--work { background: var(--shift-solid-bg, var(--shift-color)); color: var(--shift-solid-text, #fff); box-shadow: inset 0 0 0 1.5px var(--shift-ring, transparent); }
@@ -3369,3 +3369,23 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 
 /* Poste du gérant (Paramètres → Planning → Gérant dans le planning, 12 nov. 2026) */
 .settings-manager-job { margin: 4px 0 0 30px; padding-top: 12px; border-top: 1px solid var(--border); max-width: 460px; }
+
+/* ── Détail du jour sous le mois (ordinateur, 15 nov. 2026, demande de
+   Cédric : « les petites barres de couleur ne suffisent pas ») : toute la
+   tuile prend la couleur claire de l'horaire type ; créneau sans horaire
+   type = blanc à contour foncé ; repos / congé / absence = gris clair.
+   Classe posée seulement par MonthView (DayDetail tinted) : le téléphone
+   garde la barre de couleur. ── */
+.pcal-item.pcal-item--tinted {
+  --shift-color-bg: color-mix(in srgb, var(--shift-color) 16%, #fff);
+  background: var(--shift-color-bg);
+  border-color: color-mix(in srgb, var(--shift-color) 32%, #fff);
+  box-shadow: inset 0 0 0 1.5px var(--shift-ring, transparent);
+  color: var(--text);
+}
+.pcal-item--tinted .pcal-bar { display: none; }
+.pcal-item--tinted .pcal-item-time { color: var(--shift-color-text); font-weight: 500; }
+.pcal-item--tinted .pcal-item-hours { color: var(--shift-color-text); }
+.pcal-item--tinted:hover { filter: brightness(0.97); }
+.pcal-item.pcal-item--off { background: #F1F3F6; border-color: #E2E6EC; }
+.pcal-item--off .pcal-bar { display: none; }

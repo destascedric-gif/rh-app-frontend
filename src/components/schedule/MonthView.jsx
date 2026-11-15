@@ -57,19 +57,25 @@ const CELL_PAD   = 8;  // marge intérieure de la case (haut + bas)
 const NUM_H      = 24; // numéro du jour
 const BADGE_H    = 21; // une pastille de créneau complète
 const MEETING_H  = 36; // une étiquette de réunion (deux lignes)
-const MINI_W     = 30; // une pastille d'initiales (largeur)
+const MINI_W     = 27; // une pastille d'initiales (largeur)
 const MINI_GAP   = 3;
-const MINI_LINE  = 22; // une ligne de pastilles d'initiales
+const MINI_LINE  = 19; // une ligne de pastilles d'initiales (hauteur 17 + 2 d'écart)
 const MIN_ROW_H  = 70; // en dessous, le mois déborde (très petits écrans)
 const BOTTOM_GAP = 14; // espace laissé sous le mois
 const PHONE_QUERY_STR = '(max-width: 640px)';
 
 // Disposition d'une case : créneaux complets ou pastilles d'initiales,
 // combien en montrer, et s'il faut un « +N ».
-const cellLayout = (rowH, cellW, nShifts, nMeetings) => {
+// fitsFull : la case peut-elle montrer ses créneaux en entier ?
+const fitsFull = (rowH, nShifts, nMeetings) =>
+  nShifts * BADGE_H + nMeetings * MEETING_H <= rowH - CELL_PAD - NUM_H;
+// monthMini : si une seule case du mois manque de place, tout le mois passe
+// en pastilles d'initiales (15 nov. 2026 : le mélange des deux faisait
+// désordre sur grand écran)
+const cellLayout = (rowH, cellW, nShifts, nMeetings, monthMini = false) => {
   if (!rowH) return { mini: false, shown: Math.min(nShifts, 3) };
   const room = rowH - CELL_PAD - NUM_H;
-  if (nShifts * BADGE_H + nMeetings * MEETING_H <= room) return { mini: false, shown: nShifts };
+  if (!monthMini && fitsFull(rowH, nShifts, nMeetings)) return { mini: false, shown: nShifts };
   const perLine  = Math.max(1, Math.floor(((cellW || 120) - 8 + MINI_GAP) / (MINI_W + MINI_GAP)));
   const lines    = Math.max(1, Math.floor((room + MINI_GAP) / MINI_LINE));
   const capacity = perLine * lines;
@@ -111,6 +117,13 @@ export default function MonthView({
 
   const getShiftsForDay = (dateStr) =>
     filteredShifts.filter(s => s.date?.slice(0, 10) === dateStr);
+  // Dans les cases du mois, gérant ou planning de l'équipe : seulement ceux
+  // qui travaillent (15 nov. 2026, demande de Cédric) ; repos, congés et
+  // absences restent dans le détail du jour, au clic. Son propre planning :
+  // tout (un créneau par jour).
+  const cellShifts = (dateStr) => ((isAdmin || team)
+    ? getShiftsForDay(dateStr).filter((s) => (s.type || 'travail') === 'travail')
+    : getShiftsForDay(dateStr));
 
   // Hauteur des rangées pour que le mois tienne dans l'écran (ordinateur)
   const gridRef = useRef(null);
@@ -132,6 +145,13 @@ export default function MonthView({
     window.addEventListener('resize', compute);
     return () => window.removeEventListener('resize', compute);
   }, [nWeeks]);
+
+  // Un seul affichage pour tout le mois (voir cellLayout)
+  const monthMini = !!rowH && cells.some((c) => {
+    if (!c.currentMonth) return false;
+    const d = toISO(c.date);
+    return !fitsFull(rowH, cellShifts(d).length, getMeetingsForDay(d).length);
+  });
 
   return (
     <>
@@ -164,13 +184,13 @@ export default function MonthView({
               <tr key={wi}>
                 {week.map((cell, di) => {
                   const dateStr   = toISO(cell.date);
-                  const dayShifts = rowDayShifts[di];
+                  const dayShifts = cellShifts(dateStr);
                   const isToday   = dateStr === today;
                   const isPast    = cell.date < new Date(new Date().setHours(0, 0, 0, 0));
 
                   const isSelected = dateStr === selected;
                   const dayMeetings = getMeetingsForDay(dateStr);
-                  const { mini, shown } = cellLayout(rowH, cellW, dayShifts.length, dayMeetings.length);
+                  const { mini, shown } = cellLayout(rowH, cellW, dayShifts.length, dayMeetings.length, monthMini);
                   const hidden = dayShifts.length - shown;
                   const holiday    = holidayName(dateStr, pentecostWorked);
 
@@ -329,6 +349,7 @@ export default function MonthView({
       <DayDetail
         openDays={openDays}
         className="day-detail--desktop"
+        tinted
         dateStr={selected}
         shifts={sortDayShifts(getShiftsForDay(selected), isMe)}
         meetings={getMeetingsForDay(selected)}
