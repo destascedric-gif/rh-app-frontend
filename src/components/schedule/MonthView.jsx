@@ -132,8 +132,14 @@ export default function MonthView({
   // qui travaillent (15 nov. 2026, demande de Cédric) ; repos, congés et
   // absences restent dans le détail du jour, au clic. Son propre planning :
   // tout (un créneau par jour).
+  // Ordre d'arrivée (15 nov. 2026, demande de Cédric) : d'abord les
+  // horaires types par heure d'arrivée (ouverture, puis fermeture…), puis
+  // les horaires spéciaux (sans horaire type), eux aussi par heure.
+  const byArrival = (a, b) => (a.color ? 0 : 1) - (b.color ? 0 : 1)
+    || (a.start_time ?? '').localeCompare(b.start_time ?? '')
+    || (a.end_time ?? '').localeCompare(b.end_time ?? '');
   const cellShifts = (dateStr) => ((isAdmin || team)
-    ? getShiftsForDay(dateStr).filter((s) => (s.type || 'travail') === 'travail')
+    ? getShiftsForDay(dateStr).filter((s) => (s.type || 'travail') === 'travail').sort(byArrival)
     : getShiftsForDay(dateStr));
 
   // Hauteur des rangées pour que le mois tienne dans l'écran (ordinateur)
