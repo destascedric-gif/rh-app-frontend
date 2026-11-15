@@ -57,9 +57,16 @@ const CELL_PAD   = 8;  // marge intérieure de la case (haut + bas)
 const NUM_H      = 24; // numéro du jour
 const BADGE_H    = 21; // une pastille de créneau complète
 const MEETING_H  = 36; // une étiquette de réunion (deux lignes)
-const MINI_W     = 27; // une pastille d'initiales (largeur)
-const MINI_GAP   = 3;
-const MINI_LINE  = 19; // une ligne de pastilles d'initiales (hauteur 17 + 2 d'écart)
+// Pastilles d'initiales : trois tailles, la plus grande qui laisse toute
+// l'équipe du jour le plus chargé tenir dans sa case (15 nov. 2026, Cédric :
+// sur grand écran, des petites pastilles dans de grandes cases « font
+// bizarre »). w = largeur, h = hauteur, fs = taille du texte (px).
+const MINI_SIZES = [
+  { w: 46, h: 28, fs: 13 },
+  { w: 36, h: 22, fs: 11 },
+  { w: 27, h: 17, fs: 9.5 },
+];
+const MINI_GAP   = 3;  // écart horizontal ; vertical = 2
 const MIN_ROW_H  = 70; // en dessous, le mois déborde (très petits écrans)
 const BOTTOM_GAP = 14; // espace laissé sous le mois
 const PHONE_QUERY_STR = '(max-width: 640px)';
@@ -72,13 +79,17 @@ const fitsFull = (rowH, nShifts, nMeetings) =>
 // monthMini : si une seule case du mois manque de place, tout le mois passe
 // en pastilles d'initiales (15 nov. 2026 : le mélange des deux faisait
 // désordre sur grand écran)
-const cellLayout = (rowH, cellW, nShifts, nMeetings, monthMini = false) => {
-  if (!rowH) return { mini: false, shown: Math.min(nShifts, 3) };
+// Combien de pastilles d'une taille donnée tiennent dans une case
+const miniCapacity = (rowH, cellW, size) => {
   const room = rowH - CELL_PAD - NUM_H;
+  const perLine = Math.max(1, Math.floor(((cellW || 120) - 8 + MINI_GAP) / (size.w + MINI_GAP)));
+  const lines = Math.max(1, Math.floor((room + 2) / (size.h + 2)));
+  return perLine * lines;
+};
+const cellLayout = (rowH, cellW, nShifts, nMeetings, monthMini = false, size = MINI_SIZES[2]) => {
+  if (!rowH) return { mini: false, shown: Math.min(nShifts, 3) };
   if (!monthMini && fitsFull(rowH, nShifts, nMeetings)) return { mini: false, shown: nShifts };
-  const perLine  = Math.max(1, Math.floor(((cellW || 120) - 8 + MINI_GAP) / (MINI_W + MINI_GAP)));
-  const lines    = Math.max(1, Math.floor((room + MINI_GAP) / MINI_LINE));
-  const capacity = perLine * lines;
+  const capacity = miniCapacity(rowH, cellW, size);
   if (nShifts + nMeetings <= capacity) return { mini: true, shown: nShifts };
   return { mini: true, shown: Math.max(0, Math.min(nShifts, capacity - 1 - nMeetings)) };
 };
@@ -152,10 +163,17 @@ export default function MonthView({
     const d = toISO(c.date);
     return !fitsFull(rowH, cellShifts(d).length, getMeetingsForDay(d).length);
   });
+  // Taille des pastilles : la plus grande où le jour le plus chargé tient
+  const busiest = Math.max(0, ...cells.filter((c) => c.currentMonth).map((c) => {
+    const d = toISO(c.date);
+    return cellShifts(d).length + getMeetingsForDay(d).length;
+  }));
+  const miniSize = (rowH && MINI_SIZES.find((s) => miniCapacity(rowH, cellW, s) >= busiest)) || MINI_SIZES[2];
+  const gridStyle = { '--mini-w': `${miniSize.w}px`, '--mini-h': `${miniSize.h}px`, '--mini-fs': `${miniSize.fs}px` };
 
   return (
     <>
-    <div className="month-grid" ref={gridRef}>
+    <div className="month-grid" ref={gridRef} style={gridStyle}>
       <table className="month-table">
         <colgroup>
           {DAY_LABELS.map((_, i) => <col key={i} />)}
@@ -190,7 +208,7 @@ export default function MonthView({
 
                   const isSelected = dateStr === selected;
                   const dayMeetings = getMeetingsForDay(dateStr);
-                  const { mini, shown } = cellLayout(rowH, cellW, dayShifts.length, dayMeetings.length, monthMini);
+                  const { mini, shown } = cellLayout(rowH, cellW, dayShifts.length, dayMeetings.length, monthMini, miniSize);
                   const hidden = dayShifts.length - shown;
                   const holiday    = holidayName(dateStr, pentecostWorked);
 
