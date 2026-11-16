@@ -12,7 +12,7 @@ const EXAMPLES = [4, 6, 10, 15];
 
 const INCLUDED = [
   'Planning semaine et mois', 'Horaires types à glisser', 'Semaines types', 'Accès des salariés sur téléphone',
-  'Demandes et soldes de congés', 'Pointage et heures sup.', 'Bulletins indicatifs en PDF', 'Réunions et notifications',
+  'Demandes et soldes de congés', 'Heures calculées, pointage en plus', 'Bulletins indicatifs en PDF', 'Réunions et notifications',
 ];
 
 const FAQ = [

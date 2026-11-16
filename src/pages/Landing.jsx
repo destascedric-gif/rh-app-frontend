@@ -32,7 +32,7 @@ const CHANGES = [
   {
     icon: 'clock', title: 'Les heures',
     before: 'Additionnées à la main ou sur Excel en fin de mois',
-    after: 'Calculées à partir du pointage, heures supplémentaires comprises.',
+    after: 'Calculées directement à partir du planning, heures supplémentaires comprises.',
   },
 ];
 
@@ -230,7 +230,7 @@ export default function Landing() {
           <div className="s-feat-txt">
             <span className="s-tag">Heures</span>
             <h3>Les heures se calculent toutes seules</h3>
-            <p>À partir des pointages, Orgaly additionne les heures de chacun et repère les heures supplémentaires. Les bulletins préparés sont indicatifs : à faire vérifier par votre expert-comptable.</p>
+            <p>Dès que le planning est fait, Orgaly additionne les heures de chacun et repère les heures supplémentaires. Le pointage est disponible en plus, si vous le souhaitez. Les bulletins préparés sont indicatifs : à faire vérifier par votre expert-comptable.</p>
             <ul>
               <li>Heures supplémentaires et complémentaires</li>
               <li>Récapitulatif du mois par salarié</li>
@@ -238,7 +238,7 @@ export default function Landing() {
             </ul>
           </div>
           <div className="s-stage s-stage--phones">
-            <div className="s-phone"><img src="/site/tel-pointage.webp" alt="Pointage d'une salariée sur téléphone" loading="lazy" /></div>
+            <div className="s-phone"><img src="/site/tel-pointage.webp" alt="Heures d'une salariée sur téléphone" loading="lazy" /></div>
           </div>
         </div>
 
