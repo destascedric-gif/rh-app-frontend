@@ -89,9 +89,12 @@ export const PRICING = {
   trialMonths:      3,        // essai gratuit à l'inscription
   aiOptionPrice:    '19,90 €',// HT par mois, option « IA avancée »
   aiMonthlyGenerations: 10,
+  // Mêmes montants en centimes, pour la calculette du site (page Tarifs)
+  pricePerEmployeeCents: 390,
+  monthlyCapCents:       7900,
 };
 
 // Versions en vigueur (identiques au backend, src/config/legal.js)
 export const CGU_VERSION = '2026-10-01';
 export const CGV_VERSION = '2026-11-15';
-export const LEGAL_UPDATED_AT = '15 novembre 2026';
+export const LEGAL_UPDATED_AT = '16 novembre 2026';

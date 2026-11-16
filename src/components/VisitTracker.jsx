@@ -7,6 +7,7 @@ const API = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const PUBLIC_PATHS = new Set([
   '/', '/login', '/setup/admin', '/setup/company', '/mot-de-passe-oublie',
   '/mentions-legales', '/cgu', '/cgv', '/confidentialite', '/dpa',
+  '/tarifs', '/contact', // site vitrine (16 nov. 2026)
 ]);
 
 let last = { key: '', at: 0 };

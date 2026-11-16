@@ -65,10 +65,16 @@ export default function Confidentialite() {
               <td>90 jours, puis suppression automatique</td>
             </tr>
             <tr>
-              <td>Mesure de la fréquentation des pages publiques (accueil, inscription, connexion, pages légales)</td>
+              <td>Mesure de la fréquentation des pages publiques (accueil, tarifs, contact, inscription, connexion, pages légales)</td>
               <td>Page vue, date, provenance (site d'origine ou lien marqué), type d'appareil (téléphone ou ordinateur), et une empreinte du jour calculée à partir de l'adresse IP et du navigateur avec un secret renouvelé chaque jour. L'adresse IP elle-même n'est jamais enregistrée ; l'empreinte ne permet ni de la retrouver, ni de suivre une personne d'un jour à l'autre.</td>
               <td>Intérêt légitime (mesure d'audience)</td>
               <td>13 mois, puis suppression automatique</td>
+            </tr>
+            <tr>
+              <td>Réponse aux messages envoyés depuis le formulaire de contact du site</td>
+              <td>Nom, adresse e-mail, type de demande, message, et si vous les indiquez : nom du commerce et nombre de salariés. Ces informations sont transmises par e-mail (Brevo) à la messagerie de l'Éditeur et ne sont pas enregistrées dans la base de données d'Orgaly.</td>
+              <td>Intérêt légitime (répondre à votre demande) ; mesures précontractuelles prises à votre demande</td>
+              <td>Le temps de traiter la demande, puis 3 ans au plus après le dernier échange</td>
             </tr>
             <tr>
               <td>E-mails de service</td>
@@ -84,7 +90,7 @@ export default function Confidentialite() {
       <h2>3. Destinataires</h2>
       <p>
         Les données ne sont accessibles qu'à l'Éditeur et aux prestataires techniques strictement
-        nécessaires : hébergement (Railway, Vercel), envoi d'e-mails (Brevo), suivi des erreurs (Sentry),
+        nécessaires : hébergement (Railway, Vercel), envoi d'e-mails (Brevo), messagerie de l'Éditeur (OVH), suivi des erreurs (Sentry),
         génération du planning par IA (Anthropic, pour les entreprises qui utilisent cette fonction)
         et paiement (Stripe Payments Europe Ltd, Irlande). La liste à jour figure dans l'
         <Link to="/dpa">accord de sous-traitance</Link>.

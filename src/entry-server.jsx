@@ -6,6 +6,8 @@ import { renderToString } from 'react-dom/server';
 import { StaticRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Landing from './pages/Landing';
+import Tarifs from './pages/site/Tarifs';
+import Contact from './pages/site/Contact';
 import MentionsLegales from './pages/legal/MentionsLegales';
 import Cgu from './pages/legal/Cgu';
 import Cgv from './pages/legal/Cgv';
@@ -18,6 +20,8 @@ export const render = (url) => renderToString(
     <StaticRouter location={url}>
       <Routes>
         <Route path="/" element={<Landing />} />
+        <Route path="/tarifs" element={<Tarifs />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/mentions-legales" element={<MentionsLegales />} />
         <Route path="/cgu" element={<Cgu />} />
         <Route path="/cgv" element={<Cgv />} />

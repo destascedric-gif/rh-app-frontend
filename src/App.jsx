@@ -23,6 +23,8 @@ import MyAccount from './pages/MyAccount'
 import Settings from './pages/Settings'
 import Billing from './pages/Billing'
 import Landing from './pages/Landing'
+import Tarifs from './pages/site/Tarifs'
+import Contact from './pages/site/Contact'
 import MentionsLegales from './pages/legal/MentionsLegales'
 import Cgu from './pages/legal/Cgu'
 import Cgv from './pages/legal/Cgv'
@@ -67,6 +69,8 @@ function App() {
         <VisitTracker />
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/tarifs" element={<Tarifs />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/setup/admin" element={<SetupAdmin />} />
           <Route path="/setup/company" element={<SetupCompany />} />
