@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getOwnerActivity } from '../../api/owner';
 import Select from '../../components/Select';
 import {
-  PERIODS, fmtDate, fmtEuro, fmtMonth, fmtWhen, fmtUptime, activityLabel, daysAgo, isStale, plural, BILLING_STATES,
+  PERIODS, fmtDate, fmtEuro, fmtMonth, fmtWhen, activityLabel, daysAgo, isStale, plural, BILLING_STATES, healthItems,
 } from './pilotageUtils';
 
 // Briques d'affichage communes aux pages de pilotage (noir et or)
@@ -39,13 +39,36 @@ export function Icon({ name, size = 15 }) {
   );
 }
 
-// En-tête de page : titre, sous-titre, lien de retour, actions à droite
-export function PageHead({ title, sub, back, children }) {
+// Bouton « i » (16 nov. 2026, pilotage compact) : les explications ne
+// prennent plus de place, elles s'ouvrent au clic dans une petite bulle
+// (refermée par un clic ailleurs ou la touche Échap).
+export function InfoTip({ children, label = 'Explications', align = 'left', width = 420 }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [open]);
+  return (
+    <span className="pil-info-wrap" ref={ref}>
+      <button type="button" className={`pil-info${open ? ' open' : ''}`} aria-label={label} aria-expanded={open} onClick={() => setOpen((o) => !o)}>i</button>
+      {open && <div className={`pil-pop pil-pop--${align}`} style={{ width }} role="dialog" aria-label={label}>{children}</div>}
+    </span>
+  );
+}
+
+// En-tête de page : titre (avec son « i » d'explications), lien de retour,
+// actions à droite
+export function PageHead({ title, sub, info, infoWidth, back, children }) {
   return (
     <header className="pil-page-head">
       <div>
         {back && <Link to={back.to} className="pil-back"><Icon name="back" size={14} />{back.label}</Link>}
-        <h1>{title}</h1>
+        <h1>{title}{info && <InfoTip label={`À propos de « ${typeof title === 'string' ? title : 'cette page'} »`} width={infoWidth}>{info}</InfoTip>}</h1>
         {sub && <p className="pil-page-sub">{sub}</p>}
       </div>
       {children && <div className="pil-page-actions">{children}</div>}
@@ -53,19 +76,72 @@ export function PageHead({ title, sub, back, children }) {
   );
 }
 
-// Titre de carte ; avec « to », la carte mène à sa page de détail
-export function CardHead({ title, sub, to, linkLabel = 'Voir le détail', children }) {
+// Titre de carte (sous-titre en petit sur la même ligne) ; avec « to », un
+// petit bouton mène à la page de détail
+export function CardHead({ title, sub, to, linkLabel = 'Détails', children }) {
   return (
     <div className="pil-card-head">
-      <div>
-        <h2>{to ? <Link to={to} className="pil-title-link">{title}</Link> : title}</h2>
-        {sub && <p className="pil-sub">{sub}</p>}
-      </div>
+      <h2>
+        {to ? <Link to={to} className="pil-title-link">{title}</Link> : title}
+        {sub && <span className="pil-card-sub">{sub}</span>}
+      </h2>
       <div className="pil-card-head-actions">
         {children}
-        {to && <Link to={to} className="pil-more">{linkLabel}<Icon name="arrow" size={13} /></Link>}
+        {to && <Link to={to} className="pil-more">{linkLabel} ›</Link>}
       </div>
     </div>
+  );
+}
+
+// Bandeau de chiffres d'une ligne (remplace les grandes cases du haut).
+// items : [{ icon, label, value, delta, muted, tone, to, onClick, grow, children }]
+export function Strip({ items }) {
+  return (
+    <div className="pil-strip">
+      {items.filter(Boolean).map((it) => {
+        const body = (
+          <>
+            <div className="pil-strip-label">
+              {it.tone ? <span className={`pil-dot pil-dot--${it.tone}`} /> : it.icon && <span className="pil-gold"><Icon name={it.icon} size={14} /></span>}
+              {it.label}
+            </div>
+            {it.children ?? (
+              <div className={`pil-strip-value${it.tone ? ` pil-st--${it.tone}` : ''}`}>
+                {it.value}
+                {it.delta && <small className={it.muted ? 'pil-strip-muted' : ''}>{it.delta}</small>}
+              </div>
+            )}
+          </>
+        );
+        const style = it.grow ? { flex: it.grow } : undefined;
+        if (it.to) return <Link key={it.label} to={it.to} className="pil-strip-cell pil-strip-cell--link" style={style}>{body}</Link>;
+        if (it.onClick) return <button key={it.label} type="button" className="pil-strip-cell pil-strip-cell--link" style={style} onClick={it.onClick}>{body}</button>;
+        return <div key={it.label} className="pil-strip-cell" style={style}>{body}</div>;
+      })}
+    </div>
+  );
+}
+
+// Petit graphique sans axes (tuiles du tableau de bord)
+export function Spark({ values, type = 'line', height = 44 }) {
+  const W = 200, H = height;
+  const max = Math.max(1, ...values);
+  const n = values.length;
+  if (n === 0) return null;
+  if (type === 'bar') {
+    const bw = W / n;
+    return (
+      <svg className="pil-spark" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" height={H} aria-hidden="true">
+        {values.map((v, i) => (v > 0 ? <rect key={i} x={i * bw + bw * 0.2} y={H - (v / max) * (H - 2)} width={bw * 0.6} height={(v / max) * (H - 2)} rx="1.5" fill="#C9A75A" /> : null))}
+      </svg>
+    );
+  }
+  const pts = values.map((v, i) => `${(i / Math.max(1, n - 1)) * W},${H - 2 - (v / max) * (H - 4)}`);
+  return (
+    <svg className="pil-spark" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" height={H} aria-hidden="true">
+      <path d={`M0,${H} L${pts.join(' L')} L${W},${H}Z`} fill="rgba(201,167,90,0.14)" />
+      <path d={`M${pts.join(' L')}`} fill="none" stroke="#C9A75A" strokeWidth="1.6" vectorEffect="non-scaling-stroke" />
+    </svg>
   );
 }
 
@@ -268,41 +344,78 @@ const STATUS_INFO = {
   error: { label: 'erreur', cls: 'bad', icon: 'alert' },
 };
 
-export function JournalList({ entries, showCompany = true }) {
-  return (
-    <ul className="pil-journal">
-      {entries.map((e) => {
-        const s = STATUS_INFO[e.status] ?? STATUS_INFO.ok;
-        return (
-          <li key={e.id}>
-            <span className="pil-journal-when">{fmtWhen(e.created_at)}</span>
-            <span className="pil-journal-what">
-              {showCompany && <b>{e.company ?? 'Visiteur non connecté'}</b>}
-              {e.actor && <span className="pil-journal-actor">{showCompany ? ' · ' : ''}{e.actor}</span>}
-              {e.role && <span className="pil-journal-role">{e.actor ? ` (${e.role})` : `${showCompany ? ' · ' : ''}${e.role}`}</span>}
-              <span className="pil-journal-action"> {e.label}</span>
-            </span>
-            <span className={`pil-st pil-st--${s.cls}`} title={e.http_status ? `Code ${e.http_status}` : undefined}>
-              <Icon name={s.icon} />{s.label}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
-  );
+// Jour d'une action, pour regrouper le journal : « Aujourd'hui », « Hier »,
+// sinon « lundi 14 nov. »
+const dayKey = (d) => new Date(d).toDateString();
+const dayTitle = (d) => {
+  const date = new Date(d);
+  const today = new Date();
+  const yesterday = new Date(Date.now() - 86400000);
+  if (date.toDateString() === today.toDateString()) return 'Aujourd’hui';
+  if (date.toDateString() === yesterday.toDateString()) return 'Hier';
+  const s = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
+const timeOf = (d) => new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+// Lignes du journal (16 nov. 2026, choix B de Cédric) : pastille de couleur
+// (verte = réussi, orange = refusé, rouge = erreur ; le mot s'affiche pour
+// les refus et erreurs, au survol pour les réussites).
+// grouped : regroupées par jour, les réussites en gris doux pour faire
+// ressortir refus et erreurs.
+export function JournalList({ entries, showCompany = true, grouped = false }) {
+  const line = (e) => {
+    const s = STATUS_INFO[e.status] ?? STATUS_INFO.ok;
+    return (
+      <li key={e.id} className={grouped && s.cls === 'ok' ? 'pil-journal-dim' : ''}>
+        <span className="pil-journal-when">{grouped ? timeOf(e.created_at) : fmtWhen(e.created_at)}</span>
+        <span className="pil-journal-what">
+          {showCompany && <b>{e.company ?? 'Visiteur non connecté'}</b>}
+          {e.actor && <span className="pil-journal-actor">{showCompany ? ' · ' : ''}{e.actor}</span>}
+          {e.role && <span className="pil-journal-role">{e.actor ? ` (${e.role})` : `${showCompany ? ' · ' : ''}${e.role}`}</span>}
+          <span className="pil-journal-action"> {e.label}</span>
+        </span>
+        <span className={`pil-st pil-st--${s.cls} pil-journal-st`} title={`${s.label}${e.http_status ? ` · code ${e.http_status}` : ''}`}>
+          {s.cls !== 'ok' && s.label}<span className={`pil-dot pil-dot--${s.cls}`} aria-label={s.label} />
+        </span>
+      </li>
+    );
+  };
+  if (!grouped) return <ul className="pil-journal">{entries.map(line)}</ul>;
+  const groups = [];
+  entries.forEach((e) => {
+    const k = dayKey(e.created_at);
+    if (!groups.length || groups[groups.length - 1].key !== k) groups.push({ key: k, title: dayTitle(e.created_at), items: [] });
+    groups[groups.length - 1].items.push(e);
+  });
+  return groups.map((g) => {
+    const issues = g.items.filter((e) => e.status !== 'ok').length;
+    return (
+      <div key={g.key}>
+        <div className="pil-journal-day">
+          {g.title} · {plural(g.items.length, 'action')}
+          {issues > 0 && <span className="pil-journal-day-issues"> · {issues} refus ou erreur{issues > 1 ? 's' : ''}</span>}
+        </div>
+        <ul className="pil-journal">{g.items.map(line)}</ul>
+      </div>
+    );
+  });
 }
 
 // Journal autonome : filtres, chargement, rafraîchissement chaque minute.
-// compact : aperçu du tableau de bord (quelques lignes, sans filtres).
+// compact : aperçu (quelques lignes, sans filtres, sans « Tout voir »).
+// grouped : regroupé par jour. initialLimit + « Tout voir » : aperçu qui se
+// déplie (fiche entreprise).
 export function JournalCard({
   token, companies = [], companyId = '', status: statusProp, onStatus, compact = false,
-  title = 'Journal des actions', to, sub, pageSize = 100, hideFilters = false,
+  title = 'Journal des actions', to, linkLabel = 'Tout le journal', sub, pageSize = 100, hideFilters = false,
+  grouped = false, initialLimit, className = '',
 }) {
   const [ownStatus, setOwnStatus] = useState('all');
   const status = statusProp ?? ownStatus;
   const setStatus = onStatus ?? setOwnStatus;
   const [company, setCompany] = useState(companyId);
-  const [limit, setLimit] = useState(compact ? 7 : pageSize);
+  const [limit, setLimit] = useState(initialLimit ?? (compact ? 7 : pageSize));
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [tick, setTick] = useState(0);
@@ -323,15 +436,11 @@ export function JournalCard({
     return () => { cancelled = true; };
   }, [token, status, company, limit, tick]);
 
-  const showFilters = !compact && !hideFilters;
+  const showFilters = !compact && !hideFilters && !initialLimit;
+  const preview = !compact && Boolean(initialLimit) && limit === initialLimit;
   return (
-    <section className="pil-card" id="pil-journal">
-      <CardHead
-        title={title}
-        to={to}
-        linkLabel="Tout le journal"
-        sub={sub ?? `Qui a fait quoi, sans le contenu · effacé au bout de ${data?.retention_days ?? 90} jours`}
-      >
+    <section className={`pil-card ${className}`} id="pil-journal">
+      <CardHead title={title} to={to} linkLabel={linkLabel} sub={sub}>
         {showFilters && (
           <div className="pil-journal-filters">
             {!companyId && companies.length > 0 && (
@@ -349,6 +458,9 @@ export function JournalCard({
             </div>
           </div>
         )}
+        {preview && data && data.entries.length >= limit && (
+          <button type="button" className="pil-more" onClick={() => setLimit(pageSize)}>Tout voir ›</button>
+        )}
       </CardHead>
 
       {error && <p className="pil-error">{error}</p>}
@@ -360,10 +472,10 @@ export function JournalCard({
       )}
       {data && data.entries.length > 0 && (
         <>
-          <div className={compact ? '' : 'pil-journal-scroll'}>
-            <JournalList entries={data.entries} showCompany={!companyId} />
+          <div className={compact || preview ? '' : 'pil-journal-scroll'}>
+            <JournalList entries={data.entries} showCompany={!companyId} grouped={grouped} />
           </div>
-          {!compact && data.entries.length >= limit && limit < 500 && (
+          {!compact && !preview && data.entries.length >= limit && limit < 500 && (
             <button type="button" className="pil-link pil-load-more" onClick={() => setLimit(500)}>Afficher plus d’actions</button>
           )}
         </>
@@ -373,52 +485,17 @@ export function JournalCard({
 }
 
 // ── Santé technique ──────────────────────────────────────────────────
-function HealthRow({ tone, icon, label, value, detail, children }) {
+// Tuile du tableau de bord : quatre lignes « pastille · nom · valeur »
+export function HealthMini({ h, down }) {
+  if (!h && !down) return <p className="pil-empty">Chargement…</p>;
   return (
-    <div className="pil-health-row">
-      <span className={`pil-health-icon pil-st--${tone}`}><Icon name={icon} /></span>
-      <div className="pil-health-body">
-        <div className="pil-health-label">{label}</div>
-        {detail && <div className="pil-health-detail">{detail}</div>}
-        {children}
-      </div>
-      <div className={`pil-health-value pil-st--${tone}`}>{value}</div>
-    </div>
-  );
-}
-
-export function HealthRows({ h, down, onShowErrors }) {
-  if (down) {
-    return (
-      <HealthRow tone="bad" icon="alert" label="Serveur injoignable" value="hors ligne"
-        detail="La page ne parvient pas à joindre le serveur d’Orgaly." />
-    );
-  }
-  if (!h) return <p className="pil-empty">Chargement…</p>;
-
-  const speedTone = !h.avg_ms ? 'ok' : h.avg_ms < 500 ? 'ok' : h.avg_ms < 1500 ? 'warn' : 'bad';
-  const mailShare = Math.min(100, Math.round((h.emails_today / h.email_daily_limit) * 100));
-  const mailTone = mailShare >= 90 || h.email_errors_24h > 0 ? 'bad' : mailShare >= 70 ? 'warn' : 'ok';
-
-  return (
-    <div className="pil-health">
-      <HealthRow tone="ok" icon="check" label="Site et serveur" value="en ligne"
-        detail={`Redémarré il y a ${fmtUptime(h.uptime_s)}`} />
-      <HealthRow tone={speedTone} icon="clock" label="Temps de réponse moyen"
-        value={h.avg_ms == null ? '—' : `${h.avg_ms} ms`}
-        detail={`${plural(h.requests_24h, 'requête')} en 24 heures`} />
-      <HealthRow tone={h.errors_24h > 0 ? 'bad' : 'ok'} icon={h.errors_24h > 0 ? 'alert' : 'check'}
-        label="Erreurs du serveur" value={h.errors_24h}
-        detail={h.last_error_at ? `Dernière : ${fmtWhen(h.last_error_at)}` : 'Aucune erreur enregistrée'}>
-        {h.errors_24h > 0 && onShowErrors && <button type="button" className="pil-link" onClick={onShowErrors}>Voir les erreurs</button>}
-      </HealthRow>
-      <HealthRow tone={mailTone} icon="mail" label="E-mails envoyés aujourd’hui"
-        value={`${h.emails_today} / ${h.email_daily_limit}`}
-        detail={h.email_errors_24h > 0
-          ? `${plural(h.email_errors_24h, 'envoi')} en échec (24 h)`
-          : 'Limite quotidienne de l’offre gratuite Brevo'}>
-        <div className="pil-meter" aria-hidden="true"><div style={{ width: `${mailShare}%` }} className={`pil-meter--${mailTone}`} /></div>
-      </HealthRow>
-    </div>
+    <ul className="pil-mini">
+      {healthItems(h, down).map((it) => (
+        <li key={it.key} title={it.detail}>
+          <span className={`pil-dot pil-dot--${it.tone}`} />{it.short}
+          <b className={`pil-st--${it.tone}`}>{it.value}</b>
+        </li>
+      ))}
+    </ul>
   );
 }

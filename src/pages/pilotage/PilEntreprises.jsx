@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getOwnerStats } from '../../api/owner';
-import { PageHead, CardHead, Kpi, CompaniesTable, Icon } from './PilotageUi';
-import { STALE_DAYS, isStale, isPaying, plural } from './pilotageUtils';
+import { PageHead, CompaniesTable, Icon } from './PilotageUi';
+import { STALE_DAYS, isStale, isPaying } from './pilotageUtils';
 
 // Toutes les entreprises clientes : recherche, filtres, tri
 const FILTERS = [
@@ -71,27 +71,23 @@ export default function PilEntreprises() {
     : { key, dir: key === 'name' ? 'asc' : 'desc' }));
 
   const companies = stats?.companies ?? [];
-  const asked = companies.filter(AI_MATCH.asked).length;
-  const active = companies.filter((c) => !isStale(c.last_activity)).length;
+  // Nombre d'entreprises de chaque filtre (remplace les grandes cases du haut)
+  const count = (match) => companies.filter(match).length;
 
   return (
     <>
-      <PageHead title="Entreprises" sub="Toutes les entreprises clientes (compte démo exclu). Cliquez sur une entreprise pour sa fiche." />
+      <PageHead
+        title="Entreprises"
+        info={<p>Toutes les entreprises clientes (compte démo exclu). Cliquez sur une entreprise pour sa fiche, ou sur un titre de colonne pour trier. « À relancer » : sans activité depuis {STALE_DAYS} jours. +{stats?.totals.new_companies ?? 0} inscriptions sur 30 jours.</p>}
+      />
 
       {error && <div className="pil-card pil-error">{error}</div>}
       {!stats && !error && <div className="pil-loading">Chargement…</div>}
 
       {stats && (
-        <>
-          <div className="pil-kpis pil-kpis--3">
-            <Kpi icon="store" label="Entreprises inscrites" value={stats.totals.companies} delta={`+${stats.totals.new_companies} sur 30 jours`} />
-            <Kpi icon="check" label="Actives" value={active} delta={`activité depuis moins de ${STALE_DAYS} jours`} />
-            <Kpi icon="alert" label="À relancer" value={companies.length - active} delta={`sans activité depuis ${STALE_DAYS} jours`} muted />
-          </div>
-
-
-          <section className="pil-card">
-            <CardHead title="Liste des entreprises" sub={`${plural(rows.length, 'entreprise')} affichée${rows.length > 1 ? 's' : ''} · cliquez sur un titre de colonne pour trier`}>
+        <section className="pil-card">
+          <div className="pil-card-head">
+            <div className="pil-card-head-actions">
               <label className="pil-search">
                 <Icon name="search" size={14} />
                 <input type="search" placeholder="Rechercher" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Rechercher une entreprise" />
@@ -99,24 +95,27 @@ export default function PilEntreprises() {
               <div className="pil-seg pil-seg--small" role="group" aria-label="Filtrer">
                 {FILTERS.map((f) => (
                   <button key={f.key} type="button" className={f.key === filter ? 'on' : ''} aria-pressed={f.key === filter} onClick={() => setFilter(f.key)}>
-                    {f.label}
+                    {f.label}<span className="pil-seg-n">{count(MATCH[f.key])}</span>
                   </button>
                 ))}
               </div>
               <div className="pil-seg pil-seg--small" role="group" aria-label="Filtrer selon l’option IA">
-                {AI_FILTERS.map((f) => (
-                  <button key={f.key} type="button" className={f.key === aiFilter ? 'on' : ''} aria-pressed={f.key === aiFilter} onClick={() => setAiFilter(f.key)}>
-                    {f.label}
-                    {f.key === 'asked' && asked > 0 && <span className="pil-seg-count">{asked}</span>}
-                  </button>
-                ))}
+                {AI_FILTERS.map((f) => {
+                  const n = f.key === 'asked' ? count(AI_MATCH.asked) : 0;
+                  return (
+                    <button key={f.key} type="button" className={f.key === aiFilter ? 'on' : ''} aria-pressed={f.key === aiFilter} onClick={() => setAiFilter(f.key)}>
+                      {f.label}
+                      {n > 0 && <span className="pil-seg-count">{n}</span>}
+                    </button>
+                  );
+                })}
               </div>
-            </CardHead>
-            {rows.length === 0
-              ? <p className="pil-empty">Aucune entreprise ne correspond.</p>
-              : <CompaniesTable companies={rows} sort={sort} onSort={onSort} />}
-          </section>
-        </>
+            </div>
+          </div>
+          {rows.length === 0
+            ? <p className="pil-empty">Aucune entreprise ne correspond.</p>
+            : <CompaniesTable companies={rows} sort={sort} onSort={onSort} />}
+        </section>
       )}
     </>
   );

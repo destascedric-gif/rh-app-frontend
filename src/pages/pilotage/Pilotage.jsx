@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getOwnerStats, getOwnerHealth, getOwnerAi, getOwnerVisits } from '../../api/owner';
-import { Link } from 'react-router-dom';
 import {
-  PageHead, CardHead, Kpi, PeriodSeg, Chart, CompaniesTable, JournalCard, HealthRows, Icon,
+  PageHead, CardHead, PeriodSeg, Strip, Spark, JournalCard, HealthMini, ActivityStatus, Icon,
 } from './PilotageUi';
-import { PERIODS, STALE_DAYS, isStale, isPaying, fmtEuro, plural, signupXLabel } from './pilotageUtils';
+import { PERIODS, isStale, isPaying, fmtEuro, fmtDate, plural } from './pilotageUtils';
 
-// Tableau de bord : un résumé de chaque rubrique ; chaque carte mène à
-// sa page de détail. Uniquement des chiffres globaux, jamais le contenu
-// des comptes clients.
+// Tableau de bord (16 nov. 2026, proposition A choisie par Cédric) : les
+// chiffres clés sur une ligne, puis six petites tuiles, une par rubrique,
+// chacune avec un bouton « Détails » vers sa page. Uniquement des chiffres
+// globaux, jamais le contenu des comptes clients.
+
+const SOURCE_LABELS = { instagram: 'Instagram', google: 'Google', bing: 'Bing', facebook: 'Facebook', carte: 'cartes de visite', direct: 'accès direct', lien: 'lien marqué', autre: 'autres sites' };
 
 export default function Pilotage() {
-  const { token, user } = useAuth();
-  const navigate = useNavigate();
+  const { token } = useAuth();
   const [days, setDays] = useState(30);
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
@@ -53,24 +54,33 @@ export default function Pilotage() {
   }, [token]);
 
   const period = PERIODS.find((p) => p.days === days);
+  const since = period.since.replace('jours', 'j');
   const t = stats?.totals;
-  const total = stats ? stats.companies.length : 0;
-  const paying = stats ? stats.companies.filter(isPaying) : [];
+  const companies = stats?.companies ?? [];
+  const total = companies.length;
+  const paying = companies.filter(isPaying);
   const freeCount = total - paying.length;
   const estimate = paying.reduce((s, c) => s + c.price_month, 0);
-  const toFollow = stats ? stats.companies.filter((c) => isStale(c.last_activity)).length : 0;
-  const monthly = days === 365;
+  const toFollow = companies.filter((c) => isStale(c.last_activity)).length;
+  const latest = [...companies].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+  const topSource = visits?.sources?.[0];
+  const phones = visits?.devices?.find((d) => d.device === 'telephone')?.count ?? 0;
+  const computers = visits?.devices?.find((d) => d.device === 'ordinateur')?.count ?? 0;
+  const phoneShare = phones + computers ? Math.round((phones / (phones + computers)) * 100) : null;
 
   return (
     <>
-      <PageHead title="Tableau de bord" sub={`Bonjour ${user?.firstName || 'Cédric'}, voici l’essentiel d’Orgaly. Cliquez sur une carte pour le détail.`}>
+      <PageHead
+        title="Tableau de bord"
+        info={<p>L’essentiel d’Orgaly en un coup d’œil : chaque tuile mène à sa page avec « Détails ». Uniquement des chiffres, jamais le contenu des comptes clients. La période (en haut à droite) vaut pour les inscriptions ; les visites sont toujours celles des 7 derniers jours.</p>}
+      >
         <PeriodSeg days={days} onChange={setDays} />
       </PageHead>
 
       {aiCredit && aiCredit.balance !== null && aiCredit.balance < aiCredit.alert_usd && (
         <div className="pil-card pil-alert">
           <span><Icon name="alert" />Crédit IA bas : environ {aiCredit.balance.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $ restants. Pensez à recharger sur la Console Claude.</span>
-          <Link to="/pilotage/ia" className="pil-more">Voir le détail<Icon name="arrow" size={13} /></Link>
+          <Link to="/pilotage/ia" className="pil-more">Détails ›</Link>
         </div>
       )}
 
@@ -79,31 +89,26 @@ export default function Pilotage() {
 
       {stats && (
         <>
-          <div className="pil-kpis">
-            <Kpi to="/pilotage/entreprises" icon="store" label="Entreprises inscrites" value={t.companies} delta={`+${t.new_companies} ${period.since}`} />
-            <Kpi to="/pilotage/entreprises" icon="users" label="Salariés actifs" value={t.employees} delta={`+${t.new_employees} ${period.since}`} />
-            <Kpi to="/pilotage/formules" icon="crown" label="Entreprises payantes" value={paying.length} delta={total ? `${Math.round((paying.length / total) * 100)} % des entreprises` : '—'} />
-            <Kpi to="/pilotage/formules" icon="euro" label="Revenu mensuel estimé" value={fmtEuro(estimate)} delta="rien n'est encore encaissé" muted />
-          </div>
+          <Strip items={[
+            { icon: 'store', label: 'Entreprises', value: t.companies, delta: `+${t.new_companies} ${since}`, to: '/pilotage/entreprises' },
+            { icon: 'users', label: 'Salariés actifs', value: t.employees, delta: `+${t.new_employees} ${since}`, to: '/pilotage/entreprises' },
+            { icon: 'crown', label: 'Payantes', value: paying.length, delta: total ? `${Math.round((paying.length / total) * 100)} %` : '—', to: '/pilotage/formules' },
+            { icon: 'euro', label: 'Revenu mensuel estimé', value: fmtEuro(estimate), delta: 'rien d’encaissé', muted: true, to: '/pilotage/formules' },
+            { icon: 'eye', label: 'Visiteurs (7 j)', value: visits ? visits.totals.visitors : '—', delta: visits ? `${visits.totals.views} pages` : '', to: '/pilotage/visites' },
+          ]} />
 
-          <div className="pil-row">
+          <div className="pil-tiles">
             <section className="pil-card">
-              <CardHead
-                title="Nouvelles inscriptions"
-                sub={`Entreprises créées ${monthly ? 'par mois, 12 derniers mois' : `par jour, ${days} derniers jours`}`}
-                to="/pilotage/entreprises"
-                linkLabel="Les entreprises"
-              />
-              <Chart
-                series={stats.series.map((s) => ({ bucket: s.bucket, value: s.count }))}
-                xLabel={signupXLabel(monthly)}
-                tip={(p) => `${signupXLabel(monthly)(p.bucket)} · ${plural(p.value, 'inscription')}`}
-                ariaLabel="Courbe des inscriptions"
-              />
+              <CardHead title="Inscriptions" sub={period.label} to="/pilotage/entreprises" />
+              <div className="pil-tile-big">
+                <b>+{t.new_companies}</b>
+                <Spark values={stats.series.map((s) => s.count)} />
+              </div>
+              <p className="pil-note">{latest ? `Dernière : ${latest.name}, le ${fmtDate(latest.created_at)}` : 'Aucune entreprise pour l’instant'}</p>
             </section>
 
             <section className="pil-card">
-              <CardHead title="Formules" sub={`${plural(total, 'entreprise')} au total`} to="/pilotage/formules" />
+              <CardHead title="Formules" to="/pilotage/formules" />
               <div className="pil-bar" aria-hidden="true">
                 {freeCount > 0 && <div className="pil-bar-free" style={{ flex: freeCount }} />}
                 {paying.length > 0 && <div className="pil-bar-pro" style={{ flex: paying.length }} />}
@@ -112,61 +117,54 @@ export default function Pilotage() {
                 <span><i className="pil-sw pil-sw--free" />Gratuites <b>{freeCount}</b></span>
                 <span><i className="pil-sw pil-sw--pro" />Payantes <b>{paying.length}</b></span>
               </div>
-              <p className="pil-sub pil-sub--spaced">Bientôt payantes ({stats.pricing.freeEmployees} salariés, le prochain rend l'abonnement payant)</p>
-              {stats.near_limit.length === 0
-                ? <p className="pil-empty">Aucune pour l'instant.</p>
-                : (
-                  <ul className="pil-near">
-                    {stats.near_limit.map((c) => (
-                      <li key={c.id}>
-                        <button type="button" className="pil-link-plain" onClick={() => navigate(`/pilotage/entreprises/${c.id}`)}>{c.name}</button>
-                        {' · '}<b>{c.employees}</b> salariés
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              <p className="pil-note">
+                {stats.near_limit.length === 0
+                  ? 'Aucune entreprise bientôt payante'
+                  : `Bientôt payante${stats.near_limit.length > 1 ? 's' : ''} : ${stats.near_limit.map((c) => `${c.name} (${c.employees} salariés)`).join(', ')}`}
+              </p>
             </section>
-          </div>
 
-          <section className="pil-card">
-            <CardHead
-              title="Visites de la semaine"
-              sub={visits
-                ? `7 derniers jours · ${plural(visits.totals.visitors, 'visiteur')} · ${visits.totals.views} page${visits.totals.views > 1 ? 's' : ''} vue${visits.totals.views > 1 ? 's' : ''}`
-                : 'Chargement…'}
-              to="/pilotage/visites"
-              linkLabel="Toutes les visites"
-            />
-            {visits && (
-              <Chart
-                type="bar"
-                series={visits.series.map((s) => ({ bucket: s.bucket, value: s.visitors, views: s.views }))}
-                width={900}
-                height={190}
-                xLabel={(b) => new Date(`${b}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}
-                tip={(p) => `${new Date(`${p.bucket}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' })} · ${plural(p.value, 'visiteur')} · ${p.views} page${p.views > 1 ? 's' : ''} vue${p.views > 1 ? 's' : ''}`}
-                ariaLabel="Visiteurs des 7 derniers jours"
-              />
-            )}
-          </section>
-
-          <section className="pil-card">
-            <CardHead
-              title="Activité des entreprises"
-              sub={`Les plus actives en premier · ${toFollow > 0 ? `${plural(toFollow, 'entreprise')} à relancer (sans activité depuis ${STALE_DAYS} jours)` : 'aucune à relancer'}`}
-              to="/pilotage/entreprises"
-              linkLabel={`Toutes les entreprises (${stats.companies.length})`}
-            />
-            {stats.companies.length === 0
-              ? <p className="pil-empty">Aucune entreprise inscrite pour l'instant.</p>
-              : <CompaniesTable companies={stats.companies.slice(0, 5)} />}
-          </section>
-
-          <div className="pil-row">
-            <JournalCard token={token} compact to="/pilotage/journal" sub="Les dernières actions, sans le contenu" />
             <section className="pil-card">
-              <CardHead title="Santé technique" sub="Dernières 24 heures" to="/pilotage/sante" />
-              <HealthRows h={health} down={down} onShowErrors={() => navigate('/pilotage/journal?statut=erreurs')} />
+              <CardHead title="Visites" sub="7 jours" to="/pilotage/visites" />
+              {visits ? (
+                <>
+                  <div className="pil-tile-big">
+                    <b>{visits.totals.visitors}</b>
+                    <Spark type="bar" values={visits.series.map((s) => s.visitors)} />
+                  </div>
+                  <p className="pil-note">
+                    {topSource ? `Surtout ${SOURCE_LABELS[topSource.source] ?? topSource.source} (${topSource.count})` : 'Aucune visite cette semaine'}
+                    {phoneShare !== null && ` · ${phoneShare} % sur téléphone`}
+                  </p>
+                </>
+              ) : <p className="pil-empty">Chargement…</p>}
+            </section>
+
+            <section className="pil-card">
+              <CardHead title="Entreprises les plus actives" to="/pilotage/entreprises" linkLabel={`Toutes (${total})`} />
+              {total === 0 ? <p className="pil-empty">Aucune entreprise inscrite pour l’instant.</p> : (
+                <ul className="pil-mini">
+                  {companies.slice(0, 3).map((c) => (
+                    <li key={c.id}>
+                      <Link to={`/pilotage/entreprises/${c.id}`} className="pil-row-link">{c.name}</Link>
+                      {c.ai_planning_enabled
+                        ? <span className="pil-ai-tag pil-ai-tag--on">IA</span>
+                        : c.ai_option_requested_at && <span className="pil-ai-tag">IA demandée</span>}
+                      <ActivityStatus date={c.last_activity} />
+                    </li>
+                  ))}
+                  {toFollow > 0 && (
+                    <li><Link to="/pilotage/entreprises" className="pil-st pil-st--warn"><Icon name="alert" />{plural(toFollow, 'entreprise')} à relancer</Link></li>
+                  )}
+                </ul>
+              )}
+            </section>
+
+            <JournalCard token={token} compact initialLimit={4} title="Dernières actions" to="/pilotage/journal" linkLabel="Journal" />
+
+            <section className="pil-card">
+              <CardHead title="Santé technique" to="/pilotage/sante" />
+              <HealthMini h={health} down={down} />
             </section>
           </div>
         </>

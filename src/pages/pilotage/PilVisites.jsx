@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getOwnerVisits } from '../../api/owner';
-import { PageHead, CardHead, Kpi, PeriodSeg, Chart } from './PilotageUi';
+import { PageHead, CardHead, Strip, PeriodSeg, Chart } from './PilotageUi';
 import { PERIODS, plural, signupXLabel } from './pilotageUtils';
 
 // Visites du site (11 nov. 2026, maquette validée) : compteur maison des
@@ -20,6 +20,8 @@ const SOURCE_LABELS = {
 };
 const PAGE_LABELS = {
   '/': 'Accueil',
+  '/tarifs': 'Tarifs',
+  '/contact': 'Contact',
   '/login': 'Connexion',
   '/setup/admin': 'Créer mon espace',
   '/setup/company': 'Création de l’entreprise',
@@ -52,6 +54,7 @@ export default function PilVisites() {
   const [days, setDays] = useState(30);
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
+  const [allPages, setAllPages] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,10 +70,23 @@ export default function PilVisites() {
   const growth = t && t.previous_views ? Math.round(((t.views - t.previous_views) / t.previous_views) * 100) : null;
   const phones = data?.devices.find((d) => d.device === 'telephone')?.count ?? 0;
   const computers = data?.devices.find((d) => d.device === 'ordinateur')?.count ?? 0;
+  const pages = data ? data.pages.map((p) => ({ label: PAGE_LABELS[p.path] ?? p.path, count: p.count })) : [];
 
+  // Version compacte (16 nov. 2026, proposition A choisie par Cédric) :
+  // parcours « visiteur → inscription » dans le bandeau, graphique moins
+  // haut, sources / pages / appareils côte à côte
   return (
     <>
-      <PageHead title="Visites du site" sub="Pages publiques de myorgaly.fr (accueil, inscription, connexion, pages légales). Sans cookie et sans donnée personnelle : rien à faire accepter aux visiteurs.">
+      <PageHead
+        title="Visites du site"
+        infoWidth={460}
+        info={(
+          <>
+            <p>Pages publiques de myorgaly.fr (accueil, tarifs, contact, inscription, connexion, pages légales). Sans cookie et sans donnée personnelle : rien à faire accepter aux visiteurs. Un visiteur est compté une fois par jour ; vos propres visites ne sont pas comptées.</p>
+            <p>Pour savoir d’où viennent vos visiteurs, diffusez des liens marqués : <b>myorgaly.fr/carte</b> (QR des cartes de visite), <b>myorgaly.fr/insta</b> (bio Instagram), <b>myorgaly.fr/pub</b>. Données gardées {data?.retention_months ?? 13} mois.</p>
+          </>
+        )}
+      >
         <PeriodSeg days={days} onChange={setDays} />
       </PageHead>
 
@@ -86,72 +102,57 @@ export default function PilVisites() {
             </div>
           )}
 
-          <div className="pil-kpis">
-            <Kpi
-              icon="pulse" label="Pages vues" value={t.views}
-              delta={growth === null ? period.since : `${growth >= 0 ? '+' : ''}${growth} % par rapport à la période d’avant`}
-              muted={growth === null}
-            />
-            <Kpi icon="users" label="Visiteurs" value={t.visitors} delta={t.visitors ? `${(t.views / t.visitors).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} page${t.views / t.visitors >= 2 ? 's' : ''} vue${t.views / t.visitors >= 2 ? 's' : ''} par visiteur` : 'comptés une fois par jour'} muted={!t.visitors} />
-            <Kpi icon="store" label="Entreprises inscrites" value={t.signups} delta={t.visitors ? `${pct(t.signups, t.visitors)} des visiteurs` : period.since} muted={!t.visitors} />
-            <Kpi icon="mail" label="Venus de vos cartes" value={t.from_cards} delta="QR code des cartes de visite" muted={!t.from_cards} />
-          </div>
+          <Strip items={[
+            { icon: 'pulse', label: 'Pages vues', value: t.views, delta: growth === null ? period.since : `${growth >= 0 ? '+' : ''}${growth} %`, muted: growth === null },
+            { icon: 'users', label: 'Visiteurs', value: t.visitors, delta: t.visitors ? `${(t.views / t.visitors).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} pages chacun` : 'comptés une fois par jour', muted: !t.visitors },
+            {
+              label: 'Du visiteur au client',
+              grow: 1.8,
+              children: (
+                <div className="pil-flow" title={`${t.visitors} visiteurs, ${t.opened_signup} ont ouvert « Créer mon espace », ${t.signups} entreprises créées`}>
+                  {t.visitors} <i>→</i> {t.opened_signup} <small>ont ouvert l’inscription</small> <i>→</i> {t.signups} <small className="pil-gold-text">inscrite{t.signups > 1 ? 's' : ''}{t.visitors ? ` (${pct(t.signups, t.visitors)})` : ''}</small>
+                </div>
+              ),
+            },
+            { icon: 'mail', label: 'Venus des cartes', value: t.from_cards, delta: 'QR code', muted: !t.from_cards },
+          ]} />
 
           <section className="pil-card">
-            <CardHead title="Visiteurs" sub={monthly ? 'Par mois, 12 derniers mois' : `Par jour, ${days} derniers jours`} />
+            <CardHead title="Visiteurs" sub={monthly ? 'par mois, 12 derniers mois' : `par jour, ${days} derniers jours`} />
             <Chart
               series={data.series.map((s) => ({ bucket: s.bucket, value: s.visitors, views: s.views }))}
-              width={900}
-              height={210}
+              width={1150}
+              height={140}
               xLabel={signupXLabel(monthly)}
               tip={(p) => `${signupXLabel(monthly)(p.bucket)} · ${plural(p.value, 'visiteur')} · ${p.views} page${p.views > 1 ? 's' : ''} vue${p.views > 1 ? 's' : ''}`}
               ariaLabel="Courbe des visiteurs"
             />
           </section>
 
-          <div className="pil-row pil-row--even">
+          <div className="pil-row--3">
             <section className="pil-card">
-              <CardHead title="D’où viennent-ils ?" sub="Visiteurs, selon le lien qu’ils ont suivi" />
+              <CardHead title="D’où viennent-ils ?" />
               {data.sources.length === 0
                 ? <p className="pil-empty">Rien pour l’instant.</p>
                 : <HBars rows={data.sources.map((s) => ({ label: SOURCE_LABELS[s.source] ?? s.source, count: s.count }))} />}
             </section>
             <section className="pil-card">
-              <CardHead title="Pages les plus vues" sub="Nombre de vues" />
-              {data.pages.length === 0
+              <CardHead title="Pages les plus vues">
+                {pages.length > 5 && (
+                  <button type="button" className="pil-more" onClick={() => setAllPages((v) => !v)}>{allPages ? 'Moins ‹' : `Tout (${pages.length}) ›`}</button>
+                )}
+              </CardHead>
+              {pages.length === 0
                 ? <p className="pil-empty">Rien pour l’instant.</p>
-                : <HBars rows={data.pages.map((p) => ({ label: PAGE_LABELS[p.path] ?? p.path, count: p.count }))} />}
-            </section>
-          </div>
-
-          <div className="pil-row pil-row--even">
-            <section className="pil-card">
-              <CardHead title="Du visiteur au client" sub={days === 365 ? '12 derniers mois' : `${days} derniers jours`} />
-              <div className="pil-funnel">
-                {[
-                  ['Visiteurs', t.visitors, null],
-                  ['Ont ouvert « Créer mon espace »', t.opened_signup, pct(t.opened_signup, t.visitors)],
-                  ['Entreprises créées', t.signups, pct(t.signups, t.visitors)],
-                ].map(([label, value, share]) => (
-                  <div key={label} className="pil-funnel-step">
-                    <div>
-                      <div className="pil-funnel-label">{label}</div>
-                      <div className="pil-meter pil-meter--big">
-                        <div className="pil-meter--ok" style={{ width: `${t.visitors ? Math.max(1.5, (value / t.visitors) * 100) : 0}%` }} />
-                      </div>
-                    </div>
-                    <div className="pil-funnel-value">{value}{share && <span>{share}</span>}</div>
-                  </div>
-                ))}
-              </div>
+                : <HBars rows={allPages ? pages : pages.slice(0, 5)} />}
             </section>
             <section className="pil-card">
-              <CardHead title="Téléphone ou ordinateur" sub="Appareil des visiteurs" />
+              <CardHead title="Appareils" />
               {phones + computers === 0 ? (
                 <p className="pil-empty">Rien pour l’instant.</p>
               ) : (
                 <>
-                  <div className="pil-bar pil-bar--big" aria-hidden="true">
+                  <div className="pil-bar" aria-hidden="true" style={{ margin: '8px 0 10px', height: 10 }}>
                     {phones > 0 && <div className="pil-bar-pro" style={{ flex: phones }} />}
                     {computers > 0 && <div className="pil-bar-free" style={{ flex: computers }} />}
                   </div>
@@ -161,10 +162,6 @@ export default function PilVisites() {
                   </div>
                 </>
               )}
-              <p className="pil-note">
-                Pour savoir d’où viennent vos visiteurs, diffusez des liens marqués : <b>myorgaly.fr/?src=carte</b> (QR
-                des cartes de visite), <b>myorgaly.fr/?src=insta</b> (bio Instagram). Données gardées {data.retention_months} mois.
-              </p>
             </section>
           </div>
         </>

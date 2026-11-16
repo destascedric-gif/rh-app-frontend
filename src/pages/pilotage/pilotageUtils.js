@@ -56,3 +56,21 @@ export const signupXLabel = (monthly) => (b) => (monthly
   : fmtDate(`${b}T12:00:00`));
 
 export const plural =(n, word) => `${n} ${word}${n > 1 ? 's' : ''}`;
+
+// Les quatre voyants (serveur, rapidité, erreurs, e-mails) : une couleur
+// chacun (vert, orange, rouge). Servent au bandeau de la page Santé et à la
+// tuile du tableau de bord.
+export function healthItems(h, down) {
+  if (down) return [{ key: 'server', tone: 'bad', label: 'Site et serveur', short: 'Serveur', value: 'hors ligne', detail: 'la page ne joint pas le serveur' }];
+  if (!h) return [];
+  const speedTone = !h.avg_ms ? 'ok' : h.avg_ms < 500 ? 'ok' : h.avg_ms < 1500 ? 'warn' : 'bad';
+  const mailShare = Math.min(100, Math.round((h.emails_today / h.email_daily_limit) * 100));
+  const mailTone = mailShare >= 90 || h.email_errors_24h > 0 ? 'bad' : mailShare >= 70 ? 'warn' : 'ok';
+  return [
+    { key: 'server', tone: 'ok', label: 'Site et serveur', short: 'Serveur', value: 'en ligne', detail: `redémarré il y a ${fmtUptime(h.uptime_s)}` },
+    { key: 'speed', tone: speedTone, label: 'Temps de réponse', short: 'Rapidité', value: h.avg_ms == null ? '—' : `${h.avg_ms} ms`, detail: `${plural(h.requests_24h, 'requête')} en 24 h` },
+    { key: 'errors', tone: h.errors_24h > 0 ? 'bad' : 'ok', label: 'Erreurs du serveur (24 h)', short: 'Erreurs (24 h)', value: h.errors_24h, detail: h.last_error_at ? `dernière : ${fmtWhen(h.last_error_at)}` : 'aucune enregistrée' },
+    { key: 'mail', tone: mailTone, label: 'E-mails aujourd’hui', short: 'E-mails', value: `${h.emails_today} / ${h.email_daily_limit}`, detail: h.email_errors_24h > 0 ? `${plural(h.email_errors_24h, 'envoi')} en échec (24 h)` : 'aucun échec' },
+  ];
+}
+
