@@ -72,27 +72,25 @@ const IA_WEEK = [
 ];
 const IA_LABEL = { o: '9h30', f: '10h', r: 'Repos' };
 
-// Vidéo du haut de page : muette et en boucle au départ ; « Voir la
-// vidéo » la reprend au début avec le son
-function HeroVideo({ videoRef, sound, playWithSound, toggleSound }) {
+// Vidéo du haut de page (16 nov. 2026, demande de Cédric) : affichée
+// entière, à son format d'origine (vertical 9:16, celui d'Instagram),
+// muette et en boucle ; un bouton met le son. Plus de « Voir la vidéo ».
+function HeroVideo({ videoRef, sound, toggleSound }) {
   return (
-    <div className="s-video">
-      <video
-        ref={videoRef}
-        src="/site/orgaly-video.mp4"
-        poster="/site/orgaly-video.jpg"
-        autoPlay muted loop playsInline preload="metadata"
-        aria-label="Vidéo de présentation d'Orgaly"
-      />
-      {!sound && (
-        <button type="button" className="s-video-badge" onClick={playWithSound}>
-          <span className="s-play" />Orgaly en 25 secondes
+    <div className="s-hero-stage">
+      <div className="s-video">
+        <video
+          ref={videoRef}
+          src="/site/orgaly-video.mp4"
+          poster="/site/orgaly-video.jpg"
+          autoPlay muted loop playsInline preload="metadata"
+          aria-label="Vidéo de présentation d'Orgaly"
+        />
+        <button type="button" className="s-video-sound" onClick={toggleSound}
+          aria-label={sound ? 'Couper le son' : 'Mettre le son'}>
+          {sound ? <Icon.soundOn size={18} /> : <Icon.soundOff size={18} />}
         </button>
-      )}
-      <button type="button" className="s-video-sound" onClick={toggleSound}
-        aria-label={sound ? 'Couper le son' : 'Mettre le son'}>
-        {sound ? <Icon.soundOn size={18} /> : <Icon.soundOff size={18} />}
-      </button>
+      </div>
     </div>
   );
 }
@@ -100,15 +98,6 @@ function HeroVideo({ videoRef, sound, playWithSound, toggleSound }) {
 export default function Landing() {
   const videoRef = useRef(null);
   const [sound, setSound] = useState(false);
-  const playWithSound = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    v.currentTime = 0;
-    v.muted = false;
-    setSound(true);
-    v.play().catch(() => {});
-  };
   const toggleSound = () => {
     const v = videoRef.current;
     if (!v) return;
@@ -132,9 +121,6 @@ export default function Landing() {
           </ul>
           <div className="s-ctas">
             <Link className="s-btn" to="/setup/admin">Essayer gratuitement</Link>
-            <button type="button" className="s-btn-ghost" onClick={playWithSound}>
-              <span className="s-play" />Voir la vidéo
-            </button>
           </div>
           <div className="s-reassure">
             <span>Gratuit jusqu'à {PRICING.freeEmployees} salariés</span>
@@ -142,7 +128,7 @@ export default function Landing() {
             <span>Sans carte bancaire</span>
           </div>
         </div>
-        <HeroVideo videoRef={videoRef} sound={sound} playWithSound={playWithSound} toggleSound={toggleSound} />
+        <HeroVideo videoRef={videoRef} sound={sound} toggleSound={toggleSound} />
       </section>
 
       {/* ── Pensé pour ─────────────────────────────── */}

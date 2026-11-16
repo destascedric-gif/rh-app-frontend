@@ -44,7 +44,7 @@
 .s-head-r .s-btn { height: 42px; font-size: 14.5px; padding: 0 18px; box-shadow: none; }
 
 /* Haut de page */
-.s-hero { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center; padding-top: 64px; padding-bottom: 72px; }
+.s-hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; padding-top: 28px; padding-bottom: 40px; }
 .s-eyebrow { display: inline-flex; padding: 6px 12px; border-radius: 999px; background: var(--s-blue-l); color: var(--s-blue); font-size: 13px; font-weight: 600; }
 .s-hero h1 { font-size: 58px; line-height: 1.04; margin: 18px 0 22px; font-weight: 700; }
 .s-hero h1 em { font-style: normal; color: var(--s-blue); }
@@ -57,8 +57,15 @@
 .s-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
 .s-reassure { margin-top: 18px; display: flex; gap: 18px; flex-wrap: wrap; font-size: 13.5px; color: var(--s-muted); }
 .s-reassure span::before { content: '✓ '; color: var(--s-green); font-weight: 700; }
-.s-video { position: relative; border-radius: 28px; overflow: hidden; aspect-ratio: 4 / 4.6; background: #141A2C; box-shadow: 0 30px 70px rgba(26, 34, 56, 0.28); }
-.s-video video { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+/* Vidéo à son format d'origine (9:16), jamais recadrée ; sa hauteur suit
+   celle de l'écran pour que tout le haut de page reste visible */
+.s-hero-stage {
+  position: relative; display: flex; align-items: center; justify-content: center; padding: 22px;
+  height: clamp(440px, calc(100vh - 72px - 68px), 640px); border-radius: 28px;
+  background: radial-gradient(circle at 75% 20%, rgba(52, 87, 213, 0.18), rgba(52, 87, 213, 0) 55%), linear-gradient(160deg, #E7ECFB, #DDE2EA);
+}
+.s-video { position: relative; height: 100%; aspect-ratio: 9 / 16; border-radius: 22px; overflow: hidden; background: #141A2C; box-shadow: 0 26px 60px rgba(26, 34, 56, 0.3); }
+.s-video video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .s-video-badge {
   position: absolute; left: 18px; bottom: 18px; display: flex; align-items: center; gap: 10px; padding: 9px 14px 9px 9px;
   border: none; border-radius: 999px; background: rgba(255, 255, 255, 0.95); font: inherit; font-size: 13.5px; font-weight: 600; color: var(--s-ink); cursor: pointer;
@@ -264,7 +271,8 @@
   .s-hero h1 { font-size: 38px; }
   .s-checks { font-size: 15.5px; }
   .s-ctas .s-btn, .s-ctas .s-btn-ghost { flex: 1; }
-  .s-video { aspect-ratio: 4 / 4.4; border-radius: 22px; }
+  .s-hero-stage { height: auto; padding: 20px; border-radius: 22px; }
+  .s-video { height: auto; width: min(270px, 72vw); border-radius: 18px; }
   .s-forwho .s-wrap { gap: 12px 18px; }
   .s-forwho b { width: 100%; }
   .s-block { padding-top: 64px; padding-bottom: 64px; }
