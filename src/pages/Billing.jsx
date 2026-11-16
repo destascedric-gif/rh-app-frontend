@@ -1,20 +1,42 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getBilling } from '../api/billing';
+import { getBilling, requestAiOption } from '../api/billing';
 import { EDITOR } from '../legal/legalInfo';
 import PageHeader from '../components/PageHeader';
 
-const euros = (n) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+// 11,7 → « 11,70 € » ; 79 → « 79 € »
+const euros = (n) => n.toLocaleString('fr-FR', {
+  style: 'currency', currency: 'EUR', minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
+});
 const date  = (d) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 const plural = (n, word) => `${n} ${word}${n > 1 ? 's' : ''}`;
 
-// Page « Abonnement » (tarifs du 13 nov. 2026, affichés depuis le 15 nov.) :
-// le prix est calculé et affiché, mais le paiement en ligne n'est pas encore
-// ouvert : rien n'est demandé au gérant et rien n'est bloqué.
+const INCLUDED = [
+  'Planning semaine et mois', 'Horaires et semaines types',
+  'Salariés sur leur téléphone', 'Demandes de congés',
+  'Heures et heures sup.', 'Pointage en plus',
+  'Bulletins indicatifs', 'Réunions et notifications',
+];
+
+const AI_FEATURES = [
+  'Le planning du mois préparé en quelques minutes',
+  "S'inspire des habitudes de votre équipe",
+  'Tient compte de vos demandes écrites',
+  'Congés, contrats et repos vérifiés par Orgaly',
+  "Rien n'est enregistré sans votre accord",
+];
+
+// Page « Abonnement » (16 nov. 2026, proposition B choisie par Cédric) :
+// deux encadrés seulement, l'un sous l'autre : mon abonnement (prix et ce
+// qui est inclus), puis l'option IA avancée (bouton « Demander l'option »,
+// remplacé par le compteur du mois une fois l'option active). Le paiement
+// en ligne n'est pas encore ouvert : rien n'est demandé, rien n'est bloqué.
 export default function Billing() {
   const { token } = useAuth();
   const [billing, setBilling] = useState(null);
   const [error,   setError]   = useState('');
+  const [sending, setSending] = useState(false);
+  const [aiError, setAiError] = useState('');
 
   useEffect(() => {
     getBilling(token).then(setBilling).catch((err) => setError(err.message));
@@ -26,117 +48,113 @@ export default function Billing() {
   const p      = billing.pricing;
   const count  = billing.activeEmployees;
   const price  = billing.price;
-  const billed = price.billedEmployees;
   const paying = !billing.freeForever && price.monthly > 0;
+  const used   = billing.aiGenerationsUsed;
+  const limit  = p.aiMonthlyGenerations;
+
+  const askAi = async () => {
+    setAiError('');
+    setSending(true);
+    try {
+      const { requestedAt } = await requestAiOption(token);
+      setBilling((b) => ({ ...b, aiOptionRequestedAt: requestedAt }));
+    } catch (err) {
+      setAiError(err.message);
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div className="page">
       <PageHeader title="Abonnement" />
 
-      {/* ── Votre abonnement : une seule phrase claire (16 nov. 2026, demande
-          de Cédric : moins de cases ; pas de montant « à l'année » ici) ── */}
-      <div className="section-card billing-current">
-        <div className="billing-current-head">
-          <div>
-            <div className="billing-label">Votre abonnement</div>
-            <div className="billing-plan-name">
-              {billing.freeForever ? 'Offert' : price.monthly === 0 ? 'Gratuit' : `${euros(price.monthly)} HT / mois`}
-              {billing.freeForever
-                ? <span className="badge badge-active">Premier client d'Orgaly</span>
-                : billing.inTrial && <span className="badge badge-info">Essai gratuit jusqu'au {date(billing.trialEndsAt)}</span>}
-            </div>
+      {/* ── Mon abonnement ─────────────────────────── */}
+      <div className="section-card abo-card">
+        <div>
+          <div className="billing-label">Mon abonnement</div>
+          <div className="abo-price">
+            {billing.freeForever
+              ? <b>Offert</b>
+              : price.monthly === 0
+                ? <b>Gratuit</b>
+                : <><b>{euros(price.monthly)}</b><span>HT / mois</span></>}
           </div>
-        </div>
-
-        {billing.freeForever ? (
-          <p className="billing-text">
-            Votre entreprise fait partie des premiers clients d'Orgaly : l'abonnement vous est offert,
-            quel que soit le nombre de salariés ({plural(count, 'salarié')} aujourd'hui).
-          </p>
-        ) : (
-          <>
-            <p className="billing-text">
-              {plural(count, 'salarié')}
-              {price.monthly === 0
-                ? ` : jusqu'à ${p.freeEmployees} salariés, Orgaly est gratuit, sans limite de durée.`
+          <p className="abo-sub">
+            {billing.freeForever
+              ? `Premier client d'Orgaly : l'abonnement vous est offert, quel que soit le nombre de salariés (${plural(count, 'salarié')} aujourd'hui).`
+              : price.monthly === 0
+                ? `${plural(count, 'salarié')} · gratuit jusqu'à ${p.freeEmployees} salariés, sans limite de durée.`
                 : price.capped
-                  ? ` : plafond atteint, jamais plus de ${euros(p.monthlyCap)} HT par mois.`
-                  : `, dont ${p.freeEmployees} offerts : ${plural(billed, 'salarié')} × ${euros(p.pricePerEmployee)} HT.`}
-            </p>
-            <p className="hint">
-              Le gérant n'est pas compté ; les invitations en attente le sont. Le paiement en ligne n'est pas encore ouvert : rien ne vous est demandé pour le moment.
-            </p>
-          </>
-        )}
+                  ? `${plural(count, 'salarié')} · plafond atteint`
+                  : `${plural(count, 'salarié')}, dont ${p.freeEmployees} offerts`}
+            {paying && billing.inTrial && (
+              <> · <span className="badge badge-info">Essai jusqu'au {date(billing.trialEndsAt)}</span></>
+            )}
+          </p>
+          {paying && (
+            <>
+              <button type="button" className="btn-secondary abo-pay" disabled>Payer mon abonnement · bientôt</button>
+              <p className="hint">Rien ne vous est demandé pour le moment.</p>
+            </>
+          )}
+        </div>
+        <div>
+          <ul className="abo-checks abo-checks--two">
+            {INCLUDED.map((x) => <li key={x}>{x}</li>)}
+          </ul>
+          <p className="hint abo-rules">
+            {p.freeEmployees} salariés offerts, puis {euros(p.pricePerEmployee)} HT par salarié ·{' '}
+            {euros(p.monthlyCap)} HT par mois au maximum · Sans engagement. Le gérant n'est pas compté.{' '}
+            {EDITOR.vatMention}.
+          </p>
+        </div>
       </div>
 
-      {/* ── Les deux formules côte à côte (comme la page d'avant le 15 nov.) ── */}
-      {!billing.freeForever && (
-        <div className="plan-grid billing-plans">
-          <div className={`plan-card${paying ? '' : ' plan-card--pro'}`}>
-            <div className="plan-name">Gratuit</div>
-            <div className="plan-price">0 €</div>
-            <ul className="plan-features">
-              <li>Jusqu'à {p.freeEmployees} salariés</li>
-              <li>Planning, congés, pointage</li>
-              <li>Bulletins de paie indicatifs</li>
-              <li>Sans limite de durée</li>
-            </ul>
-            {!paying && <div className="plan-current">Votre offre actuelle</div>}
+      {/* ── Option IA avancée ──────────────────────── */}
+      <div className="section-card abo-card abo-ia">
+        <div>
+          <div className="billing-label">Option</div>
+          <h2 className="abo-title">IA avancée</h2>
+          <div className="abo-price">
+            {billing.freeForever && billing.aiPlanningEnabled
+              ? <b>Offerte</b>
+              : <><b>{euros(p.aiOptionPrice)}</b><span>HT / mois</span></>}
           </div>
+          <p className="abo-sub">{limit} plannings du mois générés par mois.</p>
 
-          <div className={`plan-card${paying ? ' plan-card--pro' : ''}`}>
-            <div className="plan-name">Au-delà de {p.freeEmployees} salariés</div>
-            <div className="plan-price">
-              {euros(p.pricePerEmployee)} <span>HT par salarié en plus / mois</span>
-            </div>
-            <ul className="plan-features">
-              <li>Les {p.freeEmployees} premiers salariés restent offerts</li>
-              <li>Jamais plus de {euros(p.monthlyCap)} HT par mois</li>
-              <li>À l'année : {12 - p.annualMonthsPaid} mois offerts</li>
-              <li>Sans engagement</li>
-            </ul>
-            <p className="hint plan-estimate">{EDITOR.vatMention}.</p>
-            {paying
-              ? <div className="plan-current">Votre offre actuelle</div>
-              : <div className="plan-current">Dès votre {p.freeEmployees + 1}<sup>e</sup> salarié</div>}
-          </div>
-        </div>
-      )}
-
-      {/* ── Option IA : seulement pour les entreprises qui y ont accès ── */}
-      {billing.aiPlanningEnabled && (
-        <div className="section-card">
-          <div className="billing-current-head">
-            <div>
-              <div className="billing-label">Option</div>
-              <div className="billing-plan-name">
-                IA avancée
-                <span className="badge badge-info">
-                  {billing.freeForever ? 'Offerte' : `${euros(p.aiOptionPrice)} HT / mois`}
-                </span>
+          {billing.aiPlanningEnabled ? (
+            // Option active : le compteur du mois remplace le bouton
+            <div className="abo-usage">
+              <div className="usage-row">
+                <span>Plannings générés ce mois-ci</span>
+                <strong>{used} / {limit}</strong>
               </div>
+              <div className="usage-meter" role="progressbar" aria-valuemin={0} aria-valuemax={limit} aria-valuenow={used}>
+                <div
+                  className={`usage-meter-fill${used >= limit ? ' full' : ''}`}
+                  style={{ width: `${Math.min(100, (used / limit) * 100)}%` }}
+                />
+              </div>
+              <p className="abo-note">Le compteur repart à zéro le 1er de chaque mois.</p>
             </div>
-          </div>
-          <p className="billing-text">
-            Le planning du mois proposé par l'IA, à partir de vos habitudes : {p.aiMonthlyGenerations} générations
-            par mois.
-          </p>
-          <div className="usage">
-            <div className="usage-row">
-              <span>Générations utilisées ce mois-ci</span>
-              <strong>{billing.aiGenerationsUsed} / {p.aiMonthlyGenerations}</strong>
-            </div>
-            <div className="usage-meter" role="progressbar" aria-valuemin={0} aria-valuemax={p.aiMonthlyGenerations} aria-valuenow={billing.aiGenerationsUsed}>
-              <div
-                className={`usage-meter-fill${billing.aiGenerationsUsed >= p.aiMonthlyGenerations ? ' full' : ''}`}
-                style={{ width: `${Math.min(100, (billing.aiGenerationsUsed / p.aiMonthlyGenerations) * 100)}%` }}
-              />
-            </div>
-            <p className="hint">Le compteur repart à zéro le 1er de chaque mois.</p>
-          </div>
+          ) : billing.aiOptionRequestedAt ? (
+            <p className="abo-requested">
+              Demande envoyée le {date(billing.aiOptionRequestedAt)} : nous vous recontactons très vite.
+            </p>
+          ) : (
+            <>
+              <button type="button" className="abo-ask" disabled={sending} onClick={askAi}>
+                {sending ? 'Envoi…' : "Demander l'option"}
+              </button>
+              {aiError && <p className="abo-error">{aiError}</p>}
+            </>
+          )}
         </div>
-      )}
+        <ul className="abo-checks abo-checks--two">
+          {AI_FEATURES.map((x) => <li key={x}>{x}</li>)}
+        </ul>
+      </div>
     </div>
   );
 }

@@ -15,3 +15,5 @@ export const getBilling     = (token) => req('GET',  '/billing', token);
 // Renvoient { url } : la page Stripe vers laquelle rediriger le navigateur
 export const startCheckout  = (token) => req('POST', '/billing/checkout', token, { acceptCgv: true });
 export const openPortal     = (token) => req('POST', '/billing/portal', token);
+// Demande de l'option IA avancée (e-mail à Orgaly) → { requestedAt }
+export const requestAiOption = (token) => req('POST', '/billing/ai-request', token);
