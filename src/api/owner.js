@@ -25,3 +25,5 @@ export const getOwnerAi          = (days, token)         => req('GET', `/owner/a
 export const addOwnerAiCredit    = (data, token)         => req('POST', '/owner/ai/credit', token, data);
 export const deleteOwnerAiCredit = (id, token)           => req('DELETE', `/owner/ai/credit/${id}`, token);
 export const getOwnerVisits      = (days, token)         => req('GET', `/owner/visits?days=${days}`, token);
+// Interrupteur de l'option « IA avancée » d'une entreprise : { enabled }
+export const setOwnerCompanyAi   = (id, enabled, token)  => req('PATCH', `/owner/companies/${id}/ai`, token, { enabled });

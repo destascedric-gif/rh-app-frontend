@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getOwnerCompany } from '../../api/owner';
+import { getOwnerCompany, setOwnerCompanyAi } from '../../api/owner';
 import { PageHead, CardHead, Kpi, Chart, JournalCard, PlanPill, ActivityStatus } from './PilotageUi';
 import { fmtDate, fmtLongDate, fmtEuro, fmtMonth, activityLabel, plural } from './pilotageUtils';
 
@@ -12,6 +12,8 @@ export default function PilEntreprise() {
   const { token } = useAuth();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
+  const [aiSaving, setAiSaving] = useState(false);
+  const [aiError, setAiError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -20,6 +22,23 @@ export default function PilEntreprise() {
       .catch((err) => { if (!cancelled) setError(err.message); });
     return () => { cancelled = true; };
   }, [id, token]);
+
+  // Interrupteur « IA avancée » (16 nov. 2026) : Cédric active l’option
+  // lui-même après une demande du gérant (bouton de sa page Abonnement)
+  const toggleAi = async () => {
+    if (data.company.ai_planning_enabled
+      && !window.confirm(`Couper l’option IA avancée pour ${data.company.name} ? Le bouton « Générer avec l’IA » disparaîtra de son planning.`)) return;
+    setAiSaving(true);
+    setAiError('');
+    try {
+      const r = await setOwnerCompanyAi(id, !data.company.ai_planning_enabled, token);
+      setData((d) => ({ ...d, company: { ...d.company, ...r } }));
+    } catch (err) {
+      setAiError(err.message);
+    } finally {
+      setAiSaving(false);
+    }
+  };
 
   const back = { to: '/pilotage/entreprises', label: 'Toutes les entreprises' };
   if (error) return <><PageHead title="Entreprise" back={back} /><div className="pil-card pil-error">{error}</div></>;
@@ -59,6 +78,31 @@ export default function PilEntreprise() {
           <div className="pil-kpi-delta pil-kpi-delta--muted">{c.last_activity ? fmtDate(c.last_activity) : 'aucune trace'}</div>
         </div>
       </div>
+
+      <section className="pil-card pil-ai-card">
+        <div>
+          <h2 className="pil-ai-title">Option IA avancée</h2>
+          <p className="pil-sub pil-ai-state">
+            {c.ai_planning_enabled
+              ? `Activée · ${c.ai_generations_month} / ${p.aiMonthlyGenerations} plannings générés ce mois-ci`
+              : c.ai_option_requested_at
+                ? `Demandée par le gérant le ${fmtLongDate(c.ai_option_requested_at)} · pas encore activée`
+                : 'Pas demandée · le gérant peut la demander depuis sa page Abonnement'}
+          </p>
+          {aiError && <p className="pil-ai-error">{aiError}</p>}
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={Boolean(c.ai_planning_enabled)}
+          className={`pil-switch${c.ai_planning_enabled ? ' on' : ''}`}
+          disabled={aiSaving}
+          onClick={toggleAi}
+        >
+          <span className="pil-switch-track"><span className="pil-switch-knob" /></span>
+          {c.ai_planning_enabled ? 'IA activée' : 'IA désactivée'}
+        </button>
+      </section>
 
       <div className="pil-row">
         <section className="pil-card">

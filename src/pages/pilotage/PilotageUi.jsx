@@ -219,7 +219,11 @@ export function CompaniesTable({ companies, sort, onSort }) {
       <tbody>
         {companies.map((c) => (
           <tr key={c.id} onClick={() => navigate(`/pilotage/entreprises/${c.id}`)}>
-            <td><Link to={`/pilotage/entreprises/${c.id}`} className="pil-row-link" onClick={(e) => e.stopPropagation()}>{c.name}</Link></td>
+            <td><Link to={`/pilotage/entreprises/${c.id}`} className="pil-row-link" onClick={(e) => e.stopPropagation()}>{c.name}</Link>
+              {c.ai_planning_enabled
+                ? <span className="pil-ai-tag pil-ai-tag--on">IA</span>
+                : c.ai_option_requested_at && <span className="pil-ai-tag">IA demandée</span>}
+            </td>
             <td>{fmtDate(c.created_at)}</td>
             <td>{c.employees}</td>
             <td><PlanPill state={c.billing_state} />{c.price_month > 0 && <span className="pil-price"> {fmtEuro(c.price_month)}</span>}</td>

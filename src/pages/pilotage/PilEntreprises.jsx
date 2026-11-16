@@ -20,6 +20,20 @@ const MATCH = {
   pro: (c) => isPaying(c),
 };
 
+// Option IA avancée (16 nov. 2026) : pour activer ou relancer
+const AI_FILTERS = [
+  { key: 'all', label: 'IA : toutes' },
+  { key: 'on', label: 'Activée' },
+  { key: 'asked', label: 'Demandée' },
+  { key: 'none', label: 'Sans' },
+];
+const AI_MATCH = {
+  all: () => true,
+  on: (c) => c.ai_planning_enabled,
+  asked: (c) => !c.ai_planning_enabled && Boolean(c.ai_option_requested_at),
+  none: (c) => !c.ai_planning_enabled && !c.ai_option_requested_at,
+};
+
 const compare = (key) => (a, b) => {
   const va = a[key], vb = b[key];
   if (key === 'name') return String(va).localeCompare(String(vb), 'fr');
@@ -33,6 +47,7 @@ export default function PilEntreprises() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
+  const [aiFilter, setAiFilter] = useState('all');
   const [sort, setSort] = useState({ key: 'last_activity', dir: 'desc' });
 
   useEffect(() => {
@@ -46,16 +61,17 @@ export default function PilEntreprises() {
   const rows = useMemo(() => {
     if (!stats) return [];
     const q = query.trim().toLowerCase();
-    const list = stats.companies.filter((c) => MATCH[filter](c) && (!q || c.name.toLowerCase().includes(q)));
+    const list = stats.companies.filter((c) => MATCH[filter](c) && AI_MATCH[aiFilter](c) && (!q || c.name.toLowerCase().includes(q)));
     const sorted = [...list].sort(compare(sort.key));
     return sort.dir === 'desc' ? sorted.reverse() : sorted;
-  }, [stats, query, filter, sort]);
+  }, [stats, query, filter, aiFilter, sort]);
 
   const onSort = (key) => setSort((s) => (s.key === key
     ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' }
     : { key, dir: key === 'name' ? 'asc' : 'desc' }));
 
   const companies = stats?.companies ?? [];
+  const asked = companies.filter(AI_MATCH.asked).length;
   const active = companies.filter((c) => !isStale(c.last_activity)).length;
 
   return (
@@ -84,6 +100,14 @@ export default function PilEntreprises() {
                 {FILTERS.map((f) => (
                   <button key={f.key} type="button" className={f.key === filter ? 'on' : ''} aria-pressed={f.key === filter} onClick={() => setFilter(f.key)}>
                     {f.label}
+                  </button>
+                ))}
+              </div>
+              <div className="pil-seg pil-seg--small" role="group" aria-label="Filtrer selon l’option IA">
+                {AI_FILTERS.map((f) => (
+                  <button key={f.key} type="button" className={f.key === aiFilter ? 'on' : ''} aria-pressed={f.key === aiFilter} onClick={() => setAiFilter(f.key)}>
+                    {f.label}
+                    {f.key === 'asked' && asked > 0 && <span className="pil-seg-count">{asked}</span>}
                   </button>
                 ))}
               </div>

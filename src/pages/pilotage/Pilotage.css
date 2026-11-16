@@ -240,3 +240,22 @@
 .pil-funnel-label { font-size: 13px; color: var(--pil-soft); }
 .pil-funnel-value { text-align: right; font-family: var(--font-display), sans-serif; font-size: 20px; font-weight: 600; color: #FFFFFF; font-variant-numeric: tabular-nums; }
 .pil-funnel-value span { display: block; font-family: inherit; font-size: 11.5px; font-weight: 400; color: var(--pil-mut); }
+
+/* Option IA avancée (16 nov. 2026) : interrupteur de la fiche entreprise,
+   étiquette dans la liste, nombre de demandes dans le filtre */
+.pil-ai-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.pil-ai-title { font-size: 15px; font-weight: 600; margin: 0 0 4px; color: var(--pil-text); }
+.pil-ai-state { margin: 0; }
+.pil-ai-error { margin: 8px 0 0; font-size: 12.5px; color: var(--pil-bad); }
+.pil-switch { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; border: 1px solid #3A3833; border-radius: 10px; background: #151513; color: var(--pil-mut); font: inherit; font-size: 13.5px; padding: 8px 14px 8px 10px; cursor: pointer; }
+.pil-switch:hover { border-color: #4A4740; }
+.pil-switch:disabled { opacity: 0.6; cursor: default; }
+.pil-switch:focus-visible { outline: 2px solid var(--pil-gold); outline-offset: 2px; }
+.pil-switch-track { position: relative; width: 36px; height: 20px; border-radius: 10px; background: #3A3833; transition: background 0.15s; }
+.pil-switch-knob { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #BDB8AE; transition: transform 0.15s, background 0.15s; }
+.pil-switch.on { color: var(--pil-gold); border-color: #4A3D1C; background: #2A2312; }
+.pil-switch.on .pil-switch-track { background: #7A6430; }
+.pil-switch.on .pil-switch-knob { transform: translateX(16px); background: var(--pil-gold); }
+.pil-ai-tag { display: inline-block; margin-left: 8px; font-size: 10.5px; padding: 1px 7px; border-radius: 5px; border: 1px solid #2E2D2A; color: var(--pil-mut); vertical-align: 1px; }
+.pil-ai-tag--on { color: var(--pil-gold); border-color: #4A3D1C; background: #2A2312; }
+.pil-seg-count { display: inline-block; margin-left: 6px; min-width: 16px; padding: 0 5px; border-radius: 8px; background: var(--pil-gold); color: #0B0B0B; font-size: 11px; font-weight: 700; line-height: 16px; text-align: center; }
