@@ -62,12 +62,16 @@ export default function Tarifs() {
             <p className="s-sub">Planning, congés, heures et paie indicative : tout est inclus.</p>
 
             <div className="s-calc">
-              <label htmlFor="s-count">Combien de salariés ?</label>
-              <div className="s-calc-n"><span>en plus du gérant</span><b>{count >= max ? `${max}+` : count}</b></div>
-              <input
-                id="s-count" className="s-range" type="range" min="1" max={max} value={count}
-                onChange={(e) => setCount(Number(e.target.value))}
-              />
+              <label htmlFor="s-count">Combien de salariés ? <small>(sans compter le gérant)</small></label>
+              <div className="s-calc-row">
+                <input
+                  id="s-count" className="s-range" type="range" min="1" max={max} value={count}
+                  onChange={(e) => setCount(Number(e.target.value))}
+                />
+                <output className="s-calc-count" htmlFor="s-count">
+                  <b>{count >= max ? `${max}+` : count}</b> salarié{count > 1 ? 's' : ''}
+                </output>
+              </div>
               <div className="s-price" aria-live="polite">
                 {p.monthly === 0
                   ? <><b>Gratuit</b><span>pour toujours</span></>
@@ -100,27 +104,50 @@ export default function Tarifs() {
             <p className="s-note">Sans carte bancaire · Sans engagement</p>
           </div>
 
-          <div className="s-card s-ia-plan" id="option-ia">
+          {/* Ce que comprend l'abonnement, à droite (demande de Cédric,
+              16 nov. 2026 : l'option IA passe en dessous, les exemples à la fin) */}
+          <div className="s-card s-incl-card">
+            <span className="s-tag">Inclus dans l'abonnement</span>
+            <h2>Tout, dès le premier salarié</h2>
+            <p className="s-sub">Le même abonnement complet, quelle que soit la taille de votre équipe.</p>
+            <ul className="s-incl-list">{INCLUDED.map((x) => <li key={x}>{x}</li>)}</ul>
+          </div>
+        </div>
+
+        <div className="s-card s-ia-plan s-ia-wide" id="option-ia">
+          <div>
             <span className="s-tag">✦ Option</span>
             <h2>IA avancée</h2>
             <p className="s-sub">Le planning du mois préparé pour vous, en quelques minutes.</p>
             <div className="s-price" style={{ marginTop: 22 }}>
               <b>{PRICING.aiOptionPrice}</b><span>HT / mois</span>
             </div>
-            <ul>
-              <li>{PRICING.aiMonthlyGenerations} plannings du mois générés par mois</li>
-              <li>S'inspire des habitudes de votre équipe</li>
-              <li>Tient compte de vos demandes écrites</li>
-              <li>Congés, contrats et repos vérifiés par Orgaly</li>
-              <li>Rien n'est enregistré avant votre accord</li>
-            </ul>
-            <Link className="s-btn s-btn--white s-btn--full" to="/contact?sujet=ia">Demander l'option</Link>
+            <Link className="s-btn s-btn--white" to="/contact?sujet=ia" style={{ marginTop: 24 }}>Demander l'option</Link>
             <small>S'ajoute à l'abonnement, même gratuit. Sans engagement : vous l'arrêtez quand vous voulez.</small>
           </div>
+          <ul>
+            <li>{PRICING.aiMonthlyGenerations} plannings du mois générés par mois</li>
+            <li>S'inspire des habitudes de votre équipe</li>
+            <li>Tient compte de vos demandes écrites</li>
+            <li>Congés, contrats et repos vérifiés par Orgaly</li>
+            <li>Rien n'est enregistré avant votre accord</li>
+          </ul>
         </div>
       </section>
 
-      <section className="s-block s-wrap">
+      <section className="s-block s-wrap" id="questions">
+        <div className="s-sec-head"><div className="s-kicker">Questions sur les tarifs</div><h2>Bon à savoir</h2></div>
+        <div className="s-faq">
+          {FAQ.map((f, i) => (
+            <details key={f.q} className="s-q" open={i === 0}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section className="s-wrap" style={{ paddingBottom: 96 }}>
         <div className="s-sec-head">
           <div className="s-kicker">Exemples</div>
           <h2>Combien vous paierez</h2>
@@ -141,23 +168,6 @@ export default function Tarifs() {
             </tr>
           </tbody>
         </table>
-      </section>
-
-      <section className="s-wrap" style={{ paddingBottom: 96 }}>
-        <div className="s-sec-head"><div className="s-kicker">Inclus dans l'abonnement</div><h2>Tout, dès le premier salarié</h2></div>
-        <div className="s-incl">{INCLUDED.map((x) => <div key={x}>{x}</div>)}</div>
-      </section>
-
-      <section className="s-wrap" id="questions" style={{ paddingBottom: 96 }}>
-        <div className="s-sec-head"><div className="s-kicker">Questions sur les tarifs</div><h2>Bon à savoir</h2></div>
-        <div className="s-faq">
-          {FAQ.map((f, i) => (
-            <details key={f.q} className="s-q" open={i === 0}>
-              <summary>{f.q}</summary>
-              <p>{f.a}</p>
-            </details>
-          ))}
-        </div>
       </section>
 
       <section className="s-wrap">

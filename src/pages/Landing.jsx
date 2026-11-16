@@ -226,7 +226,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="s-feat s-feat--rev">
+        <div className="s-feat s-feat--rev s-feat--wide">
           <div className="s-feat-txt">
             <span className="s-tag">Heures</span>
             <h3>Les heures se calculent toutes seules</h3>
@@ -237,8 +237,11 @@ export default function Landing() {
               <li>Bulletins indicatifs en PDF</li>
             </ul>
           </div>
-          <div className="s-stage s-stage--phones">
-            <div className="s-phone"><img src="/site/tel-pointage.webp" alt="Heures d'une salariée sur téléphone" loading="lazy" /></div>
+          <div className="s-stage">
+            <div className="s-browser">
+              <div className="s-browser-bar"><i /><i /><i /><span>myorgaly.fr</span></div>
+              <img src="/site/heures-planning.webp" alt="Planning de la semaine d'une salariée avec ses heures nettes calculées" width="1600" height="475" loading="lazy" />
+            </div>
           </div>
         </div>
 
