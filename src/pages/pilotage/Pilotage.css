@@ -72,6 +72,12 @@
 .pil-row--even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .pil-chart { position: relative; }
+/* Graphique qui remplit sa carte (fiche entreprise) : la carte passe en
+   colonne, le graphique prend la hauteur libre ; le dessin est posé en
+   absolu pour ne pas agrandir lui-même la carte */
+.pil-card--fill { display: flex; flex-direction: column; }
+.pil-chart--fill { flex: 1; }
+.pil-chart--fill > svg { position: absolute; inset: 0; }
 .pil-tip { position: absolute; top: 34px; transform: translateX(12px); pointer-events: none; background: #1E1C18; border: 1px solid #4A3D1C; border-radius: 8px; padding: 5px 9px; font-size: 12.5px; white-space: nowrap; color: var(--pil-text); }
 
 .pil-bar { display: flex; gap: 2px; height: 14px; margin: 20px 0 12px; }

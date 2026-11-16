@@ -105,7 +105,7 @@ export default function PilEntreprise() {
       </section>
 
       <div className="pil-row">
-        <section className="pil-card">
+        <section className="pil-card pil-card--fill">
           <CardHead title="Actions par semaine" sub={`12 dernières semaines · ${plural(weekTotal, 'action')} enregistrée${weekTotal > 1 ? 's' : ''} (journal démarré en novembre 2026)`} />
           <Chart
             type="bar"
@@ -114,6 +114,7 @@ export default function PilEntreprise() {
             tip={(p) => `Semaine du ${fmtDate(`${p.bucket}T12:00:00`)} · ${plural(p.value, 'action')}`}
             ariaLabel="Actions par semaine"
             height={190}
+            fill
           />
         </section>
 

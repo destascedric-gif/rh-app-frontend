@@ -112,10 +112,27 @@ export function ActivityStatus({ date }) {
 
 // Courbe (line) ou barres (bar), avec repère et bulle au survol.
 // series : [{ bucket, value }] ; xLabel(bucket) ; tip(point) -> texte
-export function Chart({ series, type = 'line', xLabel, tip, height = 200, width = 560, ariaLabel }) {
+// fill : le graphique prend toute la place libre de sa carte (largeur et
+// hauteur mesurées), au lieu d'une hauteur fixe ; la carte doit être en
+// colonne (classe pil-card--fill). height sert alors de hauteur minimale.
+export function Chart({ series, type = 'line', xLabel, tip, height = 200, width = 560, ariaLabel, fill = false }) {
   const [hover, setHover] = useState(null);
   const svgRef = useRef(null);
-  const W = width, H = height, x0 = 38, x1 = width - 12, y0 = H - 32, y1 = 14;
+  const boxRef = useRef(null);
+  const [box, setBox] = useState(null);
+  useEffect(() => {
+    if (!fill || !boxRef.current) return undefined;
+    const el = boxRef.current;
+    const ro = new ResizeObserver(() => {
+      const w = Math.round(el.clientWidth), h = Math.round(el.clientHeight);
+      if (w > 0 && h > 0) setBox((b) => (b && b.w === w && b.h === h ? b : { w, h }));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [fill]);
+  const W = fill && box ? box.w : width;
+  const H = fill && box ? Math.max(height, box.h) : height;
+  const x0 = 38, x1 = W - 12, y0 = H - 32, y1 = 14;
   const values = series.map((s) => s.value ?? 0);
   const max = Math.max(2, ...values);
   const step = max <= 4 ? 1 : Math.ceil(max / 4 / (max > 40 ? 10 : 1)) * (max > 40 ? 10 : 1);
@@ -143,8 +160,8 @@ export function Chart({ series, type = 'line', xLabel, tip, height = 200, width 
   const barW = Math.max(3, Math.min(26, slot * 0.6));
 
   return (
-    <div className="pil-chart">
-      <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={ariaLabel}>
+    <div ref={boxRef} className={`pil-chart${fill ? ' pil-chart--fill' : ''}`} style={fill ? { minHeight: height } : undefined}>
+      <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%" height={fill && box ? H : undefined} role="img" aria-label={ariaLabel}>
         <defs>
           <linearGradient id="pil-fill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#C9A75A" stopOpacity="0.22" />
