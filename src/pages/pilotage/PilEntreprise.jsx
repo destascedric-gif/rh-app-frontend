@@ -61,17 +61,16 @@ export default function PilEntreprise() {
     <>
       <PageHead
         title={<>{c.name} <PlanPill state={c.billing_state} /></>}
-        sub={`Inscrite le ${fmtLongDate(c.created_at)} · ${c.planning_months} mois de planning${c.planning_until ? ` (jusqu’à ${fmtMonth(c.planning_until)})` : ''} · dernière activité ${activityLabel(c.last_activity)}`}
+        sub={`Inscrite le ${fmtLongDate(c.created_at)} · ${c.planning_months} mois de planning${c.planning_until ? ` (jusqu’à ${fmtMonth(c.planning_until)})` : ''}${c.inactive_employees > 0 ? ` · ${plural(c.inactive_employees, 'ancien salarié')}` : ''} · dernière activité ${activityLabel(c.last_activity)}`}
         back={back}
       />
 
-      <div className="pil-kpis">
+      <div className="pil-kpis pil-kpis--3">
         <Kpi icon="users" label="Salariés actifs" value={c.employees}
           delta={c.billing_state === 'offert' ? 'abonnement offert pour toujours'
             : c.price_month > 0 ? `${fmtEuro(c.price_month)} HT / mois${c.billing_state === 'essai' ? ' après l’essai' : ''} (${billed} comptés)`
             : `${billed} / ${p.freeEmployees} salariés offerts`} />
         <Kpi icon="mail" label="Invitations en attente" value={c.pending_invites} delta="comptées dans le prix" muted />
-        <Kpi icon="crown" label="Gérants" value={c.managers} delta={c.inactive_employees > 0 ? `${plural(c.inactive_employees, 'ancien salarié')}` : 'aucun ancien salarié'} muted />
         <div className="pil-card pil-kpi">
           <div className="pil-kpi-label">Dernière activité</div>
           <div className="pil-kpi-value pil-kpi-value--sm"><ActivityStatus date={c.last_activity} /></div>
