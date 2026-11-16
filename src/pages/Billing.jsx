@@ -8,10 +8,6 @@ const euros = (n) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'E
 const date  = (d) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 const plural = (n, word) => `${n} ${word}${n > 1 ? 's' : ''}`;
 
-// Prix pour un nombre de salariés : même calcul que le serveur
-// (billing.service.js, computePrice), pour les exemples de la page
-const priceFor = (n, p) => Math.min(p.monthlyCap, Math.max(0, n - p.freeEmployees) * p.pricePerEmployee);
-
 // Page « Abonnement » (tarifs du 13 nov. 2026, affichés depuis le 15 nov.) :
 // le prix est calculé et affiché, mais le paiement en ligne n'est pas encore
 // ouvert : rien n'est demandé au gérant et rien n'est bloqué.
@@ -31,14 +27,14 @@ export default function Billing() {
   const count  = billing.activeEmployees;
   const price  = billing.price;
   const billed = price.billedEmployees;
-  const capAt  = p.freeEmployees + Math.ceil(p.monthlyCap / p.pricePerEmployee);
-  const examples = [p.freeEmployees + 1, p.freeEmployees + 3, 10, capAt];
+  const paying = !billing.freeForever && price.monthly > 0;
 
   return (
     <div className="page">
       <PageHeader title="Abonnement" />
 
-      {/* ── Ce que paie l'entreprise ──────────────── */}
+      {/* ── Votre abonnement : une seule phrase claire (16 nov. 2026, demande
+          de Cédric : moins de cases ; pas de montant « à l'année » ici) ── */}
       <div className="section-card billing-current">
         <div className="billing-current-head">
           <div>
@@ -59,59 +55,54 @@ export default function Billing() {
           </p>
         ) : (
           <>
-            <div className="billing-facts">
-              <div><span>Salariés comptés</span><strong>{count}</strong></div>
-              <div>
-                <span>Dont offerts</span>
-                <strong>{Math.min(count, p.freeEmployees)}</strong>
-              </div>
-              <div>
-                <span>Prix par mois</span>
-                <strong>{price.monthly === 0 ? 'Gratuit' : `${euros(price.monthly)} HT`}</strong>
-              </div>
-              {price.monthly > 0 && (
-                <div>
-                  <span>Ou payé à l'année</span>
-                  <strong>{euros(price.annual)} HT / an</strong>
-                </div>
-              )}
-            </div>
-            <p className="hint billing-note">
+            <p className="billing-text">
+              {plural(count, 'salarié')}
               {price.monthly === 0
-                ? `Jusqu'à ${p.freeEmployees} salariés, Orgaly est gratuit, sans limite de durée.`
+                ? ` : jusqu'à ${p.freeEmployees} salariés, Orgaly est gratuit, sans limite de durée.`
                 : price.capped
-                  ? `Plafond atteint : ${euros(p.monthlyCap)} HT par mois au plus, quel que soit le nombre de salariés.`
-                  : `${plural(billed, 'salarié')} en plus des ${p.freeEmployees} offerts × ${euros(p.pricePerEmployee)} HT.`}
-              {' '}Le gérant n'est pas compté ; les invitations en attente le sont.
+                  ? ` : plafond atteint, jamais plus de ${euros(p.monthlyCap)} HT par mois.`
+                  : `, dont ${p.freeEmployees} offerts : ${plural(billed, 'salarié')} × ${euros(p.pricePerEmployee)} HT.`}
             </p>
-            <p className="hint billing-note">
-              Le paiement en ligne n'est pas encore ouvert : rien ne vous est demandé pour le moment.
-              {billing.inTrial && ` Votre essai gratuit dure jusqu'au ${date(billing.trialEndsAt)}.`}
+            <p className="hint">
+              Le gérant n'est pas compté ; les invitations en attente le sont. Le paiement en ligne n'est pas encore ouvert : rien ne vous est demandé pour le moment.
             </p>
           </>
         )}
       </div>
 
-      {/* ── Comment le prix est calculé ───────────── */}
-      <div className="section-card">
-        <h2 className="section-title">Comment le prix est calculé</h2>
-        <ul className="plan-features billing-rules">
-          <li>Les {p.freeEmployees} premiers salariés sont toujours offerts.</li>
-          <li>Puis {euros(p.pricePerEmployee)} HT par salarié en plus et par mois.</li>
-          <li>Jamais plus de {euros(p.monthlyCap)} HT par mois et par boutique (atteint à {capAt} salariés).</li>
-          <li>Paiement à l'année : {p.annualMonthsPaid} mois payés pour 12, soit {12 - p.annualMonthsPaid} mois offerts.</li>
-          <li>{p.trialMonths} mois d'essai gratuits à l'inscription, sans carte bancaire.</li>
-        </ul>
-        <div className="billing-examples">
-          {examples.map((n) => (
-            <div key={n}>
-              <span>{plural(n, 'salarié')}</span>
-              <strong>{euros(priceFor(n, p))} HT / mois</strong>
+      {/* ── Les deux formules côte à côte (comme la page d'avant le 15 nov.) ── */}
+      {!billing.freeForever && (
+        <div className="plan-grid billing-plans">
+          <div className={`plan-card${paying ? '' : ' plan-card--pro'}`}>
+            <div className="plan-name">Gratuit</div>
+            <div className="plan-price">0 €</div>
+            <ul className="plan-features">
+              <li>Jusqu'à {p.freeEmployees} salariés</li>
+              <li>Planning, congés, pointage</li>
+              <li>Bulletins de paie indicatifs</li>
+              <li>Sans limite de durée</li>
+            </ul>
+            {!paying && <div className="plan-current">Votre offre actuelle</div>}
+          </div>
+
+          <div className={`plan-card${paying ? ' plan-card--pro' : ''}`}>
+            <div className="plan-name">Au-delà de {p.freeEmployees} salariés</div>
+            <div className="plan-price">
+              {euros(p.pricePerEmployee)} <span>HT par salarié en plus / mois</span>
             </div>
-          ))}
+            <ul className="plan-features">
+              <li>Les {p.freeEmployees} premiers salariés restent offerts</li>
+              <li>Jamais plus de {euros(p.monthlyCap)} HT par mois</li>
+              <li>À l'année : {12 - p.annualMonthsPaid} mois offerts</li>
+              <li>Sans engagement</li>
+            </ul>
+            <p className="hint plan-estimate">{EDITOR.vatMention}.</p>
+            {paying
+              ? <div className="plan-current">Votre offre actuelle</div>
+              : <div className="plan-current">Dès votre {p.freeEmployees + 1}<sup>e</sup> salarié</div>}
+          </div>
         </div>
-        <p className="hint billing-note">Sans engagement. {EDITOR.vatMention}.</p>
-      </div>
+      )}
 
       {/* ── Option IA : seulement pour les entreprises qui y ont accès ── */}
       {billing.aiPlanningEnabled && (
