@@ -13,7 +13,9 @@ const req = async (method, url, token, body = null) => {
 
 export const getBilling     = (token) => req('GET',  '/billing', token);
 // Renvoient { url } : la page Stripe vers laquelle rediriger le navigateur
-export const startCheckout  = (token) => req('POST', '/billing/checkout', token, { acceptCgv: true });
+// product : 'base' (abonnement Orgaly, interval 'month' | 'year') ou 'ai' (option IA, au mois)
+export const startCheckout  = (token, product, interval = 'month') =>
+  req('POST', '/billing/checkout', token, { acceptCgv: true, product, interval });
 export const openPortal     = (token) => req('POST', '/billing/portal', token);
-// Demande de l'option IA avancée (e-mail à Orgaly) → { requestedAt }
+// Demande de l'option IA avancée par e-mail (tant que le paiement en ligne n'est pas ouvert) → { requestedAt }
 export const requestAiOption = (token) => req('POST', '/billing/ai-request', token);

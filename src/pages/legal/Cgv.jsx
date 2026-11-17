@@ -41,7 +41,8 @@ export default function Cgv() {
           <strong>Option « IA avancée »</strong> (lorsqu'elle est proposée au Client) : génération du
           planning par intelligence artificielle, au prix de {PRICING.aiOptionPrice} HT par mois, dans
           la limite de {PRICING.aiMonthlyGenerations} générations par mois calendaire ; les générations
-          non utilisées ne sont pas reportées.
+          non utilisées ne sont pas reportées. L'option est souscrite à part, au mois, sans engagement ;
+          elle est payable dès sa souscription, y compris pendant la période d'essai.
         </li>
       </ul>
       <p>
@@ -54,7 +55,12 @@ export default function Cgv() {
         L'Administrateur souscrit à l'abonnement payant depuis la page « Abonnement » de son espace, après avoir
         accepté les présentes CGV. Le paiement est réalisé sur une page sécurisée de notre prestataire
         de paiement Stripe ; l'Éditeur n'a jamais accès aux numéros de carte. L'abonnement prend effet
-        dès la confirmation du paiement.
+        dès la confirmation du paiement. S'il est souscrit pendant la période d'essai, la carte est
+        enregistrée et le premier prélèvement a lieu à la fin de la période d'essai.
+      </p>
+      <p>
+        Des offres promotionnelles peuvent être proposées sous forme de code à saisir sur la page de
+        paiement ; leurs conditions (montant, durée, date limite) sont indiquées avec l'offre.
       </p>
 
       <h2>4. Prix et facturation</h2>
@@ -67,7 +73,10 @@ export default function Cgv() {
       </p>
       <p>
         Lorsque le nombre d'employés actifs varie en cours de mois, la différence est calculée au
-        prorata du temps restant et reportée sur la facture suivante (en plus ou en moins).
+        prorata du temps restant et reportée sur la facture suivante (en plus ou en moins). Si le
+        nombre d'employés actifs redescend à {PRICING.freeEmployees} ou moins, l'abonnement payant
+        prend fin automatiquement et la période déjà payée donne lieu à un avoir, déduit d'un futur
+        abonnement.
       </p>
 
       <h2>5. Paiement et retard</h2>

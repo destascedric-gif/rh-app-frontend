@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getBilling, requestAiOption } from '../api/billing';
+import { getBilling, requestAiOption, startCheckout, openPortal } from '../api/billing';
 import { EDITOR } from '../legal/legalInfo';
 import PageHeader from '../components/PageHeader';
 
@@ -27,20 +28,37 @@ const AI_FEATURES = [
 ];
 
 // Page « Abonnement » (16 nov. 2026, proposition B choisie par Cédric) :
-// deux encadrés seulement, l'un sous l'autre : mon abonnement (prix et ce
-// qui est inclus), puis l'option IA avancée (bouton « Demander l'option »,
-// remplacé par le compteur du mois une fois l'option active). Le paiement
-// en ligne n'est pas encore ouvert : rien n'est demandé, rien n'est bloqué.
+// deux encadrés, l'un sous l'autre : mon abonnement, puis l'option IA
+// avancée. Paiement en ligne Stripe depuis le 17 nov. 2026 : abonnement au
+// mois ou à l'année (pris pendant l'essai, premier prélèvement à la fin de
+// l'essai) et option IA au mois, deux abonnements séparés. Tant que Stripe
+// n'est pas configuré sur le serveur, la page garde l'ancien affichage
+// (« bientôt », demande de l'option IA par e-mail).
 export default function Billing() {
   const { token } = useAuth();
+  const [params] = useSearchParams();
   const [billing, setBilling] = useState(null);
   const [error,   setError]   = useState('');
-  const [sending, setSending] = useState(false);
+  const [busy,    setBusy]    = useState('');
+  const [baseError, setBaseError] = useState('');
   const [aiError, setAiError] = useState('');
+  const [interval, setPayInterval] = useState('month');
+  const [cgvBase, setCgvBase] = useState(false);
+  const [cgvAi,   setCgvAi]   = useState(false);
+  const statut = params.get('statut');
 
+  const load = useCallback(
+    () => getBilling(token).then(setBilling).catch((err) => setError(err.message)),
+    [token]
+  );
+  useEffect(() => { load(); }, [load]);
+  // Retour de Stripe : l'abonnement est enregistré par Stripe quelques
+  // secondes après le paiement, on relit la page un peu plus tard.
   useEffect(() => {
-    getBilling(token).then(setBilling).catch((err) => setError(err.message));
-  }, [token]);
+    if (statut !== 'succes') return undefined;
+    const t = setTimeout(load, 4000);
+    return () => clearTimeout(t);
+  }, [statut, load]);
 
   if (error) return <div className="page"><div className="notif-bar notif-bar--danger">{error}</div></div>;
   if (!billing) return <div className="page"><p className="page-loading">Chargement…</p></div>;
@@ -48,26 +66,51 @@ export default function Billing() {
   const p      = billing.pricing;
   const count  = billing.activeEmployees;
   const price  = billing.price;
+  // La démo est en « pro » depuis toujours, sans compte Stripe : pas un vrai abonnement
+  const pro    = billing.plan === 'pro' && billing.hasBillingAccount;
   const paying = !billing.freeForever && price.monthly > 0;
   const used   = billing.aiGenerationsUsed;
   const limit  = p.aiMonthlyGenerations;
+  const annual = Math.round(price.monthly * p.annualMonthsPaid * 100) / 100;
+
+  const go = async (key, action, setErr) => {
+    setErr('');
+    setBusy(key);
+    try {
+      const { url } = await action();
+      window.location.href = url;
+    } catch (err) {
+      setErr(err.message);
+      setBusy('');
+    }
+  };
+  const payBase   = () => go('base', () => startCheckout(token, 'base', interval), setBaseError);
+  const payAi     = () => go('ai', () => startCheckout(token, 'ai'), setAiError);
+  const portal    = (setErr) => go('portal', () => openPortal(token), setErr);
 
   const askAi = async () => {
     setAiError('');
-    setSending(true);
+    setBusy('ask');
     try {
       const { requestedAt } = await requestAiOption(token);
       setBilling((b) => ({ ...b, aiOptionRequestedAt: requestedAt }));
     } catch (err) {
       setAiError(err.message);
     } finally {
-      setSending(false);
+      setBusy('');
     }
   };
 
   return (
     <div className="page">
       <PageHeader title="Abonnement" />
+
+      {statut === 'succes' && (
+        <div className="abo-alert abo-alert--ok">Merci ! Votre paiement est enregistré. La page se met à jour dans quelques secondes.</div>
+      )}
+      {statut === 'annule' && (
+        <div className="abo-alert abo-alert--info">Paiement annulé : rien n'a été débité.</div>
+      )}
 
       {/* ── Mon abonnement ─────────────────────────── */}
       <div className="section-card abo-card">
@@ -92,12 +135,57 @@ export default function Billing() {
               <> · <span className="badge badge-info">Essai jusqu'au {date(billing.trialEndsAt)}</span></>
             )}
           </p>
-          {paying && (
+
+          {pro ? (
+            <>
+              <p className="abo-total">
+                Abonnement en place · paiement {billing.billingInterval === 'year' ? "à l'année" : 'au mois'}
+                {billing.currentPeriodEnd && (
+                  billing.cancelAtPeriodEnd
+                    ? <> · se termine le <b>{date(billing.currentPeriodEnd)}</b></>
+                    : <> · prochain prélèvement le <b>{date(billing.currentPeriodEnd)}</b></>
+                )}
+              </p>
+              <button type="button" className="btn-secondary abo-pay" disabled={busy === 'portal'} onClick={() => portal(setBaseError)}>
+                {busy === 'portal' ? 'Ouverture…' : 'Gérer mon abonnement'}
+              </button>
+              <p className="hint">Carte bancaire, factures, résiliation.</p>
+            </>
+          ) : paying && billing.billingEnabled ? (
+            <>
+              <div className="abo-interval" role="group" aria-label="Rythme de paiement">
+                <button type="button" className={interval === 'month' ? 'on' : ''} onClick={() => setPayInterval('month')}>Au mois</button>
+                <button type="button" className={interval === 'year' ? 'on' : ''} onClick={() => setPayInterval('year')}>
+                  À l'année<small>2 mois offerts</small>
+                </button>
+              </div>
+              <p className="abo-total">
+                {interval === 'year'
+                  ? <><b>{euros(annual)} HT</b> par an, au lieu de {euros(Math.round(price.monthly * 12 * 100) / 100)}</>
+                  : <><b>{euros(price.monthly)} HT</b> par mois, sans engagement</>}
+              </p>
+              <label className="abo-cgv">
+                <input type="checkbox" checked={cgvBase} onChange={(e) => setCgvBase(e.target.checked)} />
+                <span>J'accepte les <Link to="/cgv" target="_blank">conditions générales de vente</Link>.</span>
+              </label>
+              <button type="button" className="btn-primary abo-pay" disabled={billing.demo || !cgvBase || busy === 'base'} onClick={payBase}>
+                {busy === 'base' ? 'Ouverture…' : 'Payer mon abonnement'}
+              </button>
+              <p className="hint">
+                {billing.demo
+                  ? 'Compte de démonstration : le paiement est désactivé.'
+                  : billing.inTrial
+                  ? `Votre carte ne sera débitée qu'à la fin de l'essai, le ${date(billing.trialEndsAt)}.`
+                  : 'Paiement sécurisé par Stripe.'}
+              </p>
+            </>
+          ) : paying ? (
             <>
               <button type="button" className="btn-secondary abo-pay" disabled>Payer mon abonnement · bientôt</button>
               <p className="hint">Rien ne vous est demandé pour le moment.</p>
             </>
-          )}
+          ) : null}
+          {baseError && <p className="abo-error abo-error--light">{baseError}</p>}
         </div>
         <div>
           <ul className="abo-checks abo-checks--two">
@@ -137,19 +225,33 @@ export default function Billing() {
                 />
               </div>
               <p className="abo-note">Le compteur repart à zéro le 1er de chaque mois.</p>
+              {billing.aiBilledViaStripe && (
+                <button type="button" className="abo-link" disabled={busy === 'portal'} onClick={() => portal(setAiError)}>
+                  Gérer ou résilier l'option
+                </button>
+              )}
             </div>
+          ) : billing.aiBillingEnabled ? (
+            <>
+              <label className="abo-cgv abo-cgv--dark">
+                <input type="checkbox" checked={cgvAi} onChange={(e) => setCgvAi(e.target.checked)} />
+                <span>J'accepte les <Link to="/cgv" target="_blank">conditions générales de vente</Link>.</span>
+              </label>
+              <button type="button" className="abo-ask" disabled={billing.demo || !cgvAi || busy === 'ai'} onClick={payAi}>
+                {busy === 'ai' ? 'Ouverture…' : "Prendre l'option"}
+              </button>
+              <p className="abo-note abo-note--spaced">Sans engagement, payée au mois dès aujourd'hui.</p>
+            </>
           ) : billing.aiOptionRequestedAt ? (
             <p className="abo-requested">
               Demande envoyée le {date(billing.aiOptionRequestedAt)} : nous vous recontactons très vite.
             </p>
           ) : (
-            <>
-              <button type="button" className="abo-ask" disabled={sending} onClick={askAi}>
-                {sending ? 'Envoi…' : "Demander l'option"}
-              </button>
-              {aiError && <p className="abo-error">{aiError}</p>}
-            </>
+            <button type="button" className="abo-ask" disabled={busy === 'ask'} onClick={askAi}>
+              {busy === 'ask' ? 'Envoi…' : "Demander l'option"}
+            </button>
           )}
+          {aiError && <p className="abo-error">{aiError}</p>}
         </div>
         <ul className="abo-checks abo-checks--two">
           {AI_FEATURES.map((x) => <li key={x}>{x}</li>)}

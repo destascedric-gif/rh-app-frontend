@@ -2310,6 +2310,29 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
 .abo-ask:disabled { opacity: 0.7; cursor: default; }
 .abo-requested { display: inline-block; padding: 10px 14px; border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: #E4E8F5; font-size: 14px; line-height: 1.45; }
 .abo-error { margin-top: 10px; color: #FFB4B4; font-size: 13.5px; }
+/* Choix du paiement (17 nov. 2026, paiement en ligne Stripe) */
+.abo-interval { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 12px; border-radius: 10px; background: var(--bg-hover); }
+.abo-interval button {
+  height: 32px; padding: 0 14px; border: none; border-radius: 7px; background: transparent;
+  font: inherit; font-size: 13.5px; font-weight: 600; color: var(--text-muted); cursor: pointer;
+}
+.abo-interval button.on { background: var(--bg-card); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+.abo-interval small { font-weight: 500; color: var(--primary); margin-left: 4px; }
+.abo-withai { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; font-size: 14px; line-height: 1.4; cursor: pointer; }
+.abo-withai input { margin-top: 2px; accent-color: var(--primary); }
+.abo-total { font-size: 14px; color: var(--text-muted); margin-bottom: 14px; }
+.abo-total b { color: var(--text); }
+.abo-cgv { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4; }
+.abo-cgv input { margin-top: 2px; accent-color: var(--primary); }
+.abo-link { background: none; border: none; padding: 0; margin-top: 10px; font: inherit; font-size: 13px; color: #C3CAE0; text-decoration: underline; cursor: pointer; }
+.abo-link:disabled { opacity: 0.6; cursor: default; }
+.abo-alert { padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
+.abo-alert--ok { background: #E7F5EC; color: #1E6B3A; }
+.abo-alert--info { background: var(--primary-light); color: var(--text); }
+.abo-error--light { color: var(--danger, #B42318); }
+.abo-cgv--dark { color: #C3CAE0; }
+.abo-cgv--dark a { color: #fff; }
+.abo-note--spaced { margin-top: 8px; }
 @media (max-width: 768px) {
   .abo-card { grid-template-columns: 1fr; gap: 22px; padding: 22px; }
   .abo-checks--two { grid-template-columns: 1fr; }

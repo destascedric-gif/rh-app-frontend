@@ -6,8 +6,8 @@ export const EDITOR = {
   // "EI" obligatoire à côté du nom d'un entrepreneur individuel (loi du 14/02/2022)
   name:        'Cédric Destas EI',
   status:      'Entrepreneur individuel (micro-entreprise)',
-  siren:       null, // ex. '123 456 789' — attribué à l'immatriculation (INPI)
-  address:     null, // adresse professionnelle ou de domiciliation
+  siren:       '132 923 111',
+  address:     '27 bis avenue de la Forêt, 77380 Combs-la-Ville',
   email:       'contact@myorgaly.fr', // boîte mail OVH (Zimbra Starter) dédiée à Orgaly
   publisher:   'Cédric Destas', // directeur de la publication
   // Mention obligatoire sur les factures tant que la franchise en base s'applique
@@ -96,5 +96,5 @@ export const PRICING = {
 
 // Versions en vigueur (identiques au backend, src/config/legal.js)
 export const CGU_VERSION = '2026-10-01';
-export const CGV_VERSION = '2026-11-15';
-export const LEGAL_UPDATED_AT = '16 novembre 2026';
+export const CGV_VERSION = '2026-11-17';
+export const LEGAL_UPDATED_AT = '17 novembre 2026';
