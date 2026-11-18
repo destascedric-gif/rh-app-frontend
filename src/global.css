@@ -2337,6 +2337,48 @@ button { font-family: 'Public Sans', sans-serif; cursor: pointer; }
   .abo-card { grid-template-columns: 1fr; gap: 22px; padding: 22px; }
   .abo-checks--two { grid-template-columns: 1fr; }
 }
+/* Page Abonnement allégée (18 nov. 2026, proposition B choisie par Cédric,
+   carte IA gardée en bleu nuit « côté moderne ») : deux cartes de même
+   taille côte à côte ; listes au clic (« Ce qui est inclus › ») */
+.abo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 1044px; align-items: stretch; }
+.abo-box { display: flex; flex-direction: column; padding: 24px 26px; margin: 0; overflow: visible; }
+.abo-box .abo-price { margin: 8px 0 2px; }
+.abo-box .abo-sub { margin-bottom: 10px; }
+.abo-box-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.abo-box-foot { margin-top: auto; padding-top: 10px; }
+.abo-box .abo-interval { margin-bottom: 14px; }
+.abo-box .abo-pay { margin-bottom: 0; }
+.abo-legal { font-size: 12.5px; color: var(--text-light); margin-top: 10px; line-height: 1.5; }
+.abo-legal a { color: var(--primary); }
+.abo-trial { display: inline-block; font-size: 12.5px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: var(--primary-light); color: var(--primary); }
+.abo-more-wrap { position: relative; }
+.abo-more { background: none; border: none; padding: 0; font: inherit; font-size: 13.5px; font-weight: 500; color: var(--primary); cursor: pointer; white-space: nowrap; }
+.abo-more:hover { text-decoration: underline; text-underline-offset: 3px; }
+.abo-more--dark { color: #AFC0FA; }
+.abo-pop {
+  position: absolute; right: 0; top: 26px; z-index: 20; width: 440px; max-width: 80vw;
+  background: var(--bg-card); color: var(--text); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: var(--shadow-md); padding: 14px 18px; font-size: 13.5px; text-align: left;
+}
+.abo-pop-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; }
+.abo-pop-list--one { grid-template-columns: 1fr; }
+.abo-pop-list li { display: flex; gap: 8px; line-height: 1.35; }
+.abo-pop-list li::before { content: '✓'; color: var(--primary); font-weight: 700; }
+.abo-pop-note { margin-top: 10px; font-size: 12.5px; color: var(--text-light); line-height: 1.5; }
+.abo-ia-title { display: flex; align-items: center; gap: 10px; }
+.abo-ia-tag { font-size: 12px; font-weight: 600; color: #fff; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 7px; padding: 2px 9px; }
+.abo-box.abo-ia { overflow: hidden; }
+/* La bulle s'ouvre au-dessus du prix (les blocs de la carte IA sont empilés) */
+.abo-box-head { position: relative; z-index: 3; }
+.abo-ia .abo-legal { color: #AEB6CE; }
+.abo-ia .abo-legal a { color: #fff; }
+.abo-ia .abo-link { margin-top: 0; }
+.abo-box .abo-usage .abo-legal { margin-top: 8px; }
+@media (max-width: 900px) {
+  .abo-grid { grid-template-columns: 1fr; }
+  .abo-pop { width: min(440px, 86vw); }
+  .abo-pop-list { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 768px) {
   .plan-grid, .billing-facts { grid-template-columns: 1fr; }

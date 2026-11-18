@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getBilling, requestAiOption, startCheckout, openPortal } from '../api/billing';
@@ -27,13 +27,39 @@ const AI_FEATURES = [
   "Rien n'est enregistré sans votre accord",
 ];
 
-// Page « Abonnement » (16 nov. 2026, proposition B choisie par Cédric) :
-// deux encadrés, l'un sous l'autre : mon abonnement, puis l'option IA
-// avancée. Paiement en ligne Stripe depuis le 17 nov. 2026 : abonnement au
-// mois ou à l'année (pris pendant l'essai, premier prélèvement à la fin de
-// l'essai) et option IA au mois, deux abonnements séparés. Tant que Stripe
-// n'est pas configuré sur le serveur, la page garde l'ancien affichage
-// (« bientôt », demande de l'option IA par e-mail).
+// Lien « Ce qui est inclus › » : la liste s'ouvre dans une petite bulle au
+// clic (refermée par un clic ailleurs ou Échap) au lieu d'occuper la page.
+function MorePopover({ label, children, dark = false }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [open]);
+  return (
+    <span className="abo-more-wrap" ref={ref}>
+      <button type="button" className={`abo-more${dark ? ' abo-more--dark' : ''}`} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        {label} ›
+      </button>
+      {open && <div className="abo-pop" role="dialog" aria-label={label}>{children}</div>}
+    </span>
+  );
+}
+
+// Page « Abonnement » (18 nov. 2026, allégée : proposition B choisie par
+// Cédric, avec la carte IA gardée en bleu nuit) : deux cartes côte à côte,
+// mon abonnement et l'option IA avancée ; prix, une phrase, un bouton.
+// Les listes de ce qui est inclus s'ouvrent au clic ; plus de cases CGV à
+// cocher, une phrase sous le bouton de paiement.
+// Paiement en ligne Stripe depuis le 17 nov. 2026 : abonnement au mois ou à
+// l'année (pris pendant l'essai, premier prélèvement à la fin de l'essai) et
+// option IA au mois, deux abonnements séparés. Tant que Stripe n'est pas
+// configuré sur le serveur, la page garde l'ancien affichage (« bientôt »,
+// demande de l'option IA par e-mail).
 export default function Billing() {
   const { token } = useAuth();
   const [params] = useSearchParams();
@@ -43,8 +69,6 @@ export default function Billing() {
   const [baseError, setBaseError] = useState('');
   const [aiError, setAiError] = useState('');
   const [interval, setPayInterval] = useState('month');
-  const [cgvBase, setCgvBase] = useState(false);
-  const [cgvAi,   setCgvAi]   = useState(false);
   const statut = params.get('statut');
 
   const load = useCallback(
@@ -69,9 +93,12 @@ export default function Billing() {
   // La démo est en « pro » depuis toujours, sans compte Stripe : pas un vrai abonnement
   const pro    = billing.plan === 'pro' && billing.hasBillingAccount;
   const paying = !billing.freeForever && price.monthly > 0;
+  const canPay = !pro && paying && billing.billingEnabled;
   const used   = billing.aiGenerationsUsed;
   const limit  = p.aiMonthlyGenerations;
   const annual = Math.round(price.monthly * p.annualMonthsPaid * 100) / 100;
+  // Le grand prix suit le choix « au mois / à l'année » tant que rien n'est payé
+  const showYear = canPay && interval === 'year';
 
   const go = async (key, action, setErr) => {
     setErr('');
@@ -101,6 +128,8 @@ export default function Billing() {
     }
   };
 
+  const cgv = <>En payant, vous acceptez les <Link to="/cgv" target="_blank">conditions générales de vente</Link>. Paiement sécurisé par Stripe.</>;
+
   return (
     <div className="page">
       <PageHeader title="Abonnement" />
@@ -112,150 +141,152 @@ export default function Billing() {
         <div className="abo-alert abo-alert--info">Paiement annulé : rien n'a été débité.</div>
       )}
 
-      {/* ── Mon abonnement ─────────────────────────── */}
-      <div className="section-card abo-card">
-        <div>
-          <div className="billing-label">Mon abonnement</div>
+      <div className="abo-grid">
+        {/* ── Mon abonnement ─────────────────────────── */}
+        <section className="section-card abo-box">
+          <div className="abo-box-head">
+            <div className="billing-label">Mon abonnement</div>
+            <MorePopover label="Ce qui est inclus">
+              <ul className="abo-pop-list">{INCLUDED.map((x) => <li key={x}>{x}</li>)}</ul>
+              <p className="abo-pop-note">
+                {p.freeEmployees} salariés offerts, puis {euros(p.pricePerEmployee)} HT par salarié · {euros(p.monthlyCap)} HT
+                par mois au maximum · sans engagement · le gérant n'est pas compté · {EDITOR.vatMention}.
+              </p>
+            </MorePopover>
+          </div>
+
           <div className="abo-price">
             {billing.freeForever
               ? <b>Offert</b>
               : price.monthly === 0
                 ? <b>Gratuit</b>
-                : <><b>{euros(price.monthly)}</b><span>HT / mois</span></>}
+                : showYear
+                  ? <><b>{euros(annual)}</b><span>HT / an</span></>
+                  : <><b>{euros(price.monthly)}</b><span>HT / mois</span></>}
           </div>
           <p className="abo-sub">
             {billing.freeForever
-              ? `Premier client d'Orgaly : l'abonnement vous est offert, quel que soit le nombre de salariés (${plural(count, 'salarié')} aujourd'hui).`
+              ? `Premier client d'Orgaly : offert quel que soit le nombre de salariés (${plural(count, 'salarié')} aujourd'hui).`
               : price.monthly === 0
                 ? `${plural(count, 'salarié')} · gratuit jusqu'à ${p.freeEmployees} salariés, sans limite de durée.`
-                : price.capped
-                  ? `${plural(count, 'salarié')} · plafond atteint`
-                  : `${plural(count, 'salarié')}, dont ${p.freeEmployees} offerts`}
-            {paying && billing.inTrial && (
-              <> · <span className="badge badge-info">Essai jusqu'au {date(billing.trialEndsAt)}</span></>
-            )}
+                : showYear
+                  ? `${plural(count, 'salarié')} · au lieu de ${euros(Math.round(price.monthly * 12 * 100) / 100)} payés au mois`
+                  : price.capped
+                    ? `${plural(count, 'salarié')} · plafond atteint`
+                    : `${plural(count, 'salarié')}, dont ${p.freeEmployees} offerts`}
           </p>
+          {paying && billing.inTrial && !pro && (
+            <p><span className="abo-trial">Essai gratuit jusqu'au {date(billing.trialEndsAt)}</span></p>
+          )}
 
-          {pro ? (
-            <>
-              <p className="abo-total">
-                Abonnement en place · paiement {billing.billingInterval === 'year' ? "à l'année" : 'au mois'}
-                {billing.currentPeriodEnd && (
-                  billing.cancelAtPeriodEnd
-                    ? <> · se termine le <b>{date(billing.currentPeriodEnd)}</b></>
-                    : <> · prochain prélèvement le <b>{date(billing.currentPeriodEnd)}</b></>
-                )}
-              </p>
-              <button type="button" className="btn-secondary abo-pay" disabled={busy === 'portal'} onClick={() => portal(setBaseError)}>
-                {busy === 'portal' ? 'Ouverture…' : 'Gérer mon abonnement'}
-              </button>
-              <p className="hint">Carte bancaire, factures, résiliation.</p>
-            </>
-          ) : paying && billing.billingEnabled ? (
-            <>
-              <div className="abo-interval" role="group" aria-label="Rythme de paiement">
-                <button type="button" className={interval === 'month' ? 'on' : ''} onClick={() => setPayInterval('month')}>Au mois</button>
-                <button type="button" className={interval === 'year' ? 'on' : ''} onClick={() => setPayInterval('year')}>
-                  À l'année<small>2 mois offerts</small>
+          <div className="abo-box-foot">
+            {pro ? (
+              <>
+                <p className="abo-total">
+                  Abonnement en place · paiement {billing.billingInterval === 'year' ? "à l'année" : 'au mois'}
+                  {billing.currentPeriodEnd && (
+                    billing.cancelAtPeriodEnd
+                      ? <> · se termine le <b>{date(billing.currentPeriodEnd)}</b></>
+                      : <> · prochain prélèvement le <b>{date(billing.currentPeriodEnd)}</b></>
+                  )}
+                </p>
+                <button type="button" className="btn-secondary" disabled={busy === 'portal'} onClick={() => portal(setBaseError)}>
+                  {busy === 'portal' ? 'Ouverture…' : 'Gérer mon abonnement'}
                 </button>
-              </div>
-              <p className="abo-total">
-                {interval === 'year'
-                  ? <><b>{euros(annual)} HT</b> par an, au lieu de {euros(Math.round(price.monthly * 12 * 100) / 100)}</>
-                  : <><b>{euros(price.monthly)} HT</b> par mois, sans engagement</>}
-              </p>
-              <label className="abo-cgv">
-                <input type="checkbox" checked={cgvBase} onChange={(e) => setCgvBase(e.target.checked)} />
-                <span>J'accepte les <Link to="/cgv" target="_blank">conditions générales de vente</Link>.</span>
-              </label>
-              <button type="button" className="btn-primary abo-pay" disabled={billing.demo || !cgvBase || busy === 'base'} onClick={payBase}>
-                {busy === 'base' ? 'Ouverture…' : 'Payer mon abonnement'}
-              </button>
-              <p className="hint">
-                {billing.demo
-                  ? 'Compte de démonstration : le paiement est désactivé.'
-                  : billing.inTrial
-                  ? `Votre carte ne sera débitée qu'à la fin de l'essai, le ${date(billing.trialEndsAt)}.`
-                  : 'Paiement sécurisé par Stripe.'}
-              </p>
-            </>
-          ) : paying ? (
-            <>
-              <button type="button" className="btn-secondary abo-pay" disabled>Payer mon abonnement · bientôt</button>
-              <p className="hint">Rien ne vous est demandé pour le moment.</p>
-            </>
-          ) : null}
-          {baseError && <p className="abo-error abo-error--light">{baseError}</p>}
-        </div>
-        <div>
-          <ul className="abo-checks abo-checks--two">
-            {INCLUDED.map((x) => <li key={x}>{x}</li>)}
-          </ul>
-          <p className="hint abo-rules">
-            {p.freeEmployees} salariés offerts, puis {euros(p.pricePerEmployee)} HT par salarié ·{' '}
-            {euros(p.monthlyCap)} HT par mois au maximum · Sans engagement. Le gérant n'est pas compté.{' '}
-            {EDITOR.vatMention}.
-          </p>
-        </div>
-      </div>
+                <p className="abo-legal">Carte bancaire, factures, résiliation.</p>
+              </>
+            ) : canPay ? (
+              <>
+                <div className="abo-interval" role="group" aria-label="Rythme de paiement">
+                  <button type="button" className={interval === 'month' ? 'on' : ''} onClick={() => setPayInterval('month')}>Au mois</button>
+                  <button type="button" className={interval === 'year' ? 'on' : ''} onClick={() => setPayInterval('year')}>
+                    À l'année<small>2 mois offerts</small>
+                  </button>
+                </div>
+                <div>
+                  <button type="button" className="btn-primary abo-pay" disabled={billing.demo || busy === 'base'} onClick={payBase}>
+                    {busy === 'base' ? 'Ouverture…' : 'Payer mon abonnement'}
+                  </button>
+                </div>
+                <p className="abo-legal">
+                  {billing.demo
+                    ? 'Compte de démonstration : le paiement est désactivé.'
+                    : <>{billing.inTrial && <>Rien n'est prélevé avant le {date(billing.trialEndsAt)}. </>}{cgv}</>}
+                </p>
+              </>
+            ) : paying ? (
+              <>
+                <button type="button" className="btn-secondary" disabled>Payer mon abonnement · bientôt</button>
+                <p className="abo-legal">Rien ne vous est demandé pour le moment.</p>
+              </>
+            ) : null}
+            {baseError && <p className="abo-error abo-error--light">{baseError}</p>}
+          </div>
+        </section>
 
-      {/* ── Option IA avancée ──────────────────────── */}
-      <div className="section-card abo-card abo-ia">
-        <div>
-          <div className="billing-label">Option</div>
-          <h2 className="abo-title">IA avancée</h2>
+        {/* ── Option IA avancée (bleu nuit) ──────────── */}
+        <section className="section-card abo-box abo-ia">
+          <div className="abo-box-head">
+            <div className="abo-ia-title">
+              <span className="billing-label">Option</span>
+              <span className="abo-ia-tag">✦ IA avancée</span>
+            </div>
+            <MorePopover label="En savoir plus" dark>
+              <ul className="abo-pop-list abo-pop-list--one">{AI_FEATURES.map((x) => <li key={x}>{x}</li>)}</ul>
+            </MorePopover>
+          </div>
+
           <div className="abo-price">
             {billing.freeForever && billing.aiPlanningEnabled
               ? <b>Offerte</b>
               : <><b>{euros(p.aiOptionPrice)}</b><span>HT / mois</span></>}
           </div>
-          <p className="abo-sub">{limit} plannings du mois générés par mois.</p>
+          <p className="abo-sub">Le planning du mois préparé en quelques minutes · {limit} par mois.</p>
 
-          {billing.aiPlanningEnabled ? (
-            // Option active : le compteur du mois remplace le bouton
-            <div className="abo-usage">
-              <div className="usage-row">
-                <span>Plannings générés ce mois-ci</span>
-                <strong>{used} / {limit}</strong>
+          <div className="abo-box-foot">
+            {billing.aiPlanningEnabled ? (
+              // Option active : le compteur du mois remplace le bouton
+              <div className="abo-usage">
+                <div className="usage-row">
+                  <span>Plannings générés ce mois-ci</span>
+                  <strong>{used} / {limit}</strong>
+                </div>
+                <div className="usage-meter" role="progressbar" aria-valuemin={0} aria-valuemax={limit} aria-valuenow={used}>
+                  <div
+                    className={`usage-meter-fill${used >= limit ? ' full' : ''}`}
+                    style={{ width: `${Math.min(100, (used / limit) * 100)}%` }}
+                  />
+                </div>
+                <p className="abo-legal">
+                  Le compteur repart à zéro le 1er de chaque mois.
+                  {billing.aiBilledViaStripe && (
+                    <> <button type="button" className="abo-link" disabled={busy === 'portal'} onClick={() => portal(setAiError)}>Gérer ou résilier l'option</button></>
+                  )}
+                </p>
               </div>
-              <div className="usage-meter" role="progressbar" aria-valuemin={0} aria-valuemax={limit} aria-valuenow={used}>
-                <div
-                  className={`usage-meter-fill${used >= limit ? ' full' : ''}`}
-                  style={{ width: `${Math.min(100, (used / limit) * 100)}%` }}
-                />
-              </div>
-              <p className="abo-note">Le compteur repart à zéro le 1er de chaque mois.</p>
-              {billing.aiBilledViaStripe && (
-                <button type="button" className="abo-link" disabled={busy === 'portal'} onClick={() => portal(setAiError)}>
-                  Gérer ou résilier l'option
+            ) : billing.aiBillingEnabled ? (
+              <>
+                <div>
+                  <button type="button" className="abo-ask" disabled={billing.demo || busy === 'ai'} onClick={payAi}>
+                    {busy === 'ai' ? 'Ouverture…' : "Prendre l'option"}
+                  </button>
+                </div>
+                <p className="abo-legal">Sans engagement, payée au mois dès aujourd'hui. {cgv}</p>
+              </>
+            ) : billing.aiOptionRequestedAt ? (
+              <p className="abo-requested">
+                Demande envoyée le {date(billing.aiOptionRequestedAt)} : nous vous recontactons très vite.
+              </p>
+            ) : (
+              <div>
+                <button type="button" className="abo-ask" disabled={busy === 'ask'} onClick={askAi}>
+                  {busy === 'ask' ? 'Envoi…' : "Demander l'option"}
                 </button>
-              )}
-            </div>
-          ) : billing.aiBillingEnabled ? (
-            <>
-              <label className="abo-cgv abo-cgv--dark">
-                <input type="checkbox" checked={cgvAi} onChange={(e) => setCgvAi(e.target.checked)} />
-                <span>J'accepte les <Link to="/cgv" target="_blank">conditions générales de vente</Link>.</span>
-              </label>
-              <button type="button" className="abo-ask" disabled={billing.demo || !cgvAi || busy === 'ai'} onClick={payAi}>
-                {busy === 'ai' ? 'Ouverture…' : "Prendre l'option"}
-              </button>
-              <p className="abo-note abo-note--spaced">Sans engagement, payée au mois dès aujourd'hui.</p>
-            </>
-          ) : billing.aiOptionRequestedAt ? (
-            <p className="abo-requested">
-              Demande envoyée le {date(billing.aiOptionRequestedAt)} : nous vous recontactons très vite.
-            </p>
-          ) : (
-            <button type="button" className="abo-ask" disabled={busy === 'ask'} onClick={askAi}>
-              {busy === 'ask' ? 'Envoi…' : "Demander l'option"}
-            </button>
-          )}
-          {aiError && <p className="abo-error">{aiError}</p>}
-        </div>
-        <ul className="abo-checks abo-checks--two">
-          {AI_FEATURES.map((x) => <li key={x}>{x}</li>)}
-        </ul>
+              </div>
+            )}
+            {aiError && <p className="abo-error">{aiError}</p>}
+          </div>
+        </section>
       </div>
     </div>
   );
