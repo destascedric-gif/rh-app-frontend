@@ -96,5 +96,5 @@ export const PRICING = {
 
 // Versions en vigueur (identiques au backend, src/config/legal.js)
 export const CGU_VERSION = '2026-10-01';
-export const CGV_VERSION = '2026-11-17';
-export const LEGAL_UPDATED_AT = '17 novembre 2026';
+export const CGV_VERSION = '2026-11-19';
+export const LEGAL_UPDATED_AT = '19 novembre 2026';

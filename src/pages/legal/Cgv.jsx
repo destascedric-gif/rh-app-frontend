@@ -74,9 +74,10 @@ export default function Cgv() {
       <p>
         Lorsque le nombre d'employés actifs varie en cours de mois, la différence est calculée au
         prorata du temps restant et reportée sur la facture suivante (en plus ou en moins). Si le
-        nombre d'employés actifs redescend à {PRICING.freeEmployees} ou moins, l'abonnement payant
-        prend fin automatiquement et la période déjà payée donne lieu à un avoir, déduit d'un futur
-        abonnement.
+        nombre d'employés actifs redescend à {PRICING.freeEmployees} ou moins, l'abonnement reste en
+        place à 0 € : la période déjà payée est créditée au prorata, et la facturation reprend
+        automatiquement, au prorata, dès que le nombre d'employés actifs dépasse de nouveau{' '}
+        {PRICING.freeEmployees}.
       </p>
 
       <h2>5. Paiement et retard</h2>
