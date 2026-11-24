@@ -122,7 +122,12 @@ export default function CalendarLinkModal({ onClose }) {
                   ordinateur.
                 </span>
               </li>
-              <li>Collez le lien et cliquez sur <b>« Ajouter l'agenda »</b>. Il apparaît ensuite aussi sur votre téléphone Android.</li>
+              <li>Collez le lien et cliquez sur <b>« Ajouter l'agenda »</b>.</li>
+              <li>
+                <b>Sur le téléphone</b>, dans l'appli Google Agenda : menu ☰ → <b>Paramètres</b> → touchez l'agenda
+                « Orgaly » (sous votre adresse Gmail, parfois dans « Afficher plus ») → activez <b>« Synchroniser »</b>.
+                <span className="hint">Google ne le fait pas tout seul pour ce type d'agenda : sans ce réglage, il ne s'affiche que sur l'ordinateur.</span>
+              </li>
             </ol>
             <p className="cal-note">
               Google met à jour ce type d'agenda lui-même, en général dans la journée : un changement de dernière minute
