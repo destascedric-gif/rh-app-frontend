@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { changePassword } from '../api/auth';
 import { getMyProfile } from '../api/employees';
 import PageHeader from '../components/PageHeader';
+import CalendarLinkModal, { CalendarIcon } from '../components/CalendarLinkModal';
 
 // « Mon compte » de l'employé (8 nov. 2026, demande de Cédric) : ses
 // informations de connexion et le changement de mot de passe, comme sur la
@@ -48,6 +49,8 @@ export default function MyAccount() {
   const [pwError, setPwError]   = useState('');
   const [pwNotice, setPwNotice] = useState('');
   const [pwSaving, setPwSaving] = useState(false);
+  // Fenêtre « Mon planning dans mon agenda »
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
@@ -103,6 +106,22 @@ export default function MyAccount() {
           </p>
         </section>
 
+        <div className="myaccount-col">
+        {/* Planning dans l'agenda du téléphone (24 nov. 2026, maquette A) */}
+        <section className="dash-card">
+          <div className="cal-card-row">
+            <span className="cal-card-ico"><CalendarIcon /></span>
+            <div className="cal-card-body">
+              <div className="dash-card-head"><h2>Mon planning dans mon agenda</h2></div>
+              <p className="cal-card-text">
+                Vos créneaux, réunions et congés dans l'agenda de votre téléphone (iPhone, Google Agenda…), mis à jour
+                tout seuls.
+              </p>
+              <button type="button" className="btn-primary" onClick={() => setCalendarOpen(true)}>Ajouter à mon agenda</button>
+            </div>
+          </div>
+        </section>
+
         <section className="dash-card">
           <div className="dash-card-head">
             <h2>Mot de passe</h2>
@@ -153,7 +172,10 @@ export default function MyAccount() {
             <Link to="/mot-de-passe-oublie">Recevoir un lien par e-mail</Link>
           </p>
         </section>
+        </div>
       </div>
+
+      {calendarOpen && <CalendarLinkModal onClose={() => setCalendarOpen(false)} />}
     </div>
   );
 }

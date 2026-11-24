@@ -16,6 +16,7 @@ import {
 import { DEFAULT_OPEN_DAYS, OPEN_DAY_LABELS } from '../utils/openDays';
 import { SHIFT_PALETTE, NEUTRAL_SHIFT_COLOR } from '../components/schedule/shiftColor';
 import { DEFAULT_PRIMARY_COLOR, normalizePrimaryColor } from '../utils/brandColor';
+import CalendarLinkModal, { CalendarIcon } from '../components/CalendarLinkModal';
 
 const EMPTY_PASSWORD_FORM = { currentPassword: '', newPassword: '', confirmPassword: '' };
 // color vide = couleur libre attribuée automatiquement par le serveur
@@ -214,6 +215,8 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  // Fenêtre « Mon planning dans mon agenda » (gérant dans le planning)
+  const [calendarOpen, setCalendarOpen] = useState(false);
   // Rubrique dont la fenêtre est ouverte : 'legal', 'brand', 'planning', 'security' ou null.
   // ?rubrique=planning (ou un onglet du Planning : ?rubrique=weeks, lien « Gérer les
   // semaines types » du planning) l'ouvre d'emblée.
@@ -742,6 +745,26 @@ export default function Settings() {
                       </span>
                     </div>
                   )}
+                  {/* Planning dans l'agenda du téléphone (24 nov. 2026) : seulement
+                      quand le gérant apparaît dans le planning (réglage enregistré) */}
+                  {planningTab === 'manager' && form.managerInSchedule && (
+                    <div className="cal-settings">
+                      <div className="cal-card-row">
+                        <span className="cal-card-ico"><CalendarIcon /></span>
+                        <div className="cal-card-body">
+                          <h4>Votre planning dans votre agenda</h4>
+                          <p className="cal-card-text">
+                            Vos créneaux, réunions et congés dans l'agenda de votre téléphone, comme pour vos salariés.
+                          </p>
+                          {saved.managerInSchedule ? (
+                            <button type="button" className="btn-secondary" onClick={() => setCalendarOpen(true)}>Ajouter à mon agenda</button>
+                          ) : (
+                            <span className="hint">Enregistrez d'abord ce réglage pour ajouter votre planning à votre agenda.</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {planningTab === 'meetings' && (
                     <label className="settings-switch">
                       <input
@@ -975,6 +998,8 @@ export default function Settings() {
           </form>
         </SettingsWindow>
       )}
+
+      {calendarOpen && <CalendarLinkModal onClose={() => setCalendarOpen(false)} />}
     </div>
   );
 }

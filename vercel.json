@@ -5,5 +5,8 @@
     { "source": "/carte", "destination": "/?src=carte", "permanent": false },
     { "source": "/pub", "destination": "/?src=pub", "permanent": false }
   ],
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "rewrites": [
+    { "source": "/agenda/:file", "destination": "https://rh-app-backend-production.up.railway.app/api/calendar/:file" },
+    { "source": "/(.*)", "destination": "/" }
+  ]
 }

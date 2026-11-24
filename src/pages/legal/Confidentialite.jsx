@@ -112,6 +112,17 @@ export default function Confidentialite() {
         de manière entièrement automatisée.
       </p>
 
+      <h3>Planning dans l'agenda du téléphone</h3>
+      <p>
+        Chaque utilisateur peut, s'il le souhaite, ajouter son propre planning (créneaux de travail,
+        réunions, congés et absences, sans le motif d'une absence) à l'agenda de son choix (Google Agenda,
+        agenda de l'iPhone…). Orgaly lui donne pour cela un lien personnel et secret : l'agenda choisi le
+        relit lui-même de temps en temps. Ce service est choisi et utilisé par l'utilisateur, sous ses
+        propres conditions ; l'Éditeur ne lui transmet rien d'autre. Le lien peut être changé à tout
+        moment (« Changer mon lien ») : l'ancien cesse alors de fonctionner, comme lorsque le compte est
+        désactivé.
+      </p>
+
       <h2>4. Transferts hors de l'Union européenne</h2>
       <p>
         Certains prestataires sont des sociétés américaines ou stockent des données aux États-Unis
