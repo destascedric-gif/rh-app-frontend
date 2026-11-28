@@ -17,7 +17,8 @@ export default function MentionsLegales() {
         <dt>Statut</dt>               <dd>{EDITOR.status}</dd>
         <dt>SIREN</dt>                <dd><Field value={EDITOR.siren} label="numéro SIREN" /></dd>
         <dt>Adresse</dt>              <dd><Field value={EDITOR.address} label="adresse" /></dd>
-        <dt>Contact</dt>              <dd><Field value={EDITOR.email} label="e-mail de contact" /></dd>
+        <dt>E-mail</dt>               <dd><Field value={EDITOR.email} label="e-mail de contact" /></dd>
+        <dt>Téléphone</dt>            <dd><Field value={EDITOR.phone} label="téléphone" /></dd>
         <dt>TVA</dt>                  <dd>{EDITOR.vatMention}</dd>
         <dt>Directeur de la publication</dt> <dd>{EDITOR.publisher}</dd>
       </dl>

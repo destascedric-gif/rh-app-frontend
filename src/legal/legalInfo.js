@@ -9,6 +9,10 @@ export const EDITOR = {
   siren:       '132 923 111',
   address:     '27 bis avenue de la Forêt, 77380 Combs-la-Ville',
   email:       'contact@myorgaly.fr', // boîte mail OVH (Zimbra Starter) dédiée à Orgaly
+  // Obligatoire pour un éditeur personne physique (LCEN art. 1-1) et pour la
+  // vente en ligne (art. 19) ; affiché seulement dans les mentions légales
+  // (choix de Cédric le 28 nov. 2026 : le numéro de sa carte de visite)
+  phone:       '07 68 08 68 91',
   publisher:   'Cédric Destas', // directeur de la publication
   // Mention obligatoire sur les factures tant que la franchise en base s'applique
   vatMention:  'TVA non applicable, art. 293 B du CGI',
