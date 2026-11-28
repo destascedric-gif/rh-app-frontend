@@ -34,7 +34,7 @@ function InfoRow({ label, value }) {
 }
 
 export default function MyAccount() {
-  const { token, user } = useAuth();
+  const { token, user, login } = useAuth();
 
   // Fiche complète (téléphone, contrat…) ; en attendant, ce que contient
   // déjà la session (nom, e-mail).
@@ -68,9 +68,11 @@ export default function MyAccount() {
 
     setPwSaving(true);
     try {
-      await changePassword({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }, token);
+      // Nouveau jeton : cet appareil reste connecté, les autres sont déconnectés
+      const res = await changePassword({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }, token);
+      if (res?.token) login(user, res.token);
       setPwForm(EMPTY_PASSWORD_FORM);
-      setPwNotice('Mot de passe modifié.');
+      setPwNotice('Mot de passe modifié. Vos autres appareils devront se reconnecter.');
     } catch (err) {
       setPwError(err.message);
     } finally {

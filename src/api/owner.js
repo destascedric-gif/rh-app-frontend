@@ -27,3 +27,8 @@ export const deleteOwnerAiCredit = (id, token)           => req('DELETE', `/owne
 export const getOwnerVisits      = (days, token)         => req('GET', `/owner/visits?days=${days}`, token);
 // Interrupteur de l'option « IA avancée » d'une entreprise : { enabled }
 export const setOwnerCompanyAi   = (id, enabled, token)  => req('PATCH', `/owner/companies/${id}/ai`, token, { enabled });
+// Double authentification du compte propriétaire (onglet Sécurité)
+export const getOwner2fa     = (token)       => req('GET', '/owner/2fa', token);
+export const startOwner2fa   = (token)       => req('POST', '/owner/2fa/setup', token, {});
+export const enableOwner2fa  = (code, token) => req('POST', '/owner/2fa/enable', token, { code });
+export const disableOwner2fa = (code, token) => req('POST', '/owner/2fa/disable', token, { code });

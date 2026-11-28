@@ -38,6 +38,8 @@ const put = async (url, body, token = null) => {
 export const setupAdmin       = (data)           => post('/auth/setup/admin', data);
 export const setupCompany     = (data, token)    => post('/auth/setup/company', data, token);
 export const login            = (data)           => post('/auth/login', data);
+// 2e étape du propriétaire quand la double authentification est active
+export const loginCode        = (data)           => post('/auth/login/code', data);
 export const inviteEmployee   = (data, token)    => post('/auth/invite', data, token);
 export const resendInvite     = (id, token)      => post(`/auth/invite/${id}/resend`, {}, token);
 export const changePassword   = (data, token)    => put('/auth/change-password', data, token);

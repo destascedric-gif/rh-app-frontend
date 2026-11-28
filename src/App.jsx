@@ -40,6 +40,7 @@ import PilJournal from './pages/pilotage/PilJournal'
 import PilSante from './pages/pilotage/PilSante'
 import PilIA from './pages/pilotage/PilIA'
 import PilVisites from './pages/pilotage/PilVisites'
+import PilSecurite from './pages/pilotage/PilSecurite'
 import VisitTracker from './components/VisitTracker'
 import OwnerSetup from './pages/pilotage/OwnerSetup'
 
@@ -94,6 +95,7 @@ function App() {
             <Route path="sante" element={<PilSante />} />
             <Route path="ia" element={<PilIA />} />
             <Route path="visites" element={<PilVisites />} />
+            <Route path="securite" element={<PilSecurite />} />
           </Route>
           <Route path="/proprietaire/activer" element={<OwnerSetup />} />
           <Route path="/dashboard" element={<PrivateRoute adminOnly><Dashboard /></PrivateRoute>} />

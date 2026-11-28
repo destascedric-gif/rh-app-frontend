@@ -14,6 +14,7 @@ const NAV = [
   { to: '/pilotage/visites', icon: 'eye', label: 'Visites du site' },
   { to: '/pilotage/journal', icon: 'list', label: 'Journal des actions' },
   { to: '/pilotage/sante', icon: 'pulse', label: 'Santé technique' },
+  { to: '/pilotage/securite', icon: 'lock', label: 'Sécurité' },
 ];
 
 export default function PilotageLayout() {

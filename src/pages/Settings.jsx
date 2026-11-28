@@ -208,7 +208,7 @@ function SettingsWindow({ id, wide = false, tabs = false, onClose, children }) {
 }
 
 export default function Settings() {
-  const { token } = useAuth();
+  const { token, user, login } = useAuth();
 
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -394,10 +394,12 @@ export default function Settings() {
 
     setPwSaving(true);
     try {
-      await changePassword({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }, token);
+      // Nouveau jeton : cet appareil reste connecté, les autres sont déconnectés
+      const res = await changePassword({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }, token);
+      if (res?.token) login(user, res.token);
       setPwForm(EMPTY_PASSWORD_FORM);
       setOpenSection(null);
-      setNotice('Mot de passe modifié avec succès.');
+      setNotice('Mot de passe modifié. Vos autres appareils devront se reconnecter.');
     } catch (err) {
       setPwError(err.message);
     } finally {
