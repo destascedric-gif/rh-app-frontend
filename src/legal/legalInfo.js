@@ -40,7 +40,9 @@ export const SUBPROCESSORS = [
   {
     name:     'Railway Corporation',
     purpose:  'Hébergement de l\'API et de la base de données',
-    location: null, // région du projet Railway à vérifier (dashboard → Settings → Region)
+    // Région europe-west4 (Pays-Bas) pour le serveur et la base, vérifiée dans
+    // Railway le 28 nov. 2026
+    location: 'Pays-Bas (Union européenne)',
   },
   {
     name:     'Vercel Inc.',
@@ -49,7 +51,7 @@ export const SUBPROCESSORS = [
   },
   {
     name:     'Sendinblue SAS (Brevo)',
-    purpose:  'Envoi des e-mails transactionnels (invitations des employés)',
+    purpose:  'Envoi des e-mails du service (invitations, mot de passe oublié, réponses aux demandes de congé)',
     location: 'France (Union européenne)',
   },
   {
@@ -97,4 +99,4 @@ export const PRICING = {
 // Versions en vigueur (identiques au backend, src/config/legal.js)
 export const CGU_VERSION = '2026-10-01';
 export const CGV_VERSION = '2026-11-19';
-export const LEGAL_UPDATED_AT = '24 novembre 2026';
+export const LEGAL_UPDATED_AT = '28 novembre 2026';

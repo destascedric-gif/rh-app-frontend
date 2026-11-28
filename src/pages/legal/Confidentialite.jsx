@@ -141,6 +141,11 @@ export default function Confidentialite() {
         fréquentation sont enregistrés dans le stockage local du navigateur, ce qui est strictement
         nécessaire au fonctionnement du service et ne requiert pas de consentement.
       </p>
+      <p>
+        Vous pouvez refuser ce comptage des visites : ouvrez une fois la page{' '}
+        <Link to="/ne-pas-compter">myorgaly.fr/ne-pas-compter</Link> dans votre navigateur. Les visites
+        de ce navigateur ne sont alors plus comptées, et celles du jour sont retirées.
+      </p>
 
       <h2>6. Sécurité</h2>
       <p>
